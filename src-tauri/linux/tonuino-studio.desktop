@@ -1,0 +1,15 @@
+[Desktop Entry]
+Type=Application
+Name={{name}}
+{{#if comment}}
+Comment={{comment}}
+{{/if}}
+Exec={{exec}}
+StartupWMClass={{exec}}
+Icon={{icon}}
+Terminal=false
+Categories=AudioVideo;Audio;Utility;
+Keywords=TonUINO;Hörspiel;MP3;SD-Karte;RFID;NFC;Sticker;Firmware;
+{{#if mime_type}}
+MimeType={{mime_type}}
+{{/if}}

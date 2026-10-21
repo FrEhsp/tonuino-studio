@@ -1,0 +1,27 @@
+{
+ "name": "redirect with \"*\", file echoes the Origin -> after the cross-origin redirect the browser sends \"Origin: null\", the echo is \"null\" -> ok",
+ "kind": "synthetic",
+ "request": {
+  "method": "GET",
+  "url": "https://a.example/file.mp3"
+ },
+ "hops": [
+  {
+   "status": 302,
+   "url": "https://a.example/file.mp3",
+   "headers": {
+    "location": "https://b.example/file.mp3",
+    "access-control-allow-origin": "*"
+   }
+  },
+  {
+   "status": 200,
+   "url": "https://b.example/file.mp3",
+   "headers": {
+    "access-control-allow-origin": "<echo>",
+    "content-type": "audio/mpeg"
+   }
+  }
+ ],
+ "expect": "direct"
+}

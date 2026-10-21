@@ -1,0 +1,23 @@
+{
+ "name": "download-media.srf.ch (same host as the SRF MP3s; the MP3 itself gave no tester result): no CORS header",
+ "kind": "observed",
+ "observed": "2026-10-05T22:18:50Z",
+ "evidence": [
+  "../../cors/03_podcast_hosts_tester.txt",
+  "/tmp/ts-quellen/podcasts/cors/cors-checks_2026-10-05.txt (host root)"
+ ],
+ "request": {
+  "method": "GET",
+  "url": "https://download-media.srf.ch/world/image/audio/2023/04/987a01e371154a5d8f5e0afda6736d01.png"
+ },
+ "hops": [
+  {
+   "status": 200,
+   "url": "https://download-media.srf.ch/world/image/audio/2023/04/987a01e371154a5d8f5e0afda6736d01.png",
+   "headers": {
+    "content-type": "binary/octet-stream"
+   }
+  }
+ ],
+ "expect": "browser"
+}

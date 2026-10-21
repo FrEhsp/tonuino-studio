@@ -1,0 +1,15 @@
+/* "Mehr" at the end of the card check, with "Gründlich prüfen" (ThoroughDialog.tsx). */
+
+.dialog-body > .health-more {
+  margin-top: var(--space-2);
+}
+
+.health-more summary {
+  cursor: pointer;
+  color: var(--text-soft);
+  font-weight: 600;
+}
+
+.health-more p {
+  margin: var(--space-2) 0 0;
+}

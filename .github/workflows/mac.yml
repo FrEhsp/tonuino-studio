@@ -1,0 +1,110 @@
+# Unsigned macOS build of TonUINO Studio (universal: Apple silicon and Intel).
+# Mirrors scripts/build-linux.sh: npm ci, the front end built once without
+# source maps (public edition, "Entdecken" with its contact), then tauri build
+# without beforeBuildCommand. The app is signed ad hoc only (signingIdentity
+# "-" in tauri.conf.json), so the first start goes through right-click ›
+# Öffnen. Results: the .dmg and the zipped .app as workflow artifacts.
+name: macOS
+
+# Started by hand only: Mac minutes count tenfold in a private repository.
+on:
+  workflow_dispatch:
+    inputs:
+      runner:
+        description: Mac-Rechner von GitHub
+        type: choice
+        default: macos-15-intel
+        options: [macos-15-intel, macos-latest]
+
+concurrency:
+  group: mac-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    # Both kinds of runner build the same universal app. GitHub's Apple
+    # silicon runners (macos-latest) were too busy to pick the job up at all
+    # (October 2026), so Intel is the default; GitHub keeps macos-15-intel
+    # until about August 2027.
+    runs-on: ${{ inputs.runner || 'macos-15-intel' }}
+    timeout-minutes: 90
+    env:
+      VITE_SOURCES_CONTACT: f.ehspanner@posteo.de
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin,x86_64-apple-darwin
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri -> target
+
+      - name: npm-Pakete installieren (npm ci)
+        run: npm ci --prefer-offline --no-audit --no-fund
+
+      # TAURI_ENV_PLATFORM is what the Tauri CLI sets for beforeBuildCommand;
+      # vite.config.ts reads it to build the desktop front end. No target
+      # triple: the licence list then names the crates of every platform.
+      - name: Oberfläche bauen (npm run build, ohne Source Maps)
+        env:
+          TAURI_ENV_PLATFORM: darwin
+        run: |
+          npm run build -- --sourcemap false
+          map="$(find dist -name '*.map' -print -quit)"
+          if [ -n "$map" ]; then echo "dist/ enthält Source Maps: $map"; exit 1; fi
+          if grep -rqsiE 'yt-dlp|ytdlp|youtube' dist; then
+            echo "dist/ enthält Teile eines Downloads von Videoseiten"; exit 1
+          fi
+
+      - name: Mac-App bauen (tauri build, universal)
+        run: npm run tauri -- build --target universal-apple-darwin --bundles app,dmg --config '{"build":{"beforeBuildCommand":null}}'
+
+      - name: App packen und prüfen
+        id: pack
+        run: |
+          set -euo pipefail
+          version="$(node -p 'require("./package.json").version')"
+          bundle=src-tauri/target/universal-apple-darwin/release/bundle
+          app="$bundle/macos/TonUINO Studio.app"
+          dmg="$(find "$bundle/dmg" -name '*.dmg' -print -quit)"
+          test -d "$app" && test -f "$dmg"
+          bin="$(find "$app/Contents/MacOS" -maxdepth 1 -type f -print -quit)"
+          lipo -info "$bin"
+          lipo "$bin" -verify_arch arm64 x86_64
+          sig="$(codesign -dv "$app" 2>&1)"
+          echo "$sig" | sed -n '1,8p'
+          # Hardened runtime would need entitlements for the microphone; it
+          # only matters for notarisation, which an ad-hoc signature never gets.
+          if echo "$sig" | grep -q 'flags=.*runtime'; then echo "Hardened Runtime ist an"; exit 1; fi
+          codesign --verify --deep --strict "$app"
+          /usr/libexec/PlistBuddy -c 'Print :NSMicrophoneUsageDescription' "$app/Contents/Info.plist"
+          mkdir -p out
+          name="TonUINO-Studio_${version}_macOS-universal"
+          cp "$dmg" "out/$name.dmg"
+          ditto -c -k --sequesterRsrc --keepParent "$app" "out/$name.app.zip"
+          ls -lh out
+          echo "name=$name" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.pack.outputs.name }}.dmg
+          path: out/${{ steps.pack.outputs.name }}.dmg
+          compression-level: 0
+          if-no-files-found: error
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.pack.outputs.name }}.app.zip
+          path: out/${{ steps.pack.outputs.name }}.app.zip
+          compression-level: 0
+          if-no-files-found: error

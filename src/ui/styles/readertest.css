@@ -1,0 +1,252 @@
+/*
+ * Werkstatt: Kartenleser testen. Rounds as dots, the instruction of the
+ * moment, the advice and one row per card. Only design tokens, so light and
+ * dark mode follow tokens.css.
+ */
+
+/* An icon in a soft square, coloured by tone, next to a heading. */
+.rt-head {
+  display: flex;
+  gap: var(--space-4);
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.rt-head > .stack {
+  min-width: 0;
+}
+
+.rt-icon {
+  flex: none;
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  background: var(--bg-sunken);
+  color: var(--text-soft);
+}
+
+.rt-icon.ok {
+  background: var(--success-soft);
+  color: var(--success-text);
+}
+
+.rt-icon.warn {
+  background: var(--warning-soft);
+  color: var(--warning-text);
+}
+
+.rt-icon.error {
+  background: var(--danger-soft);
+  color: var(--danger-text);
+}
+
+@media (max-width: 480px) {
+  .rt-head {
+    gap: var(--space-3);
+  }
+
+  .rt-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+  }
+}
+
+/* The advice: a coloured edge says how it went. */
+.rt-advice {
+  border-left: 4px solid var(--border-strong);
+}
+
+.rt-advice.ok {
+  border-left-color: var(--success);
+}
+
+.rt-advice.warn {
+  border-left-color: var(--warning);
+}
+
+.rt-advice.error {
+  border-left-color: var(--danger);
+}
+
+.rt-tips {
+  margin: 0;
+  padding-left: 1.2em;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  color: var(--text-soft);
+}
+
+/* ------------------------------------------------------------------ a round */
+
+.rt-stage-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.rt-round-count {
+  font-weight: 700;
+  font-size: var(--text-sm);
+  color: var(--text-soft);
+}
+
+.rt-dots {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.rt-dot {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: var(--text-sm);
+  font-weight: 800;
+  background: var(--bg-sunken);
+  color: var(--text-muted);
+  border: 2px solid transparent;
+}
+
+.rt-dot.ok {
+  background: var(--success-soft);
+  color: var(--success-text);
+}
+
+.rt-dot.warn {
+  background: var(--warning-soft);
+  color: var(--warning-text);
+}
+
+.rt-dot.miss {
+  background: var(--danger-soft);
+  color: var(--danger-text);
+}
+
+.rt-say {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.rt-say-main {
+  font-size: var(--text-2xl);
+  line-height: 1.25;
+}
+
+.rt-last {
+  font-weight: 700;
+  font-size: var(--text-sm);
+}
+
+.rt-last.ok {
+  color: var(--success-text);
+}
+
+.rt-last.warn {
+  color: var(--warning-text);
+}
+
+.rt-last.error {
+  color: var(--danger-text);
+}
+
+.rt-last.neutral {
+  color: var(--text-soft);
+}
+
+@media (max-width: 480px) {
+  .rt-say-main {
+    font-size: var(--text-xl);
+  }
+}
+
+/* ------------------------------------------------------------------ cards */
+
+.rt-cards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.rt-card {
+  display: grid;
+  grid-template-columns: minmax(0, 12rem) 7.5rem minmax(0, 1fr);
+  gap: var(--space-2) var(--space-4);
+  align-items: start;
+  padding: var(--space-4) var(--space-6);
+  border-top: 1px solid var(--border);
+}
+
+.rt-card:first-child {
+  border-top: 0;
+}
+
+.rt-card-name {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.rt-rate {
+  justify-self: start;
+  padding: 2px 10px;
+  border-radius: var(--radius-full);
+  font-size: var(--text-sm);
+  white-space: nowrap;
+  background: var(--bg-sunken);
+  color: var(--text-soft);
+}
+
+.rt-rate.ok {
+  background: var(--success-soft);
+  color: var(--success-text);
+}
+
+.rt-rate.warn {
+  background: var(--warning-soft);
+  color: var(--warning-text);
+}
+
+.rt-rate.error {
+  background: var(--danger-soft);
+  color: var(--danger-text);
+}
+
+.rt-card-verdict {
+  min-width: 0;
+}
+
+@media (max-width: 640px) {
+  .rt-card {
+    grid-template-columns: minmax(0, 1fr) auto;
+    padding: var(--space-4);
+  }
+
+  .rt-card-verdict {
+    grid-column: 1 / -1;
+  }
+}
+
+/*
+ * The names in the drawing of "Tasten und Teile testen" (BoxSketch.tsx): on a
+ * phone the drawing shrinks them to about 8 px. There they grow and take
+ * turns on two lines; size and shift come from the drawing (labelStyle).
+ */
+@media (max-width: 520px) {
+  .pt-sketch .pt-label {
+    font-size: var(--pt-label-size);
+    transform: translateY(var(--pt-label-shift));
+  }
+}

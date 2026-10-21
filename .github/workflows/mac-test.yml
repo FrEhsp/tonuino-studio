@@ -1,0 +1,270 @@
+# Tests on a real Mac (GitHub's macOS runners), beyond building (mac.yml):
+#
+# - sd:     the Rust tests (cargo test --lib) on macOS; real SD cards as disk
+#           images that macOS formats itself (FAT32, exFAT) and mounts under
+#           /Volumes, one of them read-only (lock slider). The app's volume
+#           and file code lists, reads, writes and ejects them
+#           (src-tauri/src/mac_card_tests.rs), the app's card scan and its
+#           tidying before ejecting run on the mounted card, and after the
+#           eject the raw images must hold no hidden files of macOS
+#           (tests/labor/maccard.test.ts). Then the SD area of the Testlabor
+#           (mtools images, macOS-independent) and a start of the built app.
+# - boxsim: the box simulator (npm run test:boxsim), simavr built from source.
+#
+# Not here: the printer area of the Testlabor. It runs its own cupsd with the
+# Linux CUPS layout (/usr/lib/cups, cups-filters' pdftopdf, the cups-pdf
+# backend); macOS has a different CUPS without those filters, so porting it
+# is no small job. GUI interaction is not possible on the runner either.
+name: macOS-Tests
+
+# Started by hand only: Mac minutes count tenfold in a private repository.
+on:
+  workflow_dispatch:
+    inputs:
+      runner:
+        description: Mac-Rechner von GitHub
+        type: choice
+        default: macos-15-intel
+        options: [macos-15-intel, macos-latest]
+
+concurrency:
+  group: mac-test-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  VITE_SOURCES_CONTACT: f.ehspanner@posteo.de
+
+jobs:
+  sd:
+    name: Rust, SD-Karte, App-Start
+    runs-on: ${{ inputs.runner || 'macos-15-intel' }}
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri -> target
+
+      - name: npm-Pakete installieren (npm ci)
+        run: npm ci --prefer-offline --no-audit --no-fund
+
+      # The Rust crate embeds dist/ (tauri::generate_context!), the tests too.
+      - name: Oberfläche bauen
+        env:
+          TAURI_ENV_PLATFORM: darwin
+        run: npm run build -- --sourcemap false
+
+      - name: Rust-Tests (cargo test --lib)
+        working-directory: src-tauri
+        run: cargo test --lib
+
+      - name: SD-Karten anlegen und einstecken (FAT32, exFAT, schreibgeschützt)
+        id: cards
+        # The areas are independent: one failing must not hide the others.
+        if: ${{ !cancelled() }}
+        run: |
+          set -euo pipefail
+          T="$RUNNER_TEMP/cards"
+          mkdir -p "$T"
+          echo "CARDS=$T" >> "$GITHUB_ENV"
+          sw_vers
+          # A file with an extended attribute, as the Finder copies music:
+          # on FAT and exFAT macOS keeps the attribute in a "._" twin.
+          head -c 1500 /dev/zero | tr '\0' 'D' > "$T/src.mp3"
+          xattr -w com.apple.metadata:kMDItemWhereFroms 'https://example.org/' "$T/src.mp3"
+          fill() {
+            v="$1"
+            mkdir "$v/mp3" "$v/advert" "$v/01" "$v/02"
+            head -c 3000 /dev/zero | tr '\0' 'A' > "$v/01/001.mp3"
+            head -c 2000 /dev/zero | tr '\0' 'B' > "$v/02/001.mp3"
+            head -c 1000 /dev/zero | tr '\0' 'C' > "$v/mp3/0001.mp3"
+            head -c 1000 /dev/zero | tr '\0' 'C' > "$v/advert/0001.mp3"
+            cp "$T/src.mp3" "$v/01/003.mp3"
+            touch "$v/01/.DS_Store"
+            mkdir "$v/.Trashes"
+            touch "$v/._.Trashes"
+            sync
+            echo "── $v"; ls -la "$v" "$v/01"
+          }
+          hdiutil create -size 256m -fs "MS-DOS FAT32" -volname TSFAT32 -layout NONE "$T/fat32.dmg"
+          hdiutil create -size 256m -fs ExFAT -volname TSEXFAT -layout NONE "$T/exfat.dmg"
+          hdiutil create -size 128m -fs "MS-DOS FAT32" -volname TSRO -layout NONE "$T/ro.dmg"
+          hdiutil attach "$T/fat32.dmg"
+          hdiutil attach "$T/exfat.dmg"
+          hdiutil attach "$T/ro.dmg"
+          fill /Volumes/TSFAT32
+          fill /Volumes/TSEXFAT
+          fill /Volumes/TSRO
+          # The lock slider: the same card, mounted read-only.
+          hdiutil detach /Volumes/TSRO
+          hdiutil attach -readonly "$T/ro.dmg"
+          mount | grep /Volumes/TS
+          for v in /Volumes/TS*; do diskutil info "$v" | grep -E 'File System Personality|Removable|Ejectable|Read-Only|Block Size|Protocol|Device Location' || true; mdutil -s "$v" || true; done
+
+      - name: App-Code gegen die Karten (Liste, Lesen, Schreiben)
+        if: ${{ !cancelled() && steps.cards.outcome == 'success' }}
+        working-directory: src-tauri
+        env:
+          TONUINO_MAC_CARDS: /Volumes/TSFAT32:rw,/Volumes/TSEXFAT:rw,/Volumes/TSRO:ro
+        run: cargo test --lib mac_card_check -- --ignored --nocapture
+
+      - name: Karten-Prüfung und Aufräumen vor dem Auswerfen (wie die App)
+        if: ${{ !cancelled() && steps.cards.outcome == 'success' }}
+        env:
+          MAC_CARDS_PHASE: tidy
+          MAC_CARDS: /Volumes/TSFAT32:rw,/Volumes/TSEXFAT:rw,/Volumes/TSRO:ro
+        run: npx vitest run tests/labor/maccard.test.ts
+
+      - name: Auswerfen mit dem App-Code (diskutil eject)
+        if: ${{ !cancelled() && steps.cards.outcome == 'success' }}
+        working-directory: src-tauri
+        env:
+          TONUINO_MAC_CARDS: /Volumes/TSFAT32:rw,/Volumes/TSEXFAT:rw,/Volumes/TSRO:ro
+        run: cargo test --lib mac_card_eject -- --ignored --nocapture
+
+      - name: Ausgeworfene Karten ohne macOS lesen (keine versteckten Mac-Dateien)
+        if: ${{ !cancelled() && steps.cards.outcome == 'success' }}
+        env:
+          MAC_CARDS_PHASE: after
+        run: |
+          set -euo pipefail
+          hdiutil info | grep -E 'image-path|/dev/disk' || true
+          hdiutil convert "$CARDS/fat32.dmg" -format UDTO -o "$CARDS/fat32"
+          hdiutil convert "$CARDS/exfat.dmg" -format UDTO -o "$CARDS/exfat"
+          MAC_CARD_IMAGES="$CARDS/fat32.cdr,$CARDS/exfat.cdr" npx vitest run tests/labor/maccard.test.ts
+
+      - name: Karten wieder abziehen
+        if: always()
+        run: |
+          for v in /Volumes/TS*; do [ -d "$v" ] && hdiutil detach -force "$v" || true; done
+
+      - name: Testlabor SD (mtools-Abbilder, nachgebauter Kartenleser)
+        # The areas are independent: one failing must not hide the others.
+        if: ${{ !cancelled() }}
+        run: |
+          set -euo pipefail
+          brew install mtools dosfstools
+          # exFAT images need mkfs.exfat (exfatprogs, Linux only). Here macOS's
+          # own newfs_exfat formats the image, attached as a raw disk.
+          mkdir -p "$RUNNER_TEMP/bin"
+          cat > "$RUNNER_TEMP/bin/mkfs.exfat" <<'SH'
+          #!/bin/sh
+          # mkfs.exfat [-L label] image (only what tests/labor/sd/simcard.ts uses)
+          label=SD
+          while getopts L:V o; do case "$o" in L) label="$OPTARG";; V) echo "newfs_exfat (macOS)"; exit 0;; esac; done
+          shift $((OPTIND - 1))
+          dev=$(hdiutil attach -nomount -imagekey diskimage-class=CRawDiskImage "$1" | awk 'NR==1 {print $1}') || exit 1
+          newfs_exfat -v "$label" "$dev"; rc=$?
+          hdiutil detach "$dev" >/dev/null
+          exit $rc
+          SH
+          chmod +x "$RUNNER_TEMP/bin/mkfs.exfat"
+          export PATH="$RUNNER_TEMP/bin:$(brew --prefix)/sbin:$PATH"
+          npm run test:labor -- sd
+
+      - name: App bauen (debug, ohne Paket)
+        id: appbuild
+        # The areas are independent: one failing must not hide the others.
+        if: ${{ !cancelled() }}
+        run: npm run tauri -- build --debug --no-bundle --config '{"build":{"beforeBuildCommand":null}}'
+
+      - name: App starten (20 Sekunden, ohne Bedienung)
+        if: ${{ !cancelled() && steps.appbuild.outcome == 'success' }}
+        run: |
+          # Not -e: the killed app's exit status must not end the step.
+          set +e
+          bin=src-tauri/target/debug/tonuino-studio
+          mkdir -p out
+          RUST_BACKTRACE=1 "$bin" > out/app-stdout.log 2> out/app-stderr.log &
+          pid=$!
+          sleep 20
+          if kill -0 "$pid" 2>/dev/null; then
+            screencapture -x out/app.png || echo "kein Bildschirmfoto möglich"
+            kill "$pid"; wait "$pid" 2>/dev/null
+            echo "App lief 20 Sekunden ohne Absturz."; status=0
+          else
+            wait "$pid"; code=$?
+            echo "App hat sich nach weniger als 20 Sekunden beendet (Exit $code)."; status=1
+          fi
+          echo "── stderr"; cat out/app-stderr.log
+          echo "── stdout"; cat out/app-stdout.log
+          if grep -q 'panicked' out/app-stderr.log; then echo "Panic in der App"; status=1; fi
+          exit $status
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mac-test-app-start
+          path: out/
+          if-no-files-found: ignore
+
+  boxsim:
+    name: Box-Simulator
+    runs-on: ${{ inputs.runner || 'macos-15-intel' }}
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: npm-Pakete installieren (npm ci)
+        run: npm ci --prefer-offline --no-audit --no-fund
+
+      # Homebrew has simavr only in the osx-cross tap, which builds avr-gcc
+      # from source first (more than 50 minutes). The library itself needs
+      # only the register headers of avr-libc for its cores, so it is built
+      # here from source. Same versions as Debian and Ubuntu
+      # (simavr 1.6, avr-libc 2.0), which tests/boxsim is measured against:
+      # simavr's master answers cards with other timing (two tests fail with
+      # it on Linux too).
+      - name: simavr bauen (1.6, nur die Bibliothek)
+        run: |
+          set -euo pipefail
+          src="$RUNNER_TEMP/src"; prefix="$RUNNER_TEMP/simavr"
+          mkdir -p "$src" "$prefix/include/simavr/avr" "$prefix/lib"
+          git clone -q --depth 1 --branch v1.6 https://github.com/buserror/simavr.git "$src/simavr"
+          git clone -q --depth 1 --branch avr-libc-2_0_0-release --filter=blob:none --sparse https://github.com/avrdudes/avr-libc.git "$src/avr-libc"
+          git -C "$src/avr-libc" sparse-checkout set include
+          # Only avr/ of avr-libc: its stdint.h and time.h are for the AVR, not for the Mac.
+          mkdir -p "$src/avrinc"
+          ln -s "$src/avr-libc/include/avr" "$src/avrinc/avr"
+          lib="$src/simavr/simavr"
+          # Only the ATmega328P core (and its megax8 base): the simulator runs
+          # nothing else; the AiO's LGT8F328P runs as one too.
+          find "$lib/cores" -name 'sim_*.c' ! -name 'sim_mega328.c' ! -name 'sim_megax8.c' -delete
+          # The ELF loader needs libelf; the simulator loads .hex files.
+          rm "$lib/sim/sim_elf.c"
+          # With GCC: simavr 1.6 built by clang hangs the box after its start
+          # (also on Linux). Apple's gcc is clang; the runners have Homebrew's.
+          cc=""
+          for c in gcc-15 gcc-14 gcc-13 gcc-12; do if command -v "$c" >/dev/null; then cc="$c"; break; fi; done
+          if [ -z "$cc" ]; then brew install gcc; cc="$(ls "$(brew --prefix)/bin" | grep -E '^gcc-[0-9]+$' | sort -V | tail -1)"; fi
+          "$cc" --version | head -1
+          # HOMEBREW_PREFIX elsewhere: Makefile.common would demand Homebrew's libelf and avr-gcc.
+          flags=("CC=$cc" HOMEBREW_PREFIX=/nonexistent "CFLAGS=-O2 -g -fPIC -w -I$src/avrinc")
+          # As its "all" target: configure the cores first, then the library.
+          make -C "$lib" "${flags[@]}" obj config
+          make -C "$lib" "${flags[@]}" libsimavr
+          obj="$(find "$lib" -maxdepth 1 -type d -name 'obj-*' -print -quit)"
+          cp "$obj/libsimavr.a" "$prefix/lib/"
+          cp "$lib/sim/"*.h "$lib/"sim_core_*.h "$prefix/include/simavr/"
+          cp "$lib/sim/avr/"*.h "$prefix/include/simavr/avr/"
+          grep -E 'CONFIG_MEGA328 ' "$prefix/include/simavr/sim_core_config.h"
+          echo "SIMAVR_PREFIX=$prefix" >> "$GITHUB_ENV"
+
+      - name: Box-Simulator (npm run test:boxsim)
+        run: npm run test:boxsim

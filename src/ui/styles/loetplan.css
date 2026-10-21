@@ -1,0 +1,690 @@
+/*
+ * "Lötplan" in the Werkstatt (src/features/workshop/LoetplanTool.tsx): the
+ * switches above the picture, the picture in its framed box, the folded
+ * steps and wire list, and a print of one page with the picture as big as
+ * it goes.
+ *
+ * The drawn frames, buttons and folds come from the style sheet of the
+ * Holzwerkstatt (.card, .segmented, .ws-later); this sheet only adds what
+ * the Lötplan has of its own.
+ */
+
+.lp-page,
+.bt-page {
+  /*
+   * The fonts of the pictures, in one place: --lp-schrift for the print on
+   * boards and parts (pin names), --lp-hand for names and notes on paper.
+   * They follow the fonts of the app (tokens.css: --font is Fira Sans,
+   * --font-hand Shantell Sans); set them here to give the Lötplan its own.
+   */
+  --lp-schrift: var(--font);
+  --lp-hand: var(--font-hand);
+}
+
+/* Only on screen: the print is always on white paper (see the end of this sheet). */
+@media screen {
+  :root[data-theme='dark'] .lp-page,
+  :root[data-theme='dark'] .bt-page {
+    /* Black wires (ground, speaker minus) get a light edge, or they vanish on the dark sheet. */
+    --lp-rand-schwarz: #b3a998;
+    --lp-rand-schwarz-deckung: 1;
+  }
+}
+
+/* ------------------------------------------------------------------ switches */
+
+.lp-switches {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3) var(--space-6);
+  /* The choices below lay out by the width of the page column, like the settings. */
+  container-type: inline-size;
+}
+
+.lp-switch {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  min-width: 0;
+  max-width: 100%;
+}
+
+.lp-switch-label {
+  font-weight: 700;
+}
+
+.lp-switch .segmented button {
+  height: 38px;
+  font-size: var(--text-base);
+}
+
+/*
+ * On a phone the choices do not fit in one row. Instead of one word alone on
+ * a second line ("AiO+", "keine"), the four boards become two even rows and
+ * the headphone choices move a little closer to fit in one; where that is
+ * still too narrow, they stand one under the other. Each width is where the
+ * row stops fitting, measured with the app font.
+ */
+@container (max-width: 400px) {
+  .lp-switch-platine .segmented {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .lp-switch-platine .segmented button {
+    justify-content: center;
+  }
+
+  .lp-switch-kh .segmented button {
+    padding: 0 var(--space-2);
+  }
+}
+
+@container (max-width: 340px) {
+  .lp-switch-platine .segmented,
+  .lp-switch-kh .segmented {
+    display: grid;
+    grid-template-columns: 1fr;
+    /* A column of choices under its label, not a narrow one beside it. */
+    width: 100%;
+  }
+}
+
+/* ------------------------------------------------------------------ the picture */
+
+.lp-bild {
+  position: relative;
+  margin: var(--space-2) 0 0;
+  padding: var(--space-4) var(--space-3) var(--space-3);
+}
+
+.lp-caption {
+  margin: 0 var(--space-3) var(--space-2);
+  font-family: var(--font-hand);
+  font-size: 1.15rem;
+  color: var(--text-soft);
+  text-align: center;
+}
+
+/* On a phone the picture keeps a readable size and scrolls on its own; the page does not. */
+.lp-scroll {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+
+/* While a step is shown, the note at the picture says why the rest is pale. */
+.lp-step-note {
+  margin: 0 var(--space-3) var(--space-2);
+  color: var(--text);
+  font-weight: 600;
+  text-align: center;
+}
+
+.lp-step-note .link-button {
+  display: inline;
+}
+
+/* The whole picture for paper while the screen shows one step pale. */
+.lp-print-only {
+  display: none;
+}
+
+/* Only where the picture does not fit: a note that it moves sideways. */
+.lp-swipe {
+  display: none;
+  margin: 0 var(--space-3) var(--space-2);
+  font-family: var(--font-hand);
+  color: var(--text-muted);
+  text-align: center;
+}
+
+@media (max-width: 760px) {
+  .lp-swipe {
+    display: block;
+  }
+}
+
+.lp-sketch {
+  display: block;
+  width: 100%;
+  min-width: 640px;
+  height: auto;
+}
+
+.lp-compare {
+  margin: var(--space-2) var(--space-3) 0;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  text-align: center;
+}
+
+/* ------------------------------------------------------------------ steps, hints, wire list, extras */
+
+.lp-hints {
+  margin: 0;
+  padding-left: 1.2em;
+}
+
+.lp-hints li + li {
+  margin-top: 4px;
+}
+
+.lp-check {
+  margin-left: 4px;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--warning-text, #8a5a00);
+  white-space: nowrap;
+}
+
+.lp-extras {
+  margin-top: var(--space-3);
+}
+
+.lp-extra .lp-sketch {
+  min-width: 560px;
+}
+
+/* The chooser: one tick per extra, its one-line purpose under the name. */
+.lp-extra-wahl {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lp-extra-chip {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  height: 100%;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  cursor: pointer;
+}
+
+.lp-extra-chip:has(input:checked) {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.lp-extra-chip.is-off {
+  cursor: default;
+  opacity: 0.7;
+}
+
+.lp-extra-chip input {
+  margin-top: 3px;
+  flex: none;
+}
+
+.lp-extra-chip-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.lp-extra-tag {
+  margin-left: auto;
+  flex: none;
+  padding: 1px 6px;
+  border-radius: 6px;
+  font-size: var(--text-xs);
+  color: var(--text-soft);
+  background: var(--bg-sunken);
+  white-space: nowrap;
+}
+
+.lp-extra p {
+  margin: 0;
+}
+
+.lp-extra-kabel > summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.lp-firmware {
+  font-weight: 600;
+}
+
+.lp-steps,
+.lp-wires {
+  margin-top: var(--space-3);
+}
+
+.lp-step-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-lg, 1.15rem);
+}
+
+.lp-table-wrap {
+  overflow-x: auto;
+}
+
+.lp-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+}
+
+.lp-table th,
+.lp-table td {
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: top;
+}
+
+.lp-table td:nth-child(2) {
+  min-width: 12em;
+}
+
+.lp-table td:nth-child(3) {
+  min-width: 14em;
+}
+
+.lp-color {
+  white-space: nowrap;
+}
+
+.lp-swatch {
+  display: inline-block;
+  width: 28px;
+  height: 9px;
+  margin-right: 6px;
+  border: 1px solid rgb(0 0 0 / 0.3);
+  border-radius: 5px;
+  vertical-align: middle;
+}
+
+/* ------------------------------------------------------------------ next step */
+
+.lp-next {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.lp-next p {
+  margin: 0;
+}
+
+/* ------------------------------------------------------------------ print: one page, picture big */
+
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 10mm;
+  }
+
+  html:has(.lp-page),
+  body:has(.lp-page),
+  body:has(.lp-page) #app {
+    height: auto;
+    overflow: visible;
+    background: #fff;
+  }
+
+  /* White paper also round the edges when the app is dark (tokens.css sets color-scheme). */
+  :root[data-theme]:has(.lp-page) {
+    color-scheme: light;
+  }
+
+  body:has(.lp-page) .app {
+    display: block;
+    height: auto;
+  }
+
+  body:has(.lp-page) :is(.sidebar, .phone-tabs, .toasts, .back-link) {
+    display: none !important;
+  }
+
+  body:has(.lp-page) .main {
+    overflow: visible;
+    padding: 0;
+  }
+
+  /* The light look, also when the app is dark: lines, links and notes as on paper. */
+  .lp-page {
+    --surface: #fff;
+    --bg: #fff;
+    --text: #161412;
+    --text-soft: #3d3732;
+    --text-muted: #555;
+    --ink: #1f1a16;
+    --border: #e2d9c8;
+    --border-strong: #bdb3a0;
+    --primary: var(--brand-600);
+    --primary-text: #7e4479;
+    --accent: var(--accent-500);
+    --drop: rgb(31 26 22 / 0.15);
+    --lp-rand-schwarz: #000;
+    --lp-rand-schwarz-deckung: 0.55;
+    --warning: #d08a10;
+    --warning-soft: #fbefc8;
+    --warning-text: #75500a;
+
+    color-scheme: light;
+    max-width: none;
+    padding: 0;
+    gap: 4px;
+    color: #161412;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .lp-page .lp-noprint {
+    display: none !important;
+  }
+
+  .lp-page .lp-print-only {
+    display: block;
+  }
+
+  .lp-page .page-header h1 {
+    margin: 0;
+  }
+
+  .lp-bild {
+    break-inside: avoid;
+    box-shadow: none;
+    padding: 14px 4px 4px;
+  }
+
+  /*
+   * The pen line round the picture is measured on screen (src/ui/drawnFrames.ts)
+   * and runs off the narrower paper; the print gets the plain line all round.
+   */
+  :root .lp-bild[data-fc-before]::before {
+    inset: -1px !important;
+    border-color: var(--frame-color) !important;
+    border-radius: inherit !important;
+    background: none !important;
+    clip-path: none !important;
+  }
+
+  .lp-scroll {
+    overflow: visible;
+  }
+
+  .lp-caption {
+    font-size: 11pt;
+  }
+
+  /* As big as one A4 page allows next to the title and the warning. */
+  .lp-sketch {
+    min-width: 0;
+    max-height: 180mm;
+  }
+
+  /* The tall wiring pictures (Classic without board) leave room for their many hints. */
+  .lp-schema {
+    max-height: 152mm;
+  }
+
+  .lp-page .callout {
+    break-inside: avoid;
+    font-size: 10pt;
+  }
+
+  .lp-page .lp-hints {
+    columns: 2;
+    column-gap: 6mm;
+    font-size: 8.5pt;
+    line-height: 1.35;
+  }
+
+  .lp-page .lp-hints li {
+    break-inside: avoid;
+  }
+
+  .lp-page .lp-hints li + li {
+    margin-top: 2px;
+  }
+}
+
+/* ------------------------------------------------------------------ Box testen (guided) */
+
+.lp-mark {
+  animation: lp-mark-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes lp-mark-pulse {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lp-mark {
+    animation: none;
+  }
+}
+
+/* The drawing shows where the cable goes; on a laptop screen it leaves room for the step and its button below,
+   which sat far under the fold at 1366×768 and 1440×830 (Prüfrunde 0.5-1). The viewBox keeps its shape; its
+   labels stay readable down to this height. */
+.bt-sketch {
+  max-height: max(240px, 36vh);
+}
+
+@media (min-width: 1100px) {
+  /* Wider than the text above, so the drawing beside the step keeps readable labels; the box below lines up. */
+  .bt-page > .bt-stage.is-connect,
+  .bt-page > .bt-stage.is-connect ~ .bt-mehr {
+    max-width: 1040px;
+  }
+
+  .bt-stage.is-connect {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    align-items: center;
+    gap: var(--space-6);
+  }
+
+  .bt-stage.is-connect .bt-sketch {
+    max-height: none;
+  }
+}
+
+.bt-steps ol {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: bt;
+}
+
+.bt-steps li {
+  counter-increment: bt;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 10px 2px 4px;
+  border-radius: var(--radius-full);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.bt-steps li::before {
+  content: counter(bt);
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1px solid var(--border-strong);
+  font-size: 12px;
+}
+
+.bt-steps li.is-done::before {
+  content: '✓';
+  border-color: var(--success);
+  background: var(--success);
+  color: var(--text-on-brand);
+}
+
+.bt-steps li.is-now {
+  background: var(--primary-soft);
+  color: var(--primary-soft-text);
+  font-weight: 600;
+}
+
+.bt-steps li.is-now::before {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: var(--text-on-brand);
+}
+
+.bt-nav {
+  align-items: center;
+}
+
+.bt-volume {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.bt-volume-bar {
+  flex: 1;
+  max-width: 320px;
+  height: 12px;
+  border-radius: var(--radius-full);
+  background: var(--bg-sunken);
+  overflow: hidden;
+}
+
+.bt-volume-bar span {
+  display: block;
+  height: 100%;
+  background: var(--primary);
+  transition: width 0.2s var(--ease);
+}
+
+.bt-wackel {
+  padding: var(--space-3);
+  border-radius: var(--radius);
+  background: var(--bg-sunken);
+}
+
+.bt-wackel-log {
+  margin: var(--space-2) 0 0;
+  padding: 0;
+  list-style: none;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.bt-wackel-log li {
+  padding: 3px 0;
+  font-size: var(--text-sm);
+}
+
+.bt-wackel-log li.fehler {
+  color: var(--danger-text);
+  font-weight: 600;
+}
+
+.bt-wackel-log li.warn {
+  color: var(--danger-text);
+}
+
+.bt-wackel-log .bt-time {
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+}
+
+.bt-problems {
+  margin: 0;
+  padding-left: var(--space-4);
+}
+
+.bt-teile {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr));
+  gap: var(--space-1) var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bt-teile li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.bt-dot {
+  flex: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--control-off);
+}
+
+.bt-teile .ok .bt-dot {
+  background: var(--success);
+}
+
+.bt-teile .hinweis .bt-dot {
+  background: var(--warning);
+}
+
+.bt-teile .fehler .bt-dot {
+  background: var(--danger);
+}
+
+.bt-befunde {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bt-befund {
+  padding: var(--space-3);
+  border-left: 4px solid var(--amber);
+  border-radius: var(--radius-sm);
+  background: var(--bg-sunken);
+}
+
+.bt-befund.fehler {
+  border-left-color: var(--danger);
+}
+
+.bt-befund p {
+  margin: var(--space-1) 0 0;
+}
+
+.bt-befund.is-shown {
+  outline: 2px solid var(--danger);
+}
+
+.bt-stelle {
+  margin: 0;
+}
+
+.bt-mehr summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.bt-extra-wahl {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 170px), 1fr));
+}

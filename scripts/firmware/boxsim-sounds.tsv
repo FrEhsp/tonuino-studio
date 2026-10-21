@@ -1,0 +1,659 @@
+# TNG system sounds (TonUINO-TNG d527ca5 sd-card/, audio_messages_de.txt, GPL-3.0): dir, number, seconds, text (numbers 1-255 say their number)
+mp3	1	0.64	1
+mp3	2	0.61	2
+mp3	3	0.56	3
+mp3	4	0.58	4
+mp3	5	0.69	5
+mp3	6	0.66	6
+mp3	7	0.69	7
+mp3	8	0.53	8
+mp3	9	0.69	9
+mp3	10	0.58	10
+mp3	11	0.56	11
+mp3	12	0.69	12
+mp3	13	0.82	13
+mp3	14	0.74	14
+mp3	15	0.87	15
+mp3	16	0.79	16
+mp3	17	0.84	17
+mp3	18	0.74	18
+mp3	19	0.82	19
+mp3	20	0.77	20
+mp3	21	1.05	21
+mp3	22	1.16	22
+mp3	23	1.08	23
+mp3	24	1.13	24
+mp3	25	1.16	25
+mp3	26	1.18	26
+mp3	27	1.18	27
+mp3	28	1.13	28
+mp3	29	1.13	29
+mp3	30	0.69	30
+mp3	31	1.00	31
+mp3	32	1.16	32
+mp3	33	1.08	33
+mp3	34	1.11	34
+mp3	35	1.11	35
+mp3	36	1.16	36
+mp3	37	1.16	37
+mp3	38	1.11	38
+mp3	39	1.13	39
+mp3	40	0.71	40
+mp3	41	1.03	41
+mp3	42	1.16	42
+mp3	43	1.08	43
+mp3	44	1.11	44
+mp3	45	1.13	45
+mp3	46	1.13	46
+mp3	47	1.16	47
+mp3	48	1.03	48
+mp3	49	1.11	49
+mp3	50	0.79	50
+mp3	51	1.11	51
+mp3	52	1.18	52
+mp3	53	1.13	53
+mp3	54	1.16	54
+mp3	55	1.18	55
+mp3	56	1.21	56
+mp3	57	1.18	57
+mp3	58	1.13	58
+mp3	59	1.18	59
+mp3	60	0.73	60
+mp3	61	1.03	61
+mp3	62	1.13	62
+mp3	63	1.08	63
+mp3	64	1.08	64
+mp3	65	1.13	65
+mp3	66	1.16	66
+mp3	67	1.13	67
+mp3	68	1.08	68
+mp3	69	1.11	69
+mp3	70	0.77	70
+mp3	71	1.00	71
+mp3	72	1.11	72
+mp3	73	1.05	73
+mp3	74	1.08	74
+mp3	75	1.11	75
+mp3	76	1.16	76
+mp3	77	1.13	77
+mp3	78	1.11	78
+mp3	79	1.08	79
+mp3	80	0.71	80
+mp3	81	1.03	81
+mp3	82	1.13	82
+mp3	83	1.05	83
+mp3	84	1.13	84
+mp3	85	1.13	85
+mp3	86	1.18	86
+mp3	87	1.16	87
+mp3	88	1.05	88
+mp3	89	1.08	89
+mp3	90	0.74	90
+mp3	91	1.11	91
+mp3	92	1.24	92
+mp3	93	1.13	93
+mp3	94	1.16	94
+mp3	95	1.24	95
+mp3	96	1.24	96
+mp3	97	1.21	97
+mp3	98	1.18	98
+mp3	99	1.16	99
+mp3	100	0.84	100
+mp3	101	1.08	101
+mp3	102	1.03	102
+mp3	103	0.92	103
+mp3	104	1.03	104
+mp3	105	1.11	105
+mp3	106	1.00	106
+mp3	107	1.08	107
+mp3	108	1.00	108
+mp3	109	1.08	109
+mp3	110	1.05	110
+mp3	111	1.05	111
+mp3	112	1.16	112
+mp3	113	1.26	113
+mp3	114	1.24	114
+mp3	115	1.31	115
+mp3	116	1.29	116
+mp3	117	1.26	117
+mp3	118	1.24	118
+mp3	119	1.29	119
+mp3	120	1.26	120
+mp3	121	1.50	121
+mp3	122	1.60	122
+mp3	123	1.55	123
+mp3	124	1.55	124
+mp3	125	1.60	125
+mp3	126	1.60	126
+mp3	127	1.65	127
+mp3	128	1.63	128
+mp3	129	1.60	129
+mp3	130	1.16	130
+mp3	131	1.47	131
+mp3	132	1.58	132
+mp3	133	1.52	133
+mp3	134	1.55	134
+mp3	135	1.58	135
+mp3	136	1.58	136
+mp3	137	1.65	137
+mp3	138	1.58	138
+mp3	139	1.58	139
+mp3	140	1.18	140
+mp3	141	1.58	141
+mp3	142	1.58	142
+mp3	143	1.55	143
+mp3	144	1.58	144
+mp3	145	1.52	145
+mp3	146	1.60	146
+mp3	147	1.58	147
+mp3	148	1.55	148
+mp3	149	1.63	149
+mp3	150	1.24	150
+mp3	151	1.55	151
+mp3	152	1.65	152
+mp3	153	1.60	153
+mp3	154	1.60	154
+mp3	155	1.65	155
+mp3	156	1.65	156
+mp3	157	1.71	157
+mp3	158	1.63	158
+mp3	159	1.65	159
+mp3	160	1.21	160
+mp3	161	1.52	161
+mp3	162	1.55	162
+mp3	163	1.55	163
+mp3	164	1.55	164
+mp3	165	1.60	165
+mp3	166	1.60	166
+mp3	167	1.63	167
+mp3	168	1.55	168
+mp3	169	1.60	169
+mp3	170	1.21	170
+mp3	171	1.50	171
+mp3	172	1.55	172
+mp3	173	1.52	173
+mp3	174	1.55	174
+mp3	175	1.58	175
+mp3	176	1.58	176
+mp3	177	1.60	177
+mp3	178	1.58	178
+mp3	179	1.58	179
+mp3	180	1.18	180
+mp3	181	1.55	181
+mp3	182	1.58	182
+mp3	183	1.55	183
+mp3	184	1.58	184
+mp3	185	1.55	185
+mp3	186	1.55	186
+mp3	187	1.63	187
+mp3	188	1.55	188
+mp3	189	1.60	189
+mp3	190	1.24	190
+mp3	191	1.63	191
+mp3	192	1.65	192
+mp3	193	1.68	193
+mp3	194	1.63	194
+mp3	195	1.65	195
+mp3	196	1.68	196
+mp3	197	1.73	197
+mp3	198	1.65	198
+mp3	199	1.68	199
+mp3	200	0.92	200
+mp3	201	1.18	201
+mp3	202	1.13	202
+mp3	203	1.03	203
+mp3	204	1.13	204
+mp3	205	1.18	205
+mp3	206	1.11	206
+mp3	207	1.16	207
+mp3	208	1.16	208
+mp3	209	1.16	209
+mp3	210	1.21	210
+mp3	211	1.16	211
+mp3	212	1.26	212
+mp3	213	1.42	213
+mp3	214	1.34	214
+mp3	215	1.39	215
+mp3	216	1.42	216
+mp3	217	1.37	217
+mp3	218	1.39	218
+mp3	219	1.39	219
+mp3	220	1.31	220
+mp3	221	1.63	221
+mp3	222	1.71	222
+mp3	223	1.68	223
+mp3	224	1.63	224
+mp3	225	1.71	225
+mp3	226	1.73	226
+mp3	227	1.73	227
+mp3	228	1.71	228
+mp3	229	1.73	229
+mp3	230	1.26	230
+mp3	231	1.63	231
+mp3	232	1.65	232
+mp3	233	1.65	233
+mp3	234	1.63	234
+mp3	235	1.65	235
+mp3	236	1.71	236
+mp3	237	1.78	237
+mp3	238	1.65	238
+mp3	239	1.71	239
+mp3	240	1.29	240
+mp3	241	1.65	241
+mp3	242	1.65	242
+mp3	243	1.65	243
+mp3	244	1.60	244
+mp3	245	1.63	245
+mp3	246	1.65	246
+mp3	247	1.68	247
+mp3	248	1.68	248
+mp3	249	1.71	249
+mp3	250	1.34	250
+mp3	251	1.68	251
+mp3	252	1.73	252
+mp3	253	1.73	253
+mp3	254	1.65	254
+mp3	255	1.78	255
+mp3	262	0.29	
+mp3	300	1.60	Oh, eine neue Karte!
+mp3	301	5.43	Ok, verwende nun die Lautstärketasten um einen Ordner für die Karte auszuwählen.
+mp3	302	5.83	Ok, verwende nun die Lautstärketasten um einen letzen Ordner für die Karte auszuwählen.
+mp3	310	6.64	Wähle mit den Lautstärketasten den Wiedergabemodus aus. Drücke die Pausetaste um fortzufahren.
+mp3	311	3.90	Hörspielmodus: Eine zufällige Datei aus dem Ordner wiedergeben
+mp3	312	2.88	Albummodus: Den kompletten Ordner wiedergeben
+mp3	313	2.70	Party Modus: Ordner zufällig wiedergeben.
+mp3	314	3.53	Einzel Modus: Eine bestimmte Datei im Ordner wiedergeben.
+mp3	315	4.08	Hörbuch Modus: Einen Ordner wiedergeben und den Fortschritt speichern.
+mp3	316	1.21	Admin Funktionen.
+mp3	317	6.07	Spezialmodus Von-Bis, Hörspiel: Eine zufällige Datei zwischen der Start und Enddatei wiedergeben.
+mp3	318	5.52	Spezialmodus Von-Bis, Album: Alle Dateien zwischen der Start und Enddatei wiedergeben.
+mp3	319	6.07	Spezialmodus Von-Bis, Party: Alle Dateien zwischen der Start und Enddatei zufällig wiedergeben.
+mp3	320	5.90	Hörbuch Modus einzeln: Den nächsten Titel im Ordner wiedergeben und den Fortschritt speichern.
+mp3	321	5.34	Wiederhole Karte Modus: Die letzte Karte oder der letzte Shortcut wird wiederholt.
+mp3	322	2.64	Quiz Spiel Modus: Spiele ein Quiz.
+mp3	323	2.90	Memory Spiel Modus: Spiele ein Memory.
+mp3	324	3.24	Switch Bluetooth: Schalte Bluetooth an oder aus.
+mp3	325	3.97	Teekesselchen Spiel Modus: Spiele ein Teekesselchen Spiel.
+mp3	326	7.68	Spezialmodus Von-Bis, Hörbuch: Alle Dateien zwischen der Start und Enddatei wiedergeben und den Fortschritt speichern.
+mp3	327	3.77	OK, wähle nun bitte die Datei mit den Lautstärketasten aus.
+mp3	328	4.16	OK, wähle nun bitte die Startdatei mit den Lautstärketasten aus.
+mp3	329	3.30	Wähle nun bitte die Enddatei mit den Lautstärketasten aus.
+mp3	330	7.61	Soll ich vor einer Datei jeweils die Nummer ansagen? Du kannst jederzeit durch einen langen Druck auf die Pausetaste die aktuelle Nummer abfragen.
+mp3	331	1.99	Nein, Nummer nicht ansagen.
+mp3	332	1.65	Ja, Nummer ansagen.
+mp3	333	3.45	Wieviel verschiedene Antworten hat das Quiz für eine Frage.
+mp3	334	1.18	2 Antworten.
+mp3	335	1.15	4 Antworten.
+mp3	336	2.12	2 Antworten und eine Lösung.
+mp3	337	2.14	4 Antworten und eine Lösung.
+mp3	338	1.67	Nur eine Lösung mit Buzzer.
+mp3	340	2.62	
+mp3	400	2.75	OK. Ich habe die Karte konfiguriert.
+mp3	401	2.49	Oh weh! Das hat leider nicht geklappt!
+mp3	402	3.04	Ok, ich habe die Einstellungen gespeichert
+mp3	500	28.97	Du spielst jetzt ein Quiz. Drücke die Pause Taste, um eine neue Frage zu erhalten. Danach drücke die Vor, Zurück oder die Lautstärke Tasten, um die verschiedenen Antworten zu hören. Wenn du denkst, dass du die richtige Antwort gehört hast, kannst du die Pause Taste drücken um zu erfahren, ob das die richtige Antwort ist. Wiederhole das Ganze so oft du willst. Du kannst das Quiz mit dem langen Druck auf die Vor- und Zurück Taste beenden.
+mp3	501	5.77	Ja, das ist die richtige Antwort. Gut gemacht. Weiter mit der Pause Taste. 
+mp3	502	7.13	Oh nein, das ist nicht die richtige Antwort. Versuche die nächste Frage. Weiter mit der Pause Taste. 
+mp3	503	6.06	Ja, das ist die richtige Antwort. Gut gemacht. Hier ist die Erklärung für die Lösung. 
+mp3	504	4.31	Oh nein, das ist nicht die richtige Antwort. Hier ist die Lösung. 
+mp3	505	6.48	Spieler zurück war der erste! Wie lautet die Lösung? Spiele dann die Lösung mit der Pause Taste. 
+mp3	506	6.43	Spieler vor war der erste! Wie lautet die Lösung? Spiele dann die Lösung mit der Pause Taste. 
+mp3	507	6.64	Spieler leiser war der erste! Wie lautet die Lösung? Spiele dann die Lösung mit der Pause Taste. 
+mp3	508	6.50	Spieler lauter war der erste! Wie lautet die Lösung? Spiele dann die Lösung mit der Pause Taste. 
+mp3	509	26.98	Du spielst jetzt ein Quiz mit Buzzer. Drücke die Pause Taste, um eine neue Frage zu erhalten. Danach drückt die Zurück, Vor, Leiser und Lauter Taste als Buzzer. Wenn der schnellste Spieler die Antwort gesagt hat, kannst du die Pause Taste drücken um zu erfahren, ob das die richtige Antwort ist. Wiederhole das Ganze so oft du willst. Du kannst das Quiz mit dem langen Druck auf die Vor- und Zurück Taste beenden.
+mp3	510	1.80	Weiter mit der Pause Taste. 
+mp3	520	25.70	Du spielst jetzt ein Memory Spiel. Lege eine erste und dann eine zweite Memory Karte auf. Nach der zweiten Karte erfährst du nach drücken der Pause Taste, ob die beiden Karten zusammen gehören. Dann kannst du beide behalten, ansonsten lege beide wieder zurück ins Spiel. Und weiter geht es mit dem nächsten Spieler. Du kannst das Memory Spiel mit dem langen Druck auf die Vor- und Zurück Taste beenden.
+mp3	521	2.87	Ja, die beiden Karten gehören zusammen. 
+mp3	522	2.35	Oh nein, die Karten passen nicht. 
+mp3	523	2.66	Lege bitte die erste Memory Karte auf. 
+mp3	524	2.80	Lege bitte die zweite Memory Karte auf. 
+mp3	530	30.64	Du spielst jetzt das Teekesselchen Raten. Drücke die Pausetaste lange, um eine neue Beschreibung zu hören. Danach drücke die Pause-, Zurück-, Vor-, Leiser- oder Lauter Taste um weitere Beschreibungen zu hören. Wenn du denkst, dass du den richtigen Begriff erraten hast, kannst du die Pause Taste lange drücken, um die Auflösung zu hören. Wiederhole das Ganze, so oft du willst. Du kannst das Spiel mit dem langen Druck auf die Vor- und Zurück Taste beenden.  
+mp3	531	3.00	Weiter mit einem langen Druck auf die Pause Taste. 
+mp3	532	1.49	Hier nun die Auflösung. 
+mp3	800	1.73	Bitte lege nun die Karte auf!
+mp3	801	2.40	Bitte die Karte vom Leser entfernen!
+mp3	802	2.59	OK, ich habe den Vorgang abgebrochen.
+mp3	900	10.67	Willkommen im Admin Menü. Bitte wähle eine Funktion mit den Lautstärketasten aus und bestätige sie mit der Pausetaste! Durch einen langen Druck auf die Pausetaste kannst du den Vorgang abbrechen.
+mp3	901	1.86	Eine Karte neu konfigurieren.
+mp3	902	2.10	Maximale Lautstärke festlegen.
+mp3	903	1.92	Minimale Lautstärke festlegen.
+mp3	904	2.10	Lautstärke beim Start festlegen.
+mp3	905	1.39	EQ konfigurieren.
+mp3	906	8.18	Eine Modifikationskarte erstellen. Diese Karten werden nach den eigentlichen Musikkarten aufgelegt und ändern das Verhalten deines TonUINOs.
+mp3	907	9.01	Shortcuts konfigurieren. Ein Shortcut wird über einen langen Tastendruck gestartet und funktioniert nur, wenn gerade nichts abgespielt wird.
+mp3	908	1.58	Den Timer konfigurieren.
+mp3	909	2.33	Einzelkarten für einen Ordner erstellen.
+mp3	910	2.59	Funktion der Lautstärketasten umdrehen.
+mp3	911	1.47	Alle Einstellungen löschen.
+mp3	912	1.65	Das Adminmenü absichern.
+mp3	913	7.56	Pause, wenn Karte entfernt wird. Achtung: Dies ist nicht kompatibel mit der Kita Modifikationskarte!
+mp3	914	2.56	Erstelle die Karten für das Memory Spiel.
+mp3	919	6.53	Und weiter im Admin Menü. Durch einen langen Druck auf die Pausetaste kannst du das Admin Menü abbrechen.
+mp3	920	5.62	Bitte wähle eine Einstellung für den EQ mit den Lautstärketasten aus und bestätige sie mit der Pausetaste.
+mp3	921	0.66	Normal
+mp3	922	0.43	Pop
+mp3	923	0.48	Rock
+mp3	924	0.61	Jazz
+mp3	925	0.63	Classic
+mp3	926	0.47	Bass
+mp3	930	3.74	Maximale Lautstärke wählen und mit der Pausetaste bestätigen.
+mp3	931	3.53	Minimale Lautstärke wählen und mit der Pausetaste bestätigen.
+mp3	932	3.64	Lautstärke beim Start wählen und mit der Pausetaste bestätigen.
+mp3	933	13.28	Möchtest du die Funktion der Lautstärketasten bei der 3 Tasten Variante umdrehen? Dann kannst du die Laustärke mut einem kurzen Tastendruck ändern, musst dann aber die Tasten lange drücken, um ein Lied vor oder zurückzugehen.
+mp3	934	0.53	Nein.
+mp3	935	0.43	Ja.
+mp3	936	12.51	OK, bitte lege nun nacheinander die Karten auf die Box. Ich werde die jeweilige Nummer vorher ansagen, damit du nicht durcheinander kommst. Zum Abbrechen einfach die Pause Taste lange drücken!
+mp3	937	13.90	OK, bitte lege nun nacheinander die Karten für das Memory Spiel auf die Box. Ich werde die jeweilige Nummer vorher ansagen, damit du nicht durcheinander kommst. Zum Abbrechen einfach die Pause Taste kurz drücken!
+mp3	938	3.34	
+mp3	940	10.00	Bitte wähle den Shortcut, den du konfigurieren möchtest, aus. Falls du das 3 mal 3 Button-board hast, kannst du auch dort eine Taste drücken. 
+mp3	941	1.36	Vor- und Zurücktaste
+mp3	942	1.97	Vor- bzw. Lautertaste
+mp3	943	2.12	Zurück- bzw. Leisertaste
+mp3	944	1.97	Shortcut beim Start festlegen
+mp3	960	3.43	Nach wievielen Minuten soll der TonUINO ausgeschaltet werden?
+mp3	961	1.05	5 Minuten.
+mp3	962	1.31	15 Minuten.
+mp3	963	1.18	30 Minuten.
+mp3	964	1.26	60 Minuten.
+mp3	965	1.71	Nicht automatisch abschalten
+mp3	966	3.38	Wielange soll die Musik zwischen den Pausen spielen?
+mp3	967	2.74	15 bis 30 Sekunden
+mp3	968	3.02	25 bis 40 Sekunden
+mp3	969	3.13	35 bis 50 Sekunden
+mp3	970	4.00	Bitte wähle nun deine Modifikationskarte mit den Lautstärketasten aus.
+mp3	971	1.00	Schlummermodus
+mp3	972	5.52	Stopptanz - TonUINO spielt Stopptanz mit dir und hält zufällig für dich die Wiedergabe kurz an.
+mp3	973	2.77	Feuer, Wasser und Luft Spiel.
+mp3	974	6.77	Krabbler-Modus - Alle Tasten vom TonUINO werden für die ganz Kleinen gesperrt. Karten funktionieren weiterhin.
+mp3	975	9.96	KiTa-Modus - Damit es keinen Streit mehr gibt werden neue Karten nicht sofort gespielt sondern erst nachdem das aktuelle Lied vorbei ist. Die Vor- und Zurücktasten sind gesperrt.
+mp3	976	3.27	Titel wiederholen - den aktuellen Titel endlos wiederholen.
+mp3	977	5.26	Bluetoothkarte - Mit der Bluetoothkarte kannst du Bluetooth ein- oder ausschalten.
+mp3	978	15.37	Jukeboxkarte - Wenn schon ein Track abgespielt wird und eine neue Karte wird, wird diese nicht sofort abgespielt sondern in eine Warteschlange gestellt. Erst, wenn die aktuelle Karte beendet ist, wird die nächste Karte aus der Warteschlange genommen.
+mp3	979	6.40	Pause nach jedem Track Karte - Mit diese Karte geht der Tonuino nach jedem Track in den Pausenstate.
+mp3	980	6.82	Disable Standby Karte - Mit dieser Karte kannst du den Standby Timer temporär aus- und wieder einschalten
+mp3	981	7.61	Endlos Ein- und Ausschaltkarte - Mit dieser Karte kannst du den Endlos Modus ein- und wieder ausschalten
+mp3	985	3.30	Wähle bitte aus ob und wie das Adminmenü geschützt werden soll.
+mp3	986	5.47	Kein Schutz - das Adminmenü kann jederzeit durch drücken von allen drei Tasten aktiviert werden.
+mp3	987	8.18	Nur Adminkarte - das Adminmenü kann nur mit einer Adminkarte geöffnet werden. Eine neue Adminkarte kann jederzeit angelernt werden.
+mp3	988	8.34	Codeeingabe - das Adminmenü wird durch eine vierstellige Pin geschützt. Wenn du diese Option auswählst musst du als nächstes die Pin festlegen.
+mp3	989	5.13	Rechenaufgabe - das Adminmenü kann nur durch Lösen einer Rechenaufgabe betreten werden.
+mp3	991	1.31	Bitte gebe die Pin ein.
+mp3	992	0.79	Wieviel ist
+mp3	993	0.56	Plus
+mp3	994	0.61	Minus
+mp3	999	1.65	Reset wurde durchgeführt!
+advert	1	0.60	1
+advert	2	0.57	2
+advert	3	0.52	3
+advert	4	0.55	4
+advert	5	0.65	5
+advert	6	0.63	6
+advert	7	0.65	7
+advert	8	0.50	8
+advert	9	0.65	9
+advert	10	0.55	10
+advert	11	0.52	11
+advert	12	0.65	12
+advert	13	0.78	13
+advert	14	0.71	14
+advert	15	0.84	15
+advert	16	0.76	16
+advert	17	0.81	17
+advert	18	0.71	18
+advert	19	0.78	19
+advert	20	0.73	20
+advert	21	1.02	21
+advert	22	1.12	22
+advert	23	1.04	23
+advert	24	1.10	24
+advert	25	1.12	25
+advert	26	1.15	26
+advert	27	1.15	27
+advert	28	1.10	28
+advert	29	1.10	29
+advert	30	0.65	30
+advert	31	0.97	31
+advert	32	1.12	32
+advert	33	1.04	33
+advert	34	1.07	34
+advert	35	1.07	35
+advert	36	1.12	36
+advert	37	1.12	37
+advert	38	1.07	38
+advert	39	1.10	39
+advert	40	0.68	40
+advert	41	0.99	41
+advert	42	1.12	42
+advert	43	1.04	43
+advert	44	1.07	44
+advert	45	1.10	45
+advert	46	1.10	46
+advert	47	1.12	47
+advert	48	0.99	48
+advert	49	1.07	49
+advert	50	0.76	50
+advert	51	1.07	51
+advert	52	1.15	52
+advert	53	1.10	53
+advert	54	1.12	54
+advert	55	1.15	55
+advert	56	1.18	56
+advert	57	1.15	57
+advert	58	1.10	58
+advert	59	1.15	59
+advert	60	0.71	60
+advert	61	0.99	61
+advert	62	1.10	62
+advert	63	1.04	63
+advert	64	1.04	64
+advert	65	1.10	65
+advert	66	1.12	66
+advert	67	1.10	67
+advert	68	1.04	68
+advert	69	1.07	69
+advert	70	0.73	70
+advert	71	0.97	71
+advert	72	1.07	72
+advert	73	1.02	73
+advert	74	1.04	74
+advert	75	1.07	75
+advert	76	1.12	76
+advert	77	1.10	77
+advert	78	1.07	78
+advert	79	1.04	79
+advert	80	0.68	80
+advert	81	0.99	81
+advert	82	1.10	82
+advert	83	1.02	83
+advert	84	1.10	84
+advert	85	1.10	85
+advert	86	1.15	86
+advert	87	1.12	87
+advert	88	1.02	88
+advert	89	1.04	89
+advert	90	0.71	90
+advert	91	1.07	91
+advert	92	1.20	92
+advert	93	1.10	93
+advert	94	1.12	94
+advert	95	1.20	95
+advert	96	1.20	96
+advert	97	1.18	97
+advert	98	1.15	98
+advert	99	1.12	99
+advert	100	0.81	100
+advert	101	1.04	101
+advert	102	0.99	102
+advert	103	0.89	103
+advert	104	0.99	104
+advert	105	1.07	105
+advert	106	0.97	106
+advert	107	1.04	107
+advert	108	0.97	108
+advert	109	1.04	109
+advert	110	1.02	110
+advert	111	1.02	111
+advert	112	1.12	112
+advert	113	1.23	113
+advert	114	1.20	114
+advert	115	1.28	115
+advert	116	1.25	116
+advert	117	1.23	117
+advert	118	1.20	118
+advert	119	1.25	119
+advert	120	1.23	120
+advert	121	1.46	121
+advert	122	1.57	122
+advert	123	1.51	123
+advert	124	1.51	124
+advert	125	1.57	125
+advert	126	1.57	126
+advert	127	1.62	127
+advert	128	1.59	128
+advert	129	1.57	129
+advert	130	1.12	130
+advert	131	1.44	131
+advert	132	1.54	132
+advert	133	1.49	133
+advert	134	1.51	134
+advert	135	1.54	135
+advert	136	1.54	136
+advert	137	1.62	137
+advert	138	1.54	138
+advert	139	1.54	139
+advert	140	1.15	140
+advert	141	1.54	141
+advert	142	1.54	142
+advert	143	1.51	143
+advert	144	1.54	144
+advert	145	1.49	145
+advert	146	1.57	146
+advert	147	1.54	147
+advert	148	1.51	148
+advert	149	1.59	149
+advert	150	1.20	150
+advert	151	1.51	151
+advert	152	1.62	152
+advert	153	1.57	153
+advert	154	1.57	154
+advert	155	1.62	155
+advert	156	1.62	156
+advert	157	1.67	157
+advert	158	1.59	158
+advert	159	1.62	159
+advert	160	1.18	160
+advert	161	1.49	161
+advert	162	1.51	162
+advert	163	1.51	163
+advert	164	1.51	164
+advert	165	1.57	165
+advert	166	1.57	166
+advert	167	1.59	167
+advert	168	1.51	168
+advert	169	1.57	169
+advert	170	1.18	170
+advert	171	1.46	171
+advert	172	1.51	172
+advert	173	1.49	173
+advert	174	1.51	174
+advert	175	1.54	175
+advert	176	1.54	176
+advert	177	1.57	177
+advert	178	1.54	178
+advert	179	1.54	179
+advert	180	1.15	180
+advert	181	1.51	181
+advert	182	1.54	182
+advert	183	1.51	183
+advert	184	1.54	184
+advert	185	1.51	185
+advert	186	1.51	186
+advert	187	1.59	187
+advert	188	1.51	188
+advert	189	1.57	189
+advert	190	1.20	190
+advert	191	1.59	191
+advert	192	1.62	192
+advert	193	1.65	193
+advert	194	1.59	194
+advert	195	1.62	195
+advert	196	1.65	196
+advert	197	1.70	197
+advert	198	1.62	198
+advert	199	1.65	199
+advert	200	0.89	200
+advert	201	1.15	201
+advert	202	1.10	202
+advert	203	0.99	203
+advert	204	1.10	204
+advert	205	1.15	205
+advert	206	1.07	206
+advert	207	1.12	207
+advert	208	1.12	208
+advert	209	1.12	209
+advert	210	1.18	210
+advert	211	1.12	211
+advert	212	1.23	212
+advert	213	1.38	213
+advert	214	1.31	214
+advert	215	1.36	215
+advert	216	1.38	216
+advert	217	1.33	217
+advert	218	1.36	218
+advert	219	1.36	219
+advert	220	1.28	220
+advert	221	1.59	221
+advert	222	1.67	222
+advert	223	1.65	223
+advert	224	1.59	224
+advert	225	1.67	225
+advert	226	1.70	226
+advert	227	1.70	227
+advert	228	1.67	228
+advert	229	1.70	229
+advert	230	1.23	230
+advert	231	1.59	231
+advert	232	1.62	232
+advert	233	1.62	233
+advert	234	1.59	234
+advert	235	1.62	235
+advert	236	1.67	236
+advert	237	1.75	237
+advert	238	1.62	238
+advert	239	1.67	239
+advert	240	1.25	240
+advert	241	1.62	241
+advert	242	1.62	242
+advert	243	1.62	243
+advert	244	1.57	244
+advert	245	1.59	245
+advert	246	1.62	246
+advert	247	1.65	247
+advert	248	1.65	248
+advert	249	1.67	249
+advert	250	1.31	250
+advert	251	1.65	251
+advert	252	1.70	252
+advert	253	1.70	253
+advert	254	1.62	254
+advert	255	1.75	255
+advert	260	1.49	
+advert	261	2.43	
+advert	262	0.29	
+advert	300	4.55	Wir spielen jetzt den Stopptanz. Wenn die Musik stoppt, bleibe stehen!
+advert	301	5.04	Und Stopp!
+advert	302	1.80	Schlummerfunktion aktiviert.
+advert	303	9.07	Wir spielen jetzt Feuer, Wasser und Luft. Bei Feuer laufe in eine Ecke, bei Wasser klettere irgendwo hoch und bei Luft lege dich flach hin. 
+advert	304	1.62	Tasten sind nun gesperrt.
+advert	305	1.62	KiTa-Modus aktiviert.
+advert	306	15.40	Feuer....10s....und weiter geht's
+advert	307	15.34	Wasser....10s....und weiter geht's
+advert	308	15.10	Luft....10s....und weiter geht's
+advert	309	2.41	
+advert	320	2.30	Bluetooth wird eingeschaltet
+advert	321	2.34	Bluetooth wird ausgeschaltet
+advert	322	2.09	Bluetooth wird verbunden
+advert	323	2.48	Der Standby Timer wird ausgeschaltet
+advert	324	2.56	Der Standby Timer wird wieder eingeschaltet
+advert	325	3.62	Der Endlos Modus wird ausgeschaltet
+advert	326	3.60	Der Endlos Modus wird eingeschaltet

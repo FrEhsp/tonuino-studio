@@ -1,0 +1,12 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "external-links",
+  "description": "Links that leave the app (target=\"_blank\") open in the user's browser. The opener plugin sends their clicks to plugin:opener|open_url, which the ACL refuses without these permissions; allow-default-urls limits it to http, https, mailto and tel.",
+  "windows": [
+    "main"
+  ],
+  "permissions": [
+    "opener:allow-open-url",
+    "opener:allow-default-urls"
+  ]
+}

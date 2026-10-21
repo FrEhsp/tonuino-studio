@@ -1,0 +1,25 @@
+{
+ "name": "GitLab raw API with a wrong file name: 404 that is readable (CORS ok) -> the app reports \"nicht gefunden\", not a CORS problem",
+ "kind": "observed",
+ "observed": "2026-10-05T22:13:20Z",
+ "evidence": [
+  "../../cors/02_gitlab_gsb_local_curl.txt"
+ ],
+ "request": {
+  "method": "GET",
+  "url": "https://gitlab.com/api/v4/projects/6909116/repository/files/de%2F0002%2Fde-0002_tall.mp3/raw?ref=master"
+ },
+ "hops": [
+  {
+   "status": 404,
+   "url": "https://gitlab.com/api/v4/projects/6909116/repository/files/de%2F0002%2Fde-0002_tall.mp3/raw?ref=master",
+   "headers": {
+    "access-control-allow-origin": "*",
+    "content-type": "application/json",
+    "content-length": "32"
+   }
+  }
+ ],
+ "expect": "direct",
+ "expectHttpError": 404
+}

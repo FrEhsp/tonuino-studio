@@ -1,0 +1,26 @@
+{
+ "name": "podcast-mp3.dradio.de: host root echoes the Origin; MP3 files gave no tester result -> UNVERIFIED",
+ "kind": "partial",
+ "observed": "2026-10-05T16:00:00Z",
+ "evidence": [
+  "/tmp/ts-quellen/podcasts/cors/cors-checks_2026-10-05.txt",
+  "../../cors/03_podcast_hosts_tester.txt"
+ ],
+ "request": {
+  "method": "GET",
+  "url": "https://podcast-mp3.dradio.de/"
+ },
+ "hops": [
+  {
+   "status": 200,
+   "url": "https://podcast-mp3.dradio.de/",
+   "headers": {
+    "access-control-allow-origin": "<echo>",
+    "access-control-allow-methods": "GET, HEAD, OPTIONS",
+    "access-control-max-age": "86400"
+   }
+  }
+ ],
+ "expect": "unverified",
+ "note": "a host root is not a file; the builder must test a real enclosure before the entry gets delivery \"direct\""
+}

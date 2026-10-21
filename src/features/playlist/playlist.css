@@ -1,0 +1,298 @@
+/* "Nach einer Playlist zusammenstellen" on the add page. The panel takes its look from .web-import (layout.css). */
+
+/* The whole head opens and closes the panel; the button in the heading stretches over it. */
+.playlist-head {
+  position: relative;
+  border-radius: var(--radius);
+}
+
+.playlist-head:has(.playlist-toggle:focus-visible) {
+  box-shadow: var(--focus-ring);
+}
+
+.playlist-head:hover .playlist-toggle {
+  color: var(--primary);
+}
+
+.playlist-toggle {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.playlist-toggle::after {
+  content: '';
+  position: absolute;
+  inset: calc(-1 * var(--space-2));
+  border-radius: var(--radius);
+}
+
+.playlist-toggle:focus-visible {
+  outline: none;
+}
+
+.playlist-chevron {
+  flex: none;
+  align-self: center;
+  color: var(--text-muted);
+  transition: transform 0.15s var(--ease);
+}
+
+.playlist-head:has([aria-expanded='true']) .playlist-chevron {
+  transform: rotate(180deg);
+}
+
+.playlist-step {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-md);
+}
+
+.playlist-step-num {
+  width: 24px;
+  height: 24px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-full);
+  background: var(--primary-soft);
+  color: var(--primary-soft-text);
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+
+.playlist-paste {
+  min-height: 140px;
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+}
+
+.playlist-help-body {
+  padding: var(--space-4);
+}
+
+.playlist-help-steps {
+  margin: 0;
+  padding-left: 1.4em;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  line-height: 1.5;
+}
+
+/* the lists of a Spotify export */
+
+.playlist-lists {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 320px;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.playlist-lists li + li {
+  border-top: 1px solid var(--border);
+}
+
+.playlist-list {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 44px;
+  padding: var(--space-2) var(--space-4);
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.playlist-list:hover {
+  background: var(--surface-hover);
+}
+
+.playlist-list:focus-visible {
+  outline: none;
+  box-shadow: inset var(--focus-ring);
+}
+
+.playlist-list > svg {
+  flex: none;
+  color: var(--primary);
+}
+
+.playlist-list-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-weight: 600;
+}
+
+/* the result, one row per entry of the list */
+
+.playlist-summary {
+  font-weight: 650;
+}
+
+.playlist-rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.playlist-row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border);
+}
+
+.playlist-row:first-child {
+  border-radius: calc(var(--radius) - 1px) calc(var(--radius) - 1px) 0 0;
+}
+
+.playlist-row:last-child {
+  border-bottom: 0;
+  border-radius: 0 0 calc(var(--radius) - 1px) calc(var(--radius) - 1px);
+}
+
+/* One row: round on every corner. */
+.playlist-row:first-child:last-child {
+  border-radius: calc(var(--radius) - 1px);
+}
+
+.playlist-row.is-doppelt,
+.playlist-row.is-weggelassen {
+  background: var(--bg-sunken);
+}
+
+.playlist-pos {
+  width: 2.5em;
+  flex: none;
+  padding-top: 1px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.playlist-row-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.playlist-row-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.playlist-row-title {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.playlist-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex: none;
+  padding: 2px 9px;
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  white-space: nowrap;
+  background: var(--bg-sunken);
+  color: var(--text-soft);
+}
+
+.playlist-status.is-gefunden {
+  background: var(--success-soft);
+  color: var(--success-text);
+}
+
+.playlist-status.is-pruefen {
+  background: var(--warning-soft);
+  color: var(--warning-text);
+}
+
+.playlist-status.is-fehlt {
+  background: var(--danger-soft);
+  color: var(--danger-text);
+}
+
+.playlist-file {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.playlist-select.select.compact {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 100%;
+  text-overflow: ellipsis;
+}
+
+.playlist-shops {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
+}
+
+.playlist-shop {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+}
+
+.playlist-take {
+  padding-top: var(--space-2);
+}
+
+@media (max-width: 720px) {
+  .playlist-row {
+    padding: var(--space-3);
+    gap: var(--space-2);
+  }
+
+  .playlist-pos {
+    width: 2em;
+  }
+
+  /* The status goes under the title, so a long title keeps the width. */
+  .playlist-row-head {
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+
+  .playlist-file {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-1);
+  }
+
+  .playlist-select.select.compact {
+    width: 100%;
+  }
+}

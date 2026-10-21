@@ -1,0 +1,100 @@
+/*
+ * Cards made by hand (FreeCardDialog) and what "Karte prüfen" offers for a
+ * card on the reader (ReadCardActions): the line "So liest die Box die
+ * Karte", the folded tinkerer view "Zahlen und Bytes" and its five fields.
+ */
+
+.free-card-says {
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  border-left: 3px solid var(--border);
+  color: var(--text-soft);
+}
+
+.free-card-raw summary {
+  cursor: pointer;
+  font-weight: 600;
+  font-size: var(--text-sm);
+  color: var(--text-soft);
+}
+
+.free-card-raw[open] summary {
+  margin-bottom: var(--space-2);
+}
+
+.free-card-fields {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.free-card-fields .input {
+  width: 100%;
+  min-width: 0;
+}
+
+.free-card-bytes {
+  overflow-wrap: anywhere;
+  user-select: all;
+}
+
+@media (max-width: 520px) {
+  .free-card-fields {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.read-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+/* "Alle auswählen" and "Mehr Karten" stay together at the right, so the menu opens inside the window on a phone. */
+.cards-step-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+/* "Liste einfügen": the pasted lines, each with what card it is or why it is none. */
+.paste-list-text {
+  width: 100%;
+  font-size: var(--text-sm);
+}
+
+.paste-list-rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 260px;
+  overflow-y: auto;
+  border-top: 1px solid var(--border);
+}
+
+.paste-list-row {
+  display: grid;
+  grid-template-columns: 5.5em minmax(0, 1fr);
+  gap: var(--space-2);
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--border);
+  font-size: var(--text-sm);
+}
+
+.paste-list-line {
+  color: var(--text-soft);
+}
+
+.paste-list-text-col {
+  overflow-wrap: anywhere;
+}
+
+.paste-list-row.bad .paste-list-text-col > span:last-child {
+  color: var(--danger-text);
+}
+
+.paste-list-warn {
+  color: var(--warning-text);
+}

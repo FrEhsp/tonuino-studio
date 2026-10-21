@@ -1,0 +1,26 @@
+{
+ "name": "Kakadu Kinderhörspiel feed: no CORS header (two independent checks)",
+ "kind": "observed",
+ "observed": "2026-10-05T16:40:00Z",
+ "evidence": [
+  "/tmp/ts-quellen/recht-jugendschutz/cors/cors_checks.txt",
+  "/tmp/ts-quellen/podcasts/cors/cors-checks_2026-10-05.txt"
+ ],
+ "request": {
+  "method": "GET",
+  "url": "https://www.kakadu.de/kinderhoerspiel-118.xml"
+ },
+ "hops": [
+  {
+   "status": 200,
+   "url": "https://www.kakadu.de/kinderhoerspiel-118.xml",
+   "headers": {
+    "content-type": "application/xml",
+    "referrer-policy": "same-origin",
+    "content-security-policy": "frame-ancestors 'self' *.mebis.info"
+   }
+  }
+ ],
+ "expect": "browser",
+ "note": "irrelevant for the app: the index builder reads feeds server-side"
+}

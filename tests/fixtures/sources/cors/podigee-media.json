@@ -1,0 +1,27 @@
+{
+ "name": "Podigee CDN MP3 (Radio Klops Folge 1)",
+ "kind": "observed",
+ "observed": "2026-10-05T22:20:30Z",
+ "evidence": [
+  "../../cors/03_podcast_hosts_tester.txt"
+ ],
+ "request": {
+  "method": "HEAD",
+  "url": "https://audio.podigee-cdn.net/2477755-m-2ee46a1b27b5a13672bf49cbe95d94b4.mp3"
+ },
+ "hops": [
+  {
+   "status": 200,
+   "url": "https://audio.podigee-cdn.net/2477755-m-2ee46a1b27b5a13672bf49cbe95d94b4.mp3",
+   "headers": {
+    "access-control-allow-origin": "*",
+    "access-control-allow-credentials": "true",
+    "accept-ranges": "bytes",
+    "content-type": "audio/mp3",
+    "content-length": "26433425"
+   }
+  }
+ ],
+ "expect": "direct",
+ "note": "content-type \"audio/mp3\" is non-standard: the download check sniffs the bytes instead of trusting the type"
+}

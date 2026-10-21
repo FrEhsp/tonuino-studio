@@ -1,0 +1,158 @@
+{
+ "id": "5f1c2e9a-8b7d-4c3e-9a21-0d4b6e7f8a90",
+ "title": "Lieder vom Apfelbaum",
+ "status": "Official",
+ "date": "2019-03-15",
+ "country": "DE",
+ "artist-credit": [
+  {
+   "name": "Die Apfelbaum-Band",
+   "joinphrase": "",
+   "artist": {
+    "id": "0a1b2c3d-4e5f-6071-8293-a4b5c6d7e8f9",
+    "name": "Die Apfelbaum-Band"
+   }
+  }
+ ],
+ "media": [
+  {
+   "position": 1,
+   "format": "CD",
+   "track-count": 12,
+   "tracks": [
+    {
+     "id": "t01",
+     "position": 1,
+     "number": "1",
+     "title": "Guten Morgen, Apfelbaum",
+     "length": 154202,
+     "recording": {
+      "title": "Guten Morgen, Apfelbaum",
+      "length": 154213
+     }
+    },
+    {
+     "id": "t02",
+     "position": 2,
+     "number": "2",
+     "title": "Der Igel hat Geburtstag",
+     "length": 131474,
+     "recording": {
+      "title": "Der Igel hat Geburtstag",
+      "length": 131467
+     }
+    },
+    {
+     "id": "t03",
+     "position": 3,
+     "number": "3",
+     "title": "Regenbogenlied",
+     "length": 188949,
+     "recording": {
+      "title": "Regenbogenlied",
+      "length": 188960
+     }
+    },
+    {
+     "id": "t04",
+     "position": 4,
+     "number": "4",
+     "title": "Wir fahren mit dem Traktor",
+     "length": 142113,
+     "recording": {
+      "title": "Wir fahren mit dem Traktor",
+      "length": 142106
+     }
+    },
+    {
+     "id": "t05",
+     "position": 5,
+     "number": "5",
+     "title": "Kleiner Käfer, wohin?",
+     "length": 97322,
+     "recording": {
+      "title": "Kleiner Käfer, wohin?",
+      "length": 97333
+     }
+    },
+    {
+     "id": "t06",
+     "position": 6,
+     "number": "6",
+     "title": "Das Lied vom Kirschkern",
+     "length": 176807,
+     "recording": {
+      "title": "Das Lied vom Kirschkern",
+      "length": 176800
+     }
+    },
+    {
+     "id": "t07",
+     "position": 7,
+     "number": "7",
+     "title": "Im Herbst, da fallen Blätter",
+     "length": 203429,
+     "recording": {
+      "title": "Im Herbst, da fallen Blätter",
+      "length": 203440
+     }
+    },
+    {
+     "id": "t08",
+     "position": 8,
+     "number": "8",
+     "title": "Schaukelpferd",
+     "length": 118274,
+     "recording": {
+      "title": "Schaukelpferd",
+      "length": 118267
+     }
+    },
+    {
+     "id": "t09",
+     "position": 9,
+     "number": "9",
+     "title": "Die Maus im Mehl",
+     "length": 135882,
+     "recording": {
+      "title": "Die Maus im Mehl",
+      "length": 135893
+     }
+    },
+    {
+     "id": "t10",
+     "position": 10,
+     "number": "10",
+     "title": "Wolkenschiff",
+     "length": 161980,
+     "recording": {
+      "title": "Wolkenschiff",
+      "length": 161973
+     }
+    },
+    {
+     "id": "t11",
+     "position": 11,
+     "number": "11",
+     "title": "Wenn der Mond aufgeht",
+     "length": 149109,
+     "recording": {
+      "title": "Wenn der Mond aufgeht",
+      "length": 149120
+     }
+    },
+    {
+     "id": "t12",
+     "position": 12,
+     "number": "12",
+     "title": "Gute Nacht, Apfelbaum",
+     "length": 212634,
+     "recording": {
+      "title": "Gute Nacht, Apfelbaum",
+      "length": 212627
+     }
+    }
+   ]
+  }
+ ]
+}

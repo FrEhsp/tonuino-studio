@@ -1,0 +1,96 @@
+{
+  "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
+  "productName": "TonUINO Studio",
+  "version": "../package.json",
+  "identifier": "app.tonuinostudio.desktop",
+  "build": {
+    "frontendDist": "../dist",
+    "devUrl": "http://localhost:5173",
+    "beforeDevCommand": "npm run dev",
+    "beforeBuildCommand": "npm run build"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "TonUINO Studio",
+        "width": 1280,
+        "height": 820,
+        "minWidth": 960,
+        "minHeight": 640,
+        "resizable": true,
+        "dragDropEnabled": true,
+        "backgroundColor": "#f6f1e8"
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": [
+      "deb",
+      "appimage",
+      "nsis"
+    ],
+    "publisher": "TonUINO Studio",
+    "icon": [
+      "icons/128x128.png",
+      "icons/32x32.png",
+      "icons/64x64.png",
+      "icons/128x128@2x.png",
+      "icons/icon.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "category": "Utility",
+    "shortDescription": "SD-Karte, Karten, Sticker und Firmware für TonUINO-Boxen",
+    "longDescription": "TonUINO Studio verwaltet die SD-Karte einer TonUINO-Box, gestaltet und druckt Kartenaufkleber, beschreibt RFID-Karten und spielt die TonUINO-TNG-Firmware auf.",
+    "copyright": "TonUINO Studio",
+    "linux": {
+      "appimage": {
+        "bundleMediaFramework": true
+      },
+      "deb": {
+        "depends": [
+          "libc6 (>= 2.39)",
+          "libpcsclite1",
+          "libudev1",
+          "libasound2t64 | libasound2"
+        ],
+        "recommends": [
+          "pcscd",
+          "libacsccid1 | libccid",
+          "udisks2"
+        ],
+        "desktopTemplate": "linux/tonuino-studio.desktop",
+        "files": {
+          "/usr/lib/udev/rules.d/60-tonuino-studio.rules": "linux/60-tonuino-studio.rules"
+        },
+        "postInstallScript": "linux/postinst.sh",
+        "postRemoveScript": "linux/postrm.sh"
+      }
+    },
+    "macOS": {
+      "signingIdentity": "-",
+      "hardenedRuntime": false,
+      "minimumSystemVersion": "11.0"
+    },
+    "windows": {
+      "webviewInstallMode": {
+        "type": "skip"
+      },
+      "nsis": {
+        "installMode": "currentUser",
+        "languages": [
+          "German",
+          "English"
+        ],
+        "displayLanguageSelector": false,
+        "installerIcon": "icons/icon.ico",
+        "installerHooks": "windows/installer-hooks.nsh"
+      }
+    }
+  }
+}

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- SYNTHETIC: enclosure behind measurement redirects (pattern seen in the WAS IST WAS feed, podcasts research). Must be rejected. -->
+<rss version="2.0" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd">
+  <channel>
+    <title>Beispiel mit Messweiterleitung</title>
+    <language>de</language>
+    <item>
+      <title>Folge 1</title>
+      <guid>tracking-1</guid>
+      <pubDate>Mon, 01 Jun 2026 06:00:00 +0000</pubDate>
+      <enclosure url="https://www.podtrac.com/pts/redirect.mp3/pdst.fm/e/traffic.megaphone.fm/KBBF1008780097.mp3" length="0" type="audio/mpeg"/>
+      <itunes:duration>00:21:10</itunes:duration>
+    </item>
+  </channel>
+</rss>

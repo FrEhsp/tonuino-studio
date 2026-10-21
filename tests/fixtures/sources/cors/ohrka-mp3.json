@@ -1,0 +1,25 @@
+{
+ "name": "OHRKA MP3: no CORS header",
+ "kind": "observed",
+ "observed": "2026-10-05T16:52:00Z",
+ "evidence": [
+  "/tmp/ts-quellen/recht-jugendschutz/cors/cors_checks.txt"
+ ],
+ "request": {
+  "method": "HEAD",
+  "url": "https://www.ohrka.de/fileadmin/audio/eBooks/Der_Zauberer_von_Oz-cut.mp3"
+ },
+ "hops": [
+  {
+   "status": 200,
+   "url": "https://www.ohrka.de/fileadmin/audio/eBooks/Der_Zauberer_von_Oz-cut.mp3",
+   "headers": {
+    "content-type": "audio/mpeg",
+    "content-length": "242157414",
+    "accept-ranges": "bytes",
+    "x-ws-ratelimit-limit": "1000"
+   }
+  }
+ ],
+ "expect": "browser"
+}

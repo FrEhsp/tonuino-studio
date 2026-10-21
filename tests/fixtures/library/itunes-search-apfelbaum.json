@@ -1,0 +1,29 @@
+{
+ "resultCount": 3,
+ "results": [
+  {
+   "wrapperType": "collection",
+   "collectionType": "Album",
+   "collectionId": 1500000001,
+   "artistName": "Die Apfelbaum-Band",
+   "collectionName": "Lieder vom Apfelbaum (Live)",
+   "trackCount": 15
+  },
+  {
+   "wrapperType": "collection",
+   "collectionType": "Album",
+   "collectionId": 1622334455,
+   "artistName": "Die Apfelbaum-Band",
+   "collectionName": "Lieder vom Apfelbaum",
+   "trackCount": 12
+  },
+  {
+   "wrapperType": "collection",
+   "collectionType": "Album",
+   "collectionId": 1400000002,
+   "artistName": "Die Apfelbaum-Band",
+   "collectionName": "Weihnachten unterm Apfelbaum",
+   "trackCount": 10
+  }
+ ]
+}

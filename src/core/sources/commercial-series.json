@@ -1,0 +1,23 @@
+{
+ "about": "Well-known commercial series and products for children that may not be downloaded freely. A search for one of them that finds nothing in the list shows an honest hint instead of an empty result (src/core/sources/commercial.ts). 'match' is compared on folded text (lower case, umlauts as ae/oe/ue, sharp s as ss), as whole words; '???' and '!!!' stay; the longest match wins. 'alone' only counts when the search is exactly that, so 'die drei' finds 'Die drei ???' but 'die drei kleinen Schweinchen' does not. A series with a source in sources/catalog.json (any status but 'off') must not be listed here: tests/sources/ranking.test.ts checks that.",
+ "series": [
+  { "name": "Die drei ???", "match": ["die drei fragezeichen", "drei fragezeichen", "drei ???", "ddf"], "alone": ["die drei"] },
+  { "name": "Die drei !!!", "match": ["die drei ausrufezeichen", "drei ausrufezeichen", "drei !!!"] },
+  { "name": "TKKG", "match": ["tkkg"] },
+  { "name": "Bibi Blocksberg", "match": ["bibi blocksberg", "blocksberg"], "alone": ["bibi"] },
+  { "name": "Benjamin Blümchen", "match": ["benjamin bluemchen", "benjamin blumchen"], "alone": ["benjamin"] },
+  { "name": "Bibi & Tina", "match": ["bibi und tina", "bibi tina"] },
+  { "name": "Fünf Freunde", "match": ["fuenf freunde", "funf freunde", "5 freunde"] },
+  { "name": "Conni", "match": ["conni", "meine freundin conni"] },
+  { "name": "Paw Patrol", "match": ["paw patrol", "pawpatrol"] },
+  { "name": "Yakari", "match": ["yakari"] },
+  { "name": "Sternenschweif", "match": ["sternenschweif"] },
+  { "name": "Was ist was", "match": ["was ist was"] },
+  { "name": "Peppa Wutz", "match": ["peppa wutz", "peppa pig", "peppa"] },
+  { "name": "Feuerwehrmann Sam", "match": ["feuerwehrmann sam"] },
+  { "name": "Der kleine Drache Kokosnuss", "match": ["drache kokosnuss", "kokosnuss"] },
+  { "name": "Die Schule der magischen Tiere", "match": ["schule der magischen tiere"] },
+  { "name": "Tonies", "kind": "tonies", "match": ["tonie", "tonies", "toniebox", "tonie box"] },
+  { "name": "Kreativ-Tonie", "kind": "kreativ", "match": ["kreativ tonie", "kreativ tonies", "kreativtonie", "kreativtonies"] }
+ ]
+}

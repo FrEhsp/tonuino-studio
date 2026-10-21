@@ -1,0 +1,27 @@
+{
+ "name": "file allows only a fixed origin; after a cross-origin redirect the Origin is \"null\" -> fails",
+ "kind": "synthetic",
+ "request": {
+  "method": "GET",
+  "url": "https://a.example/file.mp3"
+ },
+ "hops": [
+  {
+   "status": 302,
+   "url": "https://a.example/file.mp3",
+   "headers": {
+    "location": "https://b.example/file.mp3",
+    "access-control-allow-origin": "*"
+   }
+  },
+  {
+   "status": 200,
+   "url": "https://b.example/file.mp3",
+   "headers": {
+    "access-control-allow-origin": "https://studio.example.de",
+    "content-type": "audio/mpeg"
+   }
+  }
+ ],
+ "expect": "browser"
+}

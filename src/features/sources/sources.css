@@ -1,0 +1,1106 @@
+/*
+ * "Entdecken": overview, source pages, the download bar, the folder section
+ * "Herkunft und Lizenz" and the progress mark in the sidebar. Colours come
+ * from the design tokens, so light and dark theme follow by themselves.
+ */
+
+/* Links that look like buttons stay without underline when hovered. */
+.sources-page a.btn:hover {
+  text-decoration: none;
+}
+
+/* ------------------------------------------------------------------ notes */
+
+.sources-note {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+}
+
+.sources-note > span {
+  flex: 1 1 260px;
+}
+
+/* ------------------------------------------------------------------ search and choices */
+
+.sources-filters {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-5);
+}
+
+.sources-search .input {
+  height: 44px;
+  font-size: var(--text-md);
+  padding-right: 44px;  /* On a narrow phone the hint ends in "…" instead of a cut letter. */
+  text-overflow: ellipsis;
+}
+
+.sources-search .input::-webkit-search-cancel-button {
+  display: none;
+}
+
+/* Two classes, so the wooden look's relative position for every button does not win. */
+.sources-search > .sources-search-clear {
+  position: absolute;
+  right: 6px;
+}
+
+.sources-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3) var(--space-8);
+}
+
+.sources-choice {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-3);
+}
+
+.sources-choice-label {
+  min-width: 40px;
+  font-size: var(--text-sm);
+  font-weight: 650;
+  color: var(--text-muted);
+}
+
+.sources-count {
+  min-height: 1.5em;
+  margin-bottom: calc(-1 * var(--space-3));
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+/* Empty above the list's own heading ("Weitere Quellen"): no gap of its own. */
+.sources-count:empty {
+  min-height: 0;
+}
+
+/* ------------------------------------------------------------------ source cards */
+
+.sources-grid,
+.sources-loading,
+.sources-series-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+  gap: var(--space-4);
+}
+
+/* A series in the list: the whole width, its name over three of its stories. */
+.sources-series {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.sources-series-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-1) var(--space-4);
+}
+
+.sources-series-head h3 {
+  margin: 0;
+  font-size: var(--text-lg);
+}
+
+/* The desktop app while it builds the list on this computer. */
+.sources-loading-text {
+  margin: var(--space-6) 0;
+  color: var(--text-muted);
+}
+
+.source-card {
+  position: relative;
+  display: flex;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-xs);
+  transition:
+    border-color 0.15s var(--ease),
+    box-shadow 0.15s var(--ease);
+}
+
+.source-card:hover {
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow);
+}
+
+.source-card.skeleton-card:hover {
+  border-color: var(--border);
+  box-shadow: var(--shadow-xs);
+}
+
+.source-cover {
+  width: 96px;
+  height: 96px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius);
+  color: #fff;
+  box-shadow: var(--shadow-sm);
+}
+
+.source-cover svg {
+  opacity: 0.92;
+  filter: drop-shadow(0 1px 2px rgb(0 0 0 / 0.18));
+}
+
+/* The source's own picture lies over the drawn cover; the drawn one stays when it does not load. */
+.source-cover {
+  position: relative;
+  overflow: hidden;
+}
+
+.source-cover-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+}
+
+.source-cover.has-picture,
+.source-cover.no-picture {
+  background: var(--bg-sunken);
+}
+
+/* No original cover: an empty, quiet square keeps the place, nothing drawn. */
+.source-cover.no-picture {
+  box-shadow: inset 0 0 0 1px var(--border);
+}
+
+/* The picture fades in once loaded instead of popping up while people scroll. */
+.source-cover-img {
+  opacity: 0;
+  transition: opacity 0.25s ease-out;
+}
+
+.source-cover.is-loaded .source-cover-img {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .source-cover-img {
+    transition: none;
+  }
+}
+
+.source-cover-credit {
+  margin: 6px 0 0;
+  max-width: 136px;
+  font-size: var(--text-xs);
+  line-height: 1.3;
+  color: var(--text-muted);
+}
+
+.source-cover.lg {
+  width: 136px;
+  height: 136px;
+  border-radius: var(--radius-lg);
+}
+
+.source-card-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.source-card-title {
+  font-size: var(--text-md);
+  line-height: 1.3;
+}
+
+.source-card-link {
+  color: var(--text);
+}
+
+/* The whole card opens the source; the item links below stay clickable on their own. */
+.source-card-link::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+
+.source-card-link:hover {
+  text-decoration: none;
+}
+
+.source-card:hover .source-card-link {
+  color: var(--primary);
+}
+
+.source-card-link:focus-visible {
+  box-shadow: none;
+}
+
+.source-card-link:focus-visible::after {
+  box-shadow: var(--focus-ring);
+}
+
+.source-card-publisher {
+  margin-top: -4px;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.source-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.source-card-people {
+  font-size: var(--text-sm);
+  color: var(--text-soft);
+}
+
+/* The source's own words, at most two lines on a card or a row. */
+.source-card-about,
+.source-item-about {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  max-width: 70ch;
+  font-size: var(--text-sm);
+  color: var(--text-soft);
+}
+
+.source-card-count {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-soft);
+}
+
+.source-card-items {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 2px 0 0;
+  padding: var(--space-2) 0 0;
+  list-style: none;
+  border-top: 1px solid var(--border);
+  font-size: var(--text-sm);
+}
+
+.source-card-items a {
+  font-weight: 600;
+}
+
+/* ------------------------------------------------------------------ footer */
+
+.sources-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  row-gap: 4px;
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.sources-footer > * + *::before {
+  content: '·';
+  margin: 0 var(--space-3);
+}
+
+/* ------------------------------------------------------------------ source page */
+
+.source-head {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-6);
+}
+
+.source-head-cover {
+  flex: none;
+}
+
+.source-head-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.source-head-publisher {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px var(--space-4);
+  font-weight: 600;
+  color: var(--text-soft);
+}
+
+.source-head-publisher a,
+.source-rights-links a,
+.source-origin-meta a {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.source-head-blurb {
+  max-width: 70ch;
+  color: var(--text-soft);
+}
+
+.source-head-ages {
+  max-width: 76ch;
+  font-size: var(--text-sm);
+  color: var(--text-soft);
+}
+
+.source-rights {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-5) var(--space-6);
+}
+
+.source-rights h2 {
+  font-size: var(--text-md);
+}
+
+.source-rights p {
+  max-width: 80ch;
+}
+
+.source-rights-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px var(--space-5);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+/* ------------------------------------------------------------------ items */
+
+.source-list {
+  overflow: hidden;
+}
+
+.source-list-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--border);
+}
+
+.source-list-head h2 {
+  font-size: var(--text-md);
+}
+
+.source-list-head .link-button:disabled {
+  opacity: 0.5;
+  cursor: default;
+  text-decoration: none;
+}
+
+.source-items {
+  display: flex;
+  flex-direction: column;
+}
+
+.source-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-5);
+  border-bottom: 1px solid var(--border);
+  transition: background 0.4s var(--ease);
+}
+
+.source-item:last-child {
+  border-bottom: 0;
+}
+
+.source-item.flash,
+.source-work.flash,
+.source-chapters li.flash {
+  background: var(--accent-soft);
+}
+
+/* The parts of the story a pick led to: marked as long as the page is open. */
+.source-item.chosen {
+  box-shadow: inset 4px 0 0 var(--primary);
+}
+
+.source-chosen-note {
+  margin: 0;
+  color: var(--text-soft);
+}
+
+.source-item-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+label.source-item-main {
+  cursor: pointer;
+}
+
+.source-item-main input[type='checkbox'] {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  margin: 2px 0 0;
+}
+
+.source-item-text {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.source-item-title {
+  font-weight: 650;
+  line-height: 1.35;
+}
+
+.source-item-meta {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.source-item-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.source-item-actions {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* The provider's player below its row (Embed.tsx): only after a click. */
+.source-embed {
+  padding: 0 var(--space-5) var(--space-3);
+  border-bottom: 1px solid var(--border);
+}
+
+.source-embed iframe {
+  display: block;
+  width: 100%;
+  max-width: 640px;
+  height: 140px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--bg-sunken);
+}
+
+.source-embed p {
+  margin-top: var(--space-1);
+}
+
+.source-preview {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  max-width: 100%;
+  min-width: 0;
+}
+
+.source-preview-wait {
+  flex: none;
+  display: inline-flex;
+  width: 12px;
+}
+
+.source-preview .seekbar-track {
+  flex: none;
+  width: clamp(120px, 18vw, 220px);
+}
+
+/* ------------------------------------------------------------------ books and albums */
+
+.source-work {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-5) var(--space-6);
+  transition: background 0.4s var(--ease);
+}
+
+.source-work-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--space-4);
+}
+
+.source-work-text {
+  flex: 1 1 280px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.source-work-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.source-disclosure {
+  align-self: flex-start;
+}
+
+.source-chapters {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--border);
+}
+
+.source-chapters li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.source-chapters li:last-child {
+  border-bottom: 0;
+}
+
+.source-chapter-num {
+  width: 26px;
+  flex: none;
+  text-align: right;
+  font-size: var(--text-sm);
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+}
+
+.source-chapter-title {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ------------------------------------------------------------------ hints, drop zone, bars */
+
+.source-hold {
+  font-size: var(--text-sm);
+  color: var(--text-soft);
+}
+
+.source-hold-link {
+  font-weight: 650;
+}
+
+.source-hold .link-button {
+  display: inline;
+  padding: 0;
+  font-size: inherit;
+}
+
+.source-save {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.source-save-body {
+  display: grid;
+  gap: var(--space-3);
+  padding: 0 var(--space-4) var(--space-4);
+}
+
+.source-steps {
+  margin: 0;
+  padding-left: 1.4em;
+}
+
+.source-steps li + li {
+  margin-top: 2px;
+}
+
+.dropzone.source-drop {
+  gap: var(--space-3);
+  padding: var(--space-8) var(--space-6);
+}
+
+.dropzone.source-drop h2 {
+  font-size: var(--text-md);
+}
+
+.dropzone.source-drop .dropzone-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 18px;
+}
+
+.import-bar.source-bar,
+.import-bar.source-run {
+  flex-wrap: wrap;
+  gap: var(--space-3) var(--space-4);
+}
+
+.source-bar-text,
+.source-run-text {
+  flex: 1 1 260px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.source-run-text .progress {
+  margin-top: 4px;
+}
+
+/* A file dragged over the small drop zone at the bottom of the window. */
+.import-bar.source-drop-bar.over {
+  background: var(--primary-soft);
+}
+
+/* The big drop zone is in view: the small one steps aside. */
+.import-bar.source-drop-bar {
+  transition:
+    opacity 0.15s ease,
+    visibility 0.15s;
+}
+
+.import-bar.source-drop-bar.behind {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.import-bar.source-run.failed {
+  border-color: color-mix(in srgb, var(--danger) 45%, var(--border));
+}
+
+.source-run-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.source-run-source {
+  font-size: var(--text-sm);
+  font-weight: 650;
+}
+
+/* ------------------------------------------------------------------ review step and folder page */
+
+.from-sources {
+  display: block;
+}
+
+.source-origin-list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.source-origin-list li {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: var(--space-3) 0;
+  border-top: 1px solid var(--border);
+}
+
+.source-origin-list p {
+  overflow-wrap: anywhere;
+}
+
+.source-origin-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px var(--space-4);
+  font-size: var(--text-sm);
+}
+
+a.badge.source-licence-link {
+  color: var(--text-soft);
+}
+
+a.badge.source-licence-link:hover {
+  text-decoration: none;
+  color: var(--text);
+}
+
+/* ------------------------------------------------------------------ narrow */
+
+@media (max-width: 720px) {
+  .source-head {
+    gap: var(--space-4);
+  }
+
+  .source-cover {
+    width: 72px;
+    height: 72px;
+  }
+
+  .source-cover svg {
+    width: 32px;
+    height: 32px;
+  }
+
+  .source-cover.lg {
+    width: 84px;
+    height: 84px;
+  }
+
+  /* The credit wraps under the smaller cover instead of widening its column. */
+  .source-head-cover .source-cover-credit {
+    max-width: 84px;
+  }
+
+  .source-cover.lg svg {
+    width: 40px;
+    height: 40px;
+  }
+
+  .source-card {
+    padding: var(--space-3);
+    gap: var(--space-3);
+  }
+
+  .sources-filters {
+    padding: var(--space-3) var(--space-4);
+  }
+
+  .sources-choice {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .source-rights,
+  .source-work {
+    padding: var(--space-4);
+  }
+
+  .source-list-head {
+    padding: var(--space-3) var(--space-4);
+  }
+
+  .source-item {
+    flex-wrap: wrap;
+    padding: var(--space-3) var(--space-4);
+  }
+
+  .source-item-actions {
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+
+  label.source-item-main + .source-item-actions {
+    padding-left: 30px;
+  }
+
+  .source-chapters li {
+    flex-wrap: wrap;
+  }
+
+  .source-chapters .source-preview {
+    flex: 1 1 auto;
+    margin-left: 38px;
+    max-width: calc(100% - 38px);
+  }
+
+  /* On a phone the bar takes the room that is left, so the clock stays on the screen. */
+  .source-preview .seekbar {
+    flex: 1 1 auto;
+  }
+
+  .source-preview .seekbar-track {
+    flex: 1 1 96px;
+    width: auto;
+    min-width: 48px;
+  }
+
+  .import-bar.source-bar,
+  .import-bar.source-run {
+    bottom: var(--space-2);
+    padding: var(--space-3) var(--space-4);
+  }
+
+  .import-bar.source-bar > .btn.primary {
+    width: 100%;
+  }
+}
+
+/* ------------------------------------------------------------------ recommendations */
+
+.sources-picks {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.sources-picks-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-1) var(--space-3);
+}
+
+.sources-picks-head h2 {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-lg);
+}
+
+.sources-picks-grid {
+  display: grid;
+  /* At most two columns: four picks always fill whole rows, and the cards stay big. */
+  grid-template-columns: repeat(auto-fill, minmax(max(min(100%, 340px), calc((100% - var(--space-4)) / 2)), 1fr));
+  gap: var(--space-4);
+}
+
+/* An odd number of picks: the last one takes the whole row instead of standing alone. */
+.sources-picks-grid > .source-pick:last-child:nth-child(odd):not(:only-child) {
+  grid-column: 1 / -1;
+}
+
+.source-pick {
+  position: relative;
+  display: flex;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--accent-500);
+  box-shadow: var(--shadow-xs);
+}
+
+.source-pick-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.source-pick-title {
+  font-size: var(--text-md);
+  line-height: 1.3;
+}
+
+.source-pick-meta {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-soft);
+}
+
+.source-pick-why {
+  margin-top: 2px;
+  font-size: var(--text-sm);
+  color: var(--text);
+}
+
+.source-pick-action {
+  align-self: flex-start;
+  margin-top: var(--space-2);
+}
+
+/* The whole pick opens it, like a card of the list: the title link covers the card. */
+.source-pick-link {
+  color: var(--text);
+}
+
+.source-pick-link::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+}
+
+.source-pick-link:hover {
+  text-decoration: none;
+}
+
+.source-pick:hover .source-pick-link {
+  color: var(--primary);
+}
+
+.source-pick-link:focus-visible {
+  box-shadow: none;
+}
+
+.source-pick-link:focus-visible::after {
+  box-shadow: var(--focus-ring);
+}
+
+.sources-picks-more {
+  align-self: flex-start;
+}
+
+/* The small teaser on the start page: three lines and a link. */
+.picks-teaser {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.picks-teaser-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-1) var(--space-3);
+}
+
+.picks-teaser-head h2 {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-md);
+}
+
+.picks-teaser-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.picks-teaser-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+  gap: var(--space-2) var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.picks-teaser-list li {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.picks-teaser-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* The picture opens the pick too: the link covers its row. */
+.picks-teaser-text a::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+
+.picks-teaser-text a {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.source-cover.sm,
+.source-cover.sm svg {
+  width: 40px;
+  height: 40px;
+}
+
+.source-cover.sm {
+  border-radius: var(--radius-sm);
+  box-shadow: none;
+}
+
+.source-cover.sm svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* A title's own picture in the list of a source: a little bigger than in the teaser, with a thinner paper frame. */
+.source-item .source-cover.sm {
+  width: 48px;
+  height: 48px;
+  border-width: 3px;
+}
+
+@media (max-width: 720px) {
+  .source-pick {
+    padding: var(--space-3);
+    gap: var(--space-3);
+  }
+
+  .picks-teaser {
+    padding: var(--space-3) var(--space-4);
+  }
+
+  .source-cover.sm {
+    width: 36px;
+    height: 36px;
+  }
+
+  .source-cover.sm svg {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+/* On a phone the picks are compact, so the search stays close to the top. */
+@media (max-width: 480px) {
+  .source-pick .source-cover {
+    width: 56px;
+    height: 56px;
+    border-radius: var(--radius-sm);
+  }
+
+  .source-pick .source-cover svg {
+    width: 26px;
+    height: 26px;
+  }
+
+  .source-pick-action {
+    margin-top: var(--space-1);
+  }
+}

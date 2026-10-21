@@ -1,0 +1,43 @@
+{
+ "name": "Ohrenbär feed: CORS header present in some answers, missing in others (edge-dependent)",
+ "kind": "observed",
+ "observed": "2026-10-05T16:41:03Z",
+ "evidence": [
+  "/tmp/ts-quellen/recht-jugendschutz/cors/cors_checks.txt"
+ ],
+ "request": {
+  "method": "GET",
+  "url": "https://www.ohrenbaer.de/podcast/podcast.feed.podcast.xml"
+ },
+ "observations": [
+  {
+   "at": "2026-10-05T16:03:35Z",
+   "headers": {
+    "content-type": "text/xml"
+   }
+  },
+  {
+   "at": "2026-10-05T16:40:32Z",
+   "headers": {
+    "access-control-allow-origin": "*",
+    "set-cookie": "renderid=sp_publish_01; VSESSIONID=..."
+   }
+  },
+  {
+   "at": "2026-10-05T16:40:41Z",
+   "headers": {
+    "set-cookie": "VSESSIONID=...; wc=..."
+   },
+   "note": "request without Origin"
+  },
+  {
+   "at": "2026-10-05T16:41:03Z",
+   "headers": {
+    "access-control-allow-origin": "*",
+    "set-cookie": "renderid=sp_publish_02; VSESSIONID=...; wc=..."
+   }
+  }
+ ],
+ "expect": "unstable",
+ "note": "never rely on live feed CORS; the builder reads feeds server-side"
+}

@@ -1,0 +1,37 @@
+{
+ "name": "archive.org /download/ MP3: 302 to a data node, then the file",
+ "kind": "observed",
+ "observed": "2026-10-05T16:38:51Z",
+ "evidence": [
+  "../../cors/01_archive_org_tester.txt (3)",
+  "/tmp/ts-quellen/recht-jugendschutz/cors/cors_checks.txt (securityheaders: the 302 itself)"
+ ],
+ "request": {
+  "method": "GET",
+  "url": "https://archive.org/download/grimm_maerchen2_librivox/grimm_001_allerleirauh.mp3"
+ },
+ "hops": [
+  {
+   "status": 302,
+   "url": "https://archive.org/download/grimm_maerchen2_librivox/grimm_001_allerleirauh.mp3",
+   "headers": {
+    "location": "https://dn711200.ca.archive.org/0/items/grimm_maerchen2_librivox/grimm_001_allerleirauh.mp3",
+    "access-control-allow-origin": "*",
+    "server": "nginx"
+   }
+  },
+  {
+   "status": 200,
+   "url": "https://dn711200.ca.archive.org/0/items/grimm_maerchen2_librivox/grimm_001_allerleirauh.mp3",
+   "headers": {
+    "access-control-allow-origin": "*",
+    "access-control-allow-credentials": "true",
+    "accept-ranges": "bytes",
+    "content-type": "audio/mpeg",
+    "content-length": "13089937",
+    "last-modified": "Tue, 27 Jun 2006 13:10:58 GMT"
+   }
+  }
+ ],
+ "expect": "direct"
+}

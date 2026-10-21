@@ -1,0 +1,15 @@
+node_modules/
+dist/
+src-tauri/target/
+# left over from builds before 0.5
+src-tauri/intern-tools/
+src-tauri/gen/schemas/
+*.log
+.DS_Store
+coverage/
+.sources-build/
+.sources-cache/
+# the editors' notes on the catalogue (src/core/sources/editorial.ts), never published
+sources/redaktion.json
+dist-sources/
+public/quellen/

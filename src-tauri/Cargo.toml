@@ -1,0 +1,69 @@
+[package]
+name = "tonuino-studio"
+version = "0.5.0"
+description = "TonUINO Studio"
+authors = ["TonUINO Studio"]
+license = "GPL-3.0-or-later"
+edition = "2021"
+rust-version = "1.80"
+
+[lib]
+name = "tonuino_studio_lib"
+# Only "rlib" for the desktop binary. "cdylib" (Android) does not link for
+# x86_64-pc-windows-gnu ("export ordinal too large"), and "staticlib" (iOS)
+# cost a second full link of about 850 MB per build for nothing.
+# scripts/build-android.sh switches to ["cdylib", "rlib"] for the length of
+# the Android build and puts this line back afterwards.
+crate-type = ["rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-dialog = "2"
+tauri-plugin-opener = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+log = "0.4"
+symphonia = { version = "0.5", default-features = false, features = ["mp1", "mp2", "mp3", "aac", "isomp4", "flac", "vorbis", "ogg", "wav", "aiff", "pcm", "alac", "adpcm"] }
+thiserror = "2"
+
+# Only on the computer: SD cards (sysinfo), the box over USB (serialport,
+# libudev), PC/SC card readers (pcsc) and the list of "Entdecken" built on the
+# computer. The Android app writes cards with the phone's own NFC
+# (src-tauri/android/TonuinoNfc.kt) and shows the list that comes with it, so
+# none of this, and no C code, is built for Android.
+[target.'cfg(not(target_os = "android"))'.dependencies]
+sysinfo = { version = "0.37", default-features = false, features = ["disk"] }
+serialport = { version = "4", default-features = false, features = ["libudev"] }
+pcsc = "2"
+# The sound output of "Anhören" (src/player): ALSA on Linux, WASAPI on
+# Windows. The decoding is symphonia's, as for the analysis. The Android app
+# plays in its WebView, so cpal is not built there.
+cpal = "0.17"
+# HTTPS for the list of "Entdecken" that the desktop app builds itself
+# (src/sources_net.rs, feature "quellen"): TLS with the ring provider and the
+# Mozilla root certificates, no aws-lc build.
+rustls = { version = "0.23", default-features = false, features = ["ring", "std", "tls12"], optional = true }
+webpki-roots = { version = "1", optional = true }
+
+[target.'cfg(unix)'.dependencies]
+libc = "0.2"
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.60", features = ["Win32_Storage_FileSystem", "Win32_Foundation", "Win32_System_Ioctl", "Win32_System_IO", "Win32_Security"] }
+
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = "s"
+panic = "abort"
+strip = true
+
+[features]
+default = ["quellen"]
+# The list of "Entdecken" built on the user's computer, at most once a day:
+# HTTPS to a fixed list of hosts (the sources' feeds and pages). On in every
+# desktop build; no server of ours is needed for the list.
+quellen = ["dep:rustls", "dep:webpki-roots"]

@@ -1,0 +1,72 @@
+{
+ "files": [
+  {
+   "name": "01-1160540-Stefan Eckhardt-Hansel und Gretel.mp3",
+   "source": "original",
+   "format": "VBR MP3",
+   "size": "4089001",
+   "length": "178.36",
+   "title": "Hänsel und Gretel",
+   "creator": "Stefan Eckhardt",
+   "track": "1"
+  },
+  {
+   "name": "02-1160541-Stefan Eckhardt-Weisst Du wieviel Sternlein stehen.mp3",
+   "source": "original",
+   "format": "VBR MP3",
+   "size": "4823583",
+   "length": "212.56",
+   "title": "Weisst Du wieviel Sternlein stehen",
+   "creator": "Stefan Eckhardt",
+   "track": "2"
+  },
+  {
+   "name": "03-1160551-Stefan Eckhardt-Hansel und Gretel _Karaoke_.mp3",
+   "source": "original",
+   "format": "VBR MP3",
+   "size": "4334633",
+   "length": "178.36",
+   "title": "Hänsel und Gretel (Karaoke)",
+   "creator": "Stefan Eckhardt",
+   "track": "3"
+  },
+  {
+   "name": "04-1160552-Stefan Eckhardt-Weisst Du wieviel Sternlein stehen _Karaoke_.mp3",
+   "source": "original",
+   "format": "VBR MP3",
+   "size": "5011537",
+   "length": "209.58",
+   "title": "Weisst Du wieviel Sternlein stehen (Karaoke)",
+   "creator": "Stefan Eckhardt",
+   "track": "4"
+  },
+  {
+   "name": "License.txt",
+   "source": "original",
+   "format": "Text"
+  },
+  {
+   "name": "Readme.txt",
+   "source": "original",
+   "format": "Text"
+  }
+ ],
+ "files_count": 6,
+ "metadata": {
+  "identifier": "jamendo-139374",
+  "title": "Stefan Eckhardt - Einmal ganz anders...Kleine ganz groß!",
+  "creator": "Stefan Eckhardt",
+  "date": "2014-10-15",
+  "mediatype": "audio",
+  "collection": [
+   "jamendo-albums"
+  ],
+  "licenseurl": "http://creativecommons.org/licenses/by-sa/2.0/de/",
+  "subject": [
+   "children",
+   "kinderlieder"
+  ],
+  "description": "Tracklisting: 01 - Hänsel und Gretel 02 - Weisst Du wieviel Sternlein stehen 03 - Hänsel und Gretel (Karaoke) 04 - Weisst Du wieviel Sternlein stehen (Karaoke)",
+  "uploader": "uploader@example.invalid"
+ }
+}

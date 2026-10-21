@@ -1,0 +1,71 @@
+/* "Titel-Infos bearbeiten" on the folder page (src/features/box/TagsDialog.tsx). */
+
+/* Only there to lock every field while saving: no frame of its own. */
+.tags-body {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.tags-body h3 {
+  margin: 0;
+}
+
+/* Two fields side by side where there is room, one under the other on a phone. */
+.tags-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--space-3);
+}
+
+.tags-fields.three {
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  margin-top: var(--space-2);
+}
+
+.tags-lookup {
+  gap: var(--space-3);
+}
+
+.tags-tracks {
+  border-top: 1px solid var(--border);
+}
+
+.tags-tracks > .list-row {
+  align-items: flex-start;
+  padding-inline: 0;
+}
+
+.tags-tracks > .list-row > :not(.grow) {
+  flex: none;
+}
+
+.tags-no {
+  width: 4.2em;
+  padding-inline: var(--space-2);
+  text-align: center;
+}
+
+.tags-no-text {
+  line-height: 40px;
+}
+
+.tags-row .input[aria-invalid='true'] {
+  border-color: var(--danger);
+}
+
+.tags-invalid {
+  color: var(--danger-text);
+  font-weight: 600;
+}
+
+.tags-row > .btn {
+  margin-top: 4px;
+}
+
+@media (max-width: 560px) {
+  .tags-tracks > .list-row {
+    gap: var(--space-2);
+  }
+}

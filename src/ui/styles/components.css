@@ -1,0 +1,1363 @@
+/* ------------------------------------------------------------------ buttons */
+
+.btn {
+  --btn-bg: var(--surface);
+  --btn-fg: var(--text);
+  --btn-hover: var(--surface-hover);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  height: 40px;
+  padding: 0 var(--space-4);
+  background: var(--btn-bg);
+  color: var(--btn-fg);
+  font-weight: 700;
+  font-size: var(--text-base);
+  white-space: nowrap;
+  text-decoration: none;
+  user-select: none;
+}
+
+/* Pressed like a real button: it moves into its shadow. */
+.btn:hover:not(:disabled) {
+  background: var(--btn-hover);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn svg {
+  flex: none;
+}
+
+.btn.primary {
+  --btn-bg: var(--primary);
+  --btn-fg: var(--text-on-brand);
+  --btn-hover: var(--primary-hover);
+}
+
+.btn.danger {
+  --btn-bg: var(--danger);
+  --btn-fg: #fff;
+  --btn-hover: var(--danger-hover);
+}
+
+.btn.ghost {
+  --btn-bg: transparent;
+  --btn-border: transparent;
+  --btn-hover: var(--surface-active);
+}
+
+.btn.soft {
+  --btn-bg: var(--primary-soft);
+  --btn-fg: var(--primary-soft-text);
+  --btn-border: transparent;
+}
+
+.btn.ghost:active:not(:disabled),
+.btn.soft:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.btn.sm {
+  height: 32px;
+  padding: 0 var(--space-3);
+  font-size: var(--text-sm);
+  gap: 6px;
+}
+
+.btn.lg {
+  padding: 0 var(--space-6);
+  font-size: var(--text-md);
+  border-radius: var(--radius);
+}
+
+.btn.icon {
+  width: 40px;
+  padding: 0;
+}
+
+.btn.icon.sm {
+  width: 32px;
+}
+
+.btn.block {
+  width: 100%;
+}
+
+.btn .spinner {
+  width: 16px;
+  height: 16px;
+}
+
+/* ------------------------------------------------------------------ inputs */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field > label,
+.field-label {
+  font-size: var(--text-sm);
+  color: var(--text-soft);
+}
+
+.field-hint {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.input,
+.select,
+.textarea {
+  width: 100%;
+  height: 40px;
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-sm);
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+}
+
+.textarea {
+  height: auto;
+  min-height: 96px;
+  padding: var(--space-2) var(--space-3);
+  resize: vertical;
+}
+
+.select.compact {
+  width: auto;
+  height: 34px;
+  padding-left: var(--space-3);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.select {
+  appearance: none;
+  padding-right: 34px;
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+}
+
+.input:focus,
+.select:focus,
+.textarea:focus {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.input.big {
+  height: 48px;
+  font-size: var(--text-md);
+  font-weight: 600;
+}
+
+.input.inline-edit {
+  border-color: transparent;
+  background: transparent;
+  padding-left: var(--space-2);
+  margin-left: calc(-1 * var(--space-2) - 1px);
+}
+
+.input.inline-edit:focus {
+  background: var(--surface);
+}
+
+/*
+ * A title field that wraps (WrapInput): the field and a hidden copy of its
+ * text share one grid cell, so the copy makes the cell as tall as the text.
+ * Both need the same font, padding, border and wrapping. One line is as tall
+ * as an input: the line height (here 22px), twice --wrap-pad and the border.
+ * The cell is never wider than the space it gets: a word longer than a line,
+ * such as a file name with dots, breaks instead of pushing out of the row.
+ */
+.wrap-input {
+  --wrap-pad: 8px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  margin-left: calc(-1 * var(--space-2) - 1px);
+  line-height: 1.4667;
+}
+
+.wrap-input > .input.inline-edit,
+.wrap-input::after {
+  grid-area: 1 / 1;
+  margin: 0;
+  padding: var(--wrap-pad) var(--space-3) var(--wrap-pad) var(--space-2);
+  font: inherit;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+.wrap-input > .input.inline-edit {
+  height: auto;
+  min-height: 0;
+  resize: none;
+  overflow: hidden;
+}
+
+.wrap-input::after {
+  content: attr(data-value) ' ';
+  border: 1px solid transparent;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* The folder's name on its page: as big as a headline, and a long one wraps. */
+.wrap-input.headline {
+  --wrap-pad: 6px;
+  font-size: var(--text-xl);
+  font-weight: 800;
+  line-height: 1.3;
+}
+
+.input-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-group > svg {
+  position: absolute;
+  left: 12px;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.input-group > .input {
+  padding-left: 38px;
+}
+
+input[type='range'] {
+  width: 100%;
+  accent-color: var(--primary);
+}
+
+input[type='checkbox'],
+input[type='radio'] {
+  accent-color: var(--primary);
+}
+
+/* switch */
+.switch {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  cursor: pointer;
+  user-select: none;
+}
+
+.switch input {
+  appearance: none;
+  margin: 0;
+  background: var(--control-off);
+  position: relative;
+  transition: background 0.2s var(--ease);
+  flex: none;
+  cursor: pointer;
+}
+
+.switch input::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  transition: transform 0.2s var(--ease);
+}
+
+.switch input:checked {
+  background: var(--primary);
+}
+
+.switch input:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* segmented control */
+.segmented {
+  display: inline-flex;
+  align-self: flex-start;
+  flex-wrap: wrap;
+  border-radius: var(--radius);
+}
+
+.segmented button {
+  border: 0;
+  background: transparent;
+  height: 30px;
+  padding: 0 var(--space-3);
+  font-size: var(--text-sm);
+  color: var(--text-soft);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+/* ------------------------------------------------------------------ cards */
+
+.card {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+}
+
+.card.pad {
+  padding: var(--space-6);
+}
+
+.card.pad-sm {
+  padding: var(--space-4);
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-6);
+}
+
+.card-body {
+  padding: var(--space-6);
+}
+
+/* On phones a header's heading gets its own line; the count, hint or button goes below it. */
+@media (max-width: 560px) {
+  .card-header:has(> .step-heading),
+  .track-list > .card-header {
+    flex-wrap: wrap;
+    row-gap: var(--space-1);
+    padding-inline: var(--space-4);
+  }
+
+  .card-header > .step-heading,
+  .track-list > .card-header > h2 {
+    flex: 1 1 100%;
+  }
+
+  .card-header > .step-heading ~ .soft {
+    padding-left: calc(28px + var(--space-3));
+  }
+}
+
+/* a button that looks like a link */
+.link-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  padding: 4px 0;
+  border: 0;
+  background: none;
+  font-weight: 700;
+  font-size: var(--text-sm);
+  text-decoration: underline;
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 3px;
+  text-align: left;
+}
+
+/* When the text wraps (phones), the icon stays on the first line. */
+.link-button > svg:first-child {
+  align-self: flex-start;
+  margin-top: calc((1lh - 1em) / 2);
+}
+
+/* A link that throws something away ("Alle entfernen"): set off from the links next to it. */
+.link-button.danger-link {
+  color: var(--danger-text);
+}
+
+/* flex-start keeps the link small in a stack; in a row it sits centred like its neighbours. */
+.row > .link-button,
+.card-header > .link-button {
+  align-self: center;
+}
+
+/* choice cards (radio-like big options) */
+.choices {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+}
+
+.choice {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: left;
+  padding: var(--space-4);
+  background: var(--surface);
+}
+
+.choice:hover {
+  background: var(--surface-hover);
+}
+
+/* The icon of an option is an arcade cap: paper while off, lit amber when chosen. */
+.choice .choice-icon {
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+
+.choice-text {
+  font-size: var(--text-sm);
+}
+
+/* ------------------------------------------------------------------ badges */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 22px;
+  padding: 0 7px;
+  font-size: var(--text-xs);
+  color: var(--text-soft);
+  white-space: nowrap;
+}
+
+.badge.success {
+  background: var(--success-soft);
+  color: var(--success-text);
+}
+
+.badge.warning {
+  background: var(--warning-soft);
+  color: var(--warning-text);
+}
+
+.badge.danger {
+  background: var(--danger-soft);
+  color: var(--danger-text);
+}
+
+.badge.accent {
+  background: var(--accent-soft);
+  color: var(--accent-soft-text);
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  flex: none;
+}
+
+/* ------------------------------------------------------------------ callouts */
+
+.callout {
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--info-soft);
+  color: var(--info-text);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+}
+
+.callout > svg {
+  flex: none;
+  margin-top: 1px;
+}
+
+.callout b,
+.callout strong {
+  color: inherit;
+}
+
+.callout.success {
+  background: var(--success-soft);
+  color: var(--success-text);
+}
+
+.callout.warning {
+  background: var(--warning-soft);
+  color: var(--warning-text);
+}
+
+.callout.danger {
+  background: var(--danger-soft);
+  color: var(--danger-text);
+}
+
+.callout.neutral {
+  background: var(--bg-sunken);
+  color: var(--text-soft);
+}
+
+/* A problem with the system announcements, above the guide at the box. */
+.sounds-warning {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+}
+
+.sounds-warning > span {
+  flex: 1 1 260px;
+}
+
+a.sounds-warning-action:hover {
+  text-decoration: none;
+}
+
+/* Announcements with a problem, on pages other than „Meine Box“: one calm line, no red box. */
+.sounds-line {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  margin: 0;
+  color: var(--text-soft);
+}
+
+.sounds-line > svg {
+  flex: none;
+  margin-top: 2px;
+}
+
+/* „Klappt es nicht?“: what goes wrong at the box, folded away under the guide. */
+.trouble {
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+}
+
+.trouble > summary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  list-style: none;
+}
+
+.trouble > summary::-webkit-details-marker {
+  display: none;
+}
+
+.trouble > summary:hover {
+  background: var(--surface-hover);
+}
+
+.trouble > summary > svg:first-child {
+  color: var(--primary);
+}
+
+.trouble-chevron {
+  margin-left: auto;
+  color: var(--text-muted);
+  transition: transform 0.15s var(--ease);
+}
+
+.trouble[open] > summary {
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+
+.trouble[open] .trouble-chevron {
+  transform: rotate(180deg);
+}
+
+.trouble-list {
+  list-style: none;
+  margin: 0;
+  padding: var(--space-4);
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  gap: var(--space-5) var(--space-6);
+}
+
+.trouble-list li {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.trouble-list p {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  color: var(--text-soft);
+}
+
+.trouble-list a {
+  align-self: flex-start;
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+/* ------------------------------------------------------------------ progress */
+
+.progress {
+  overflow: hidden;
+}
+
+.progress > div {
+  height: 100%;
+  background: var(--primary);
+  transition: width 0.3s var(--ease);
+}
+
+.progress.indeterminate > div {
+  width: 35% !important;
+  animation: progress-slide 1.2s ease-in-out infinite;
+}
+
+@keyframes progress-slide {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(300%);
+  }
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2.5px solid color-mix(in srgb, currentColor 22%, transparent);
+  border-top-color: currentColor;
+  animation: spin 0.7s linear infinite;
+  flex: none;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.skeleton {
+  border-radius: var(--radius-sm);
+  background: var(--bg-sunken);
+}
+
+/* ------------------------------------------------------------------ dialog */
+
+.dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: var(--space-6);
+  animation: fade-in 0.15s var(--ease);
+}
+
+/* Grows downwards only: a hint appearing does not move the controls under the pointer. */
+.dialog-backdrop.top {
+  place-items: start center;
+  padding-top: max(var(--space-6), 6vh);
+}
+
+/* Starts lower, so it may be less tall: at full height its foot ran off the bottom of the window. */
+.dialog-backdrop.top .dialog {
+  max-height: calc(100vh - max(var(--space-6), 6vh) - var(--space-6));
+}
+
+.dialog {
+  width: min(560px, 100%);
+  max-height: calc(100vh - 48px);
+  display: flex;
+  flex-direction: column;
+  background: var(--surface-raised);
+  animation: pop-in 0.18s var(--ease);
+}
+
+.dialog.wide {
+  width: min(820px, 100%);
+}
+
+.dialog.xwide {
+  width: min(1080px, 100%);
+}
+
+.dialog-head {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-6) var(--space-6) var(--space-3);
+}
+
+.dialog-head h2 {
+  flex: 1;
+}
+
+.dialog-body {
+  padding: var(--space-2) var(--space-6) var(--space-6);
+  overflow: auto;
+}
+
+/* Buttons that do not fit side by side move to a new row instead of being cut off. */
+.dialog-foot {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-6);
+}
+
+/* Phones: the dialog uses the width, the buttons share each row, and a long label may break. */
+@media (max-width: 560px) {
+  .dialog-backdrop {
+    padding: var(--space-4);
+  }
+
+  .dialog {
+    max-height: calc(100vh - 32px);
+  }
+
+  .dialog-backdrop.top .dialog {
+    max-height: calc(100vh - max(var(--space-6), 6vh) - var(--space-4));
+  }
+
+  .dialog-head {
+    padding: var(--space-5) var(--space-5) var(--space-3);
+  }
+
+  .dialog-body {
+    padding: var(--space-2) var(--space-5) var(--space-5);
+  }
+
+  .dialog-foot {
+    padding: var(--space-3) var(--space-5);
+  }
+
+  .dialog-foot > * {
+    flex: 1 1 auto;
+  }
+
+  .dialog-foot > .btn {
+    height: auto;
+    min-height: 38px;
+    padding-block: var(--space-2);
+    white-space: normal;
+    text-align: center;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+}
+
+/* ------------------------------------------------------------------ toast */
+
+.toasts {
+  position: fixed;
+  right: var(--space-6);
+  bottom: var(--space-6);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  width: min(400px, calc(100vw - 32px));
+}
+
+/* A page with its action bar at the bottom (Hinzufügen, Entdecken): the toasts sit above the bar, not on its button.
+   The marks on <html> come from src/ui/rootFlag.ts (body:has(...) made every change restyle the whole app). */
+:root[data-import-bar] .toasts {
+  bottom: calc(var(--space-4) + 96px);
+}
+
+/* A dialog has its buttons at the bottom right: while one is open, the toasts go to the top. */
+:root[data-dialog] .toasts {
+  top: var(--space-6);
+  bottom: auto;
+}
+
+.toast {
+  display: flex;
+  gap: var(--space-3);
+  align-items: flex-start;
+  padding: var(--space-3) var(--space-4);
+  background: var(--gray-900);
+  animation: pop-in 0.2s var(--ease);
+  font-size: var(--text-sm);
+}
+
+:root[data-theme='dark'] .toast {
+  background: var(--surface-active);
+}
+
+.toast > svg {
+  flex: none;
+  margin-top: 1px;
+}
+
+.toast .toast-title {
+  font-weight: 700;
+}
+
+.toast button {
+  background: none;
+  border: 0;
+  color: inherit;
+  opacity: 0.7;
+  padding: 0;
+}
+
+.toast .toast-action {
+  margin-top: var(--space-1);
+  opacity: 1;
+}
+
+/* ------------------------------------------------------------------ menus */
+
+.menu {
+  position: absolute;
+  z-index: 50;
+  min-width: 200px;
+  width: max-content;
+  max-width: min(24rem, calc(100vw - 2 * var(--space-4)));
+  padding: 6px;
+  background: var(--surface-raised);
+  border-radius: var(--radius);
+  animation: pop-in 0.12s var(--ease);
+}
+
+.menu button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  border: 0;
+  background: none;
+  padding: 8px 10px;
+  text-align: left;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Menu entries stay on one line and their icons keep their size. */
+.menu button > svg {
+  flex: none;
+}
+
+.menu button:hover {
+  background: var(--surface-hover);
+}
+
+.menu button.danger {
+  color: var(--danger-text);
+}
+
+/* An entry that does nothing here (the first title cannot move up) looks it, like a disabled button; the hover is spelled out to win over the style's own. */
+.menu button:disabled,
+.menu button:disabled:hover {
+  opacity: 0.5;
+  background: none;
+  cursor: not-allowed;
+}
+
+.menu hr {
+  border: 0;
+  border-top: 1px solid var(--border);
+  margin: 6px 0;
+}
+
+/* ------------------------------------------------------------------ lists */
+
+.list {
+  display: flex;
+  flex-direction: column;
+}
+
+.list-row {
+  display: flex;
+  /* Never squeezed by a scrolling list (WebKitGTK shrank rows, so a row whose player opened overlapped its neighbours). */
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 48px;
+  padding: var(--space-2) var(--space-4);
+  border-bottom: 1px solid var(--border);
+}
+
+.list-row:last-child {
+  border-bottom: 0;
+}
+
+/* Track rows: handle, number, play button and duration keep their width so the columns line up; only the title gives way. */
+.track-list .list-row > :not(.grow) {
+  flex: none;
+}
+
+.track-list .list-row > .grow {
+  min-width: 0;
+}
+
+@media (max-width: 560px) {
+  .track-list .list-row {
+    gap: var(--space-2);
+    padding-inline: var(--space-3);
+  }
+}
+
+.list-row.clickable {
+  cursor: pointer;
+}
+
+.list-row.clickable:hover {
+  background: var(--surface-hover);
+}
+
+/* ------------------------------------------------------------------ empty */
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--space-3);
+  padding: var(--space-12) var(--space-6);
+  /* Never wider than the page: on a phone the drawing would let it scroll sideways. */
+  max-width: min(560px, 100%);
+  min-width: 0;
+  margin: 0 auto;
+}
+
+.empty p {
+  color: var(--text-soft);
+}
+
+.empty .empty-art {
+  margin-bottom: var(--space-3);
+}
+
+.empty .row {
+  margin-top: var(--space-3);
+  justify-content: center;
+}
+
+/* ------------------------------------------------------------------ dropzone */
+
+.dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-5);
+  border-radius: var(--radius-xl);
+  padding: var(--space-12) var(--space-6);
+  text-align: center;
+  background: var(--surface);
+}
+
+.dropzone-icon {
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+}
+
+.dropzone.over {
+  background: var(--primary-soft);
+  transform: scale(1.01);
+}
+
+.dropzone.over .dropzone-icon {
+  background: var(--primary);
+  color: #fff;
+}
+
+.page.drop-over {
+  outline-offset: -12px;
+  border-radius: var(--radius-xl);
+}
+
+/* ------------------------------------------------------------------ stepper */
+
+.steps {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.steps .step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.steps .step-num {
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+.steps .step.active {
+  color: var(--text);
+}
+
+.steps .step.active .step-num {
+  background: var(--primary);
+  color: #fff;
+}
+
+.steps .step.done .step-num {
+  background: var(--success-soft);
+  color: var(--success-text);
+}
+
+.steps .sep {
+  width: 24px;
+}
+
+/* ------------------------------------------------------------------ tabs */
+
+.tabs {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.tabs button {
+  border: 0;
+  background: none;
+  padding: 10px 14px;
+  color: var(--text-muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tabs button[aria-selected='true'] {
+  color: var(--text);
+  border-bottom-color: var(--primary);
+}
+
+/* Inside, so a row of tabs that scrolls sideways does not cut the ring off. */
+.tabs button:focus-visible {
+  outline-offset: -3px;
+}
+
+/* Phones: the tabs share the width, each with its icon above the label. */
+@media (max-width: 560px) {
+  .tabs button {
+    flex: 1 1 0;
+    min-width: 0;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: var(--space-1);
+    padding: var(--space-2) var(--space-1);
+    font-size: var(--text-sm);
+    text-align: center;
+  }
+}
+
+kbd {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  padding: 1px 6px;
+  background: var(--surface);
+}
+
+/* ------------------------------------------------------------------ Karte neu aufbauen, auf eine andere Karte kopieren */
+
+.box-more {
+  margin-left: auto;
+}
+
+.rebuild-entry {
+  margin: 0;
+}
+
+/* A card with nothing to do: one quiet line instead of a box. */
+.health-quiet {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 6px;
+}
+
+.health-quiet > svg {
+  flex: none;
+  color: var(--success);
+}
+
+/* A new card getting its announcements: a quiet line with a bar, where the health check would be. */
+.setup-sounds {
+  max-width: 560px;
+}
+
+.setup-sounds > p {
+  margin: 0;
+}
+
+/* In the health check it keeps clear of the list's line. */
+.dialog-body > .rebuild-entry {
+  margin-top: var(--space-3);
+}
+
+.rebuild-steps {
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.rebuild-steps .steps {
+  flex-wrap: wrap;
+  row-gap: var(--space-1);
+}
+
+.rebuild-facts {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--bg-sunken);
+}
+
+.rebuild-left summary {
+  cursor: pointer;
+  color: var(--text-soft);
+}
+
+.rebuild-left > p {
+  margin: var(--space-1) 0 0;
+}
+
+.rebuild-list,
+.copy-folders {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.rebuild-list > li,
+.copy-folders > li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  min-width: 0;
+}
+
+.rebuild-list > li + li,
+.copy-folders > li + li {
+  border-top: 1px solid var(--border);
+}
+
+.rebuild-list > li.ready {
+  background: var(--success-soft);
+}
+
+.rebuild-list .grow {
+  min-width: 0;
+  /* On a phone the button goes below; the icon stays with its text. */
+  flex: 1 1 200px;
+}
+
+.rebuild-ok {
+  flex: none;
+  color: var(--success-text);
+}
+
+.rebuild-warn {
+  flex: none;
+  color: var(--warning-text);
+}
+
+.copy-folders {
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.copy-folders label {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+
+/* The folder number as on the shelf; each style draws it in its own hand. */
+.copy-num {
+  font-variant-numeric: tabular-nums;
+  margin-right: 6px;
+}
+
+/* The size of each folder on one line, right-aligned in its column. */
+.copy-folders > li > .small {
+  flex: none;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.copy-sounds {
+  gap: var(--space-2);
+  align-items: flex-start;
+  cursor: pointer;
+}
+
+.copy-sounds > input {
+  margin-top: 3px;
+}
+
+.copy-steps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding-left: 22px;
+}
+
+.copy-steps ul {
+  margin: var(--space-1) 0 0;
+  padding-left: 18px;
+}
+
+/* Phones: the button of a row goes below its text. */
+@media (max-width: 560px) {
+  .rebuild-list > li,
+  .copy-taken {
+    flex-wrap: wrap;
+  }
+
+  .rebuild-list > li > .btn,
+  .copy-taken > .segmented {
+    margin-left: auto;
+  }
+}
+
+/* ------------------------------------------------------------------ illustrations */
+
+/* ------------------------------------------------------------------ box motifs */
+
+/* seek bar ("Reinhören", "Anhören"): the style's progress bar with a knob, a range input on top takes the hand and the keys */
+.seekbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  max-width: 560px;
+}
+
+.seekbar-track {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 96px;
+  display: flex;
+  align-items: center;
+  height: 24px;
+}
+
+.seekbar-track > .progress {
+  flex: 1;
+}
+
+.seekbar-track > .progress > div {
+  transition: none;
+}
+
+.seekbar-knob {
+  position: absolute;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  transform: translateY(-50%);
+  border-radius: var(--radius-full);
+  background: var(--surface);
+  border: 2px solid var(--ink);
+  pointer-events: none;
+}
+
+.seekbar-track > input[type='range'] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.seekbar-track:has(> input:focus-visible) .seekbar-knob {
+  outline: 3px solid var(--focus-color, var(--primary));
+  outline-offset: 2px;
+}
+
+.seekbar.disabled {
+  opacity: 0.5;
+}
+
+.seekbar-clock {
+  white-space: nowrap;
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+}
+
+/* ------------------------------------------------------------------ remembered boxes */
+
+/* „Box merken“ (src/features/box/Remembered.tsx): the boxes this device remembers, on a page without a card and in the settings. */
+.remembered-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.remembered-list > li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+  padding: var(--space-3) 0;
+  border-top: 1px solid var(--border);
+}
+
+.remembered-list > li > .grow,
+.remembered-note > .grow {
+  flex: 1 1 14rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.remembered-settings {
+  margin-top: var(--space-2);
+}
+
+.remembered-pick {
+  gap: var(--space-2);
+}
+
+/* The question on the shelf: the sentence wraps beside its icon, the answers stay together. */
+.remember-offer > span:first-of-type {
+  flex: 1 1 16rem;
+  min-width: 0;
+}
+
+.remember-answers {
+  display: inline-flex;
+  gap: var(--space-4);
+}

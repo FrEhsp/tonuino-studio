@@ -1,0 +1,26 @@
+{
+ "name": "redirect without CORS header, file with \"*\" -> fetch fails (the browser never requests the file)",
+ "kind": "synthetic",
+ "request": {
+  "method": "GET",
+  "url": "https://a.example/file.mp3"
+ },
+ "hops": [
+  {
+   "status": 302,
+   "url": "https://a.example/file.mp3",
+   "headers": {
+    "location": "https://b.example/file.mp3"
+   }
+  },
+  {
+   "status": 200,
+   "url": "https://b.example/file.mp3",
+   "headers": {
+    "access-control-allow-origin": "*",
+    "content-type": "audio/mpeg"
+   }
+  }
+ ],
+ "expect": "browser"
+}

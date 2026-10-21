@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd">
+  <channel>
+    <title>SRF Kids Hörspiele - Geschichten für Kinder</title>
+    <link>https://www.srf.ch/audio/srf-kids-hoerspiele-geschichten-fuer-kinder</link>
+    <description>Tolle Hörspiele für Kinder ab 8 bis 12 Jahren auf Schweizerdeutsch. Ob Krimi, Abenteuer oder lustige Geschichten vom Pausenhof – für jeden Geschmack ist etwas dabei!</description>
+    <language>de</language>
+    <copyright>© 2026 SRG SSR</copyright>
+    <itunes:author>Schweizer Radio und Fernsehen (SRF)</itunes:author>
+    <itunes:explicit>no</itunes:explicit>
+    <itunes:image href="https://download-media.srf.ch/world/image/audio/2023/04/987a01e371154a5d8f5e0afda6736d01.png"/>
+    <item>
+      <title>Ricci, Achtung Lehrerbesuch! – ein turbulentes Hörspiel</title>
+      <description>[Platzhalter: Beschreibung nicht wörtlich gelesen] (Ab 8 Jahren)</description>
+      <guid isPermaLink="false">19e9cd98-1074-351c-9c37-966472f653d4</guid>
+      <pubDate>Wed, 30 Sep 2026 11:00:00 +0200</pubDate>
+      <enclosure url="https://download-media.srf.ch/world/audio/Zambo_Hoerspiele_fuer_Kinder_radio/2026/09/Zambo_Hoerspiele_fuer_Kinder_radio_AUDI20260930_NR_0041_880d544fbb48490bbfd6f48fe585f558.mp3" length="42519112" type="audio/mpeg"/>
+      <itunes:duration>2653</itunes:duration>
+      <itunes:explicit>no</itunes:explicit>
+    </item>
+    <item>
+      <title>Oma, die Miethaie und ich – Hörspiel über einen mysteriösen Brief</title>
+      <description>[Platzhalter: Beschreibung nicht wörtlich gelesen] (Ab 8 Jahren)</description>
+      <guid isPermaLink="false">2f1b14a6-ad52-3cb1-ad7e-cba44d33ef3d</guid>
+      <pubDate>Wed, 16 Sep 2026 11:00:00 +0200</pubDate>
+      <enclosure url="https://download-media.srf.ch/world/audio/Zambo_Hoerspiele_fuer_Kinder_radio/2026/09/Zambo_Hoerspiele_fuer_Kinder_radio_AUDI20260916_NR_0034_d7065afe8e3a4314b0849614623522e8.mp3" length="66408045" type="audio/mpeg"/>
+      <itunes:duration>4151</itunes:duration>
+      <itunes:explicit>no</itunes:explicit>
+    </item>
+    <item>
+      <title>Klementine schreibt einen bösen Brief – ein witziges Hörspiel</title>
+      <description>[Platzhalter: Beschreibung nicht wörtlich gelesen] (Ab 8 Jahren)</description>
+      <guid isPermaLink="false">59fda018-182d-308c-9bbd-e530a6a2ee28</guid>
+      <pubDate>Wed, 02 Sep 2026 11:00:00 +0200</pubDate>
+      <enclosure url="https://download-media.srf.ch/world/audio/Zambo_Hoerspiele_fuer_Kinder_radio/2026/08/Zambo_Hoerspiele_fuer_Kinder_radio_AUDI20260902_NR_0042_327b06cbbd2341369f170e34abca51d1.mp3" length="67782484" type="audio/mpeg"/>
+      <itunes:duration>4232</itunes:duration>
+      <itunes:explicit>no</itunes:explicit>
+    </item>
+  </channel>
+</rss>

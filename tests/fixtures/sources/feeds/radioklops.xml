@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd">
+  <channel>
+    <title>Radio Klops - Der Hörspielpodcast für Kinder ab 4</title>
+    <description>Die Schildkröte Klops sendet aus dem Kinderzimmer eine lustige und warmherzige Hörreihe, die Kinder stärkt – und ihnen zeigt: Auch andere Eltern verwandeln sich ab und zu in Schimpfroboter. Ab 4 Jahren geeignet.</description>
+    <language>de</language>
+    <copyright>Domenik Schuster</copyright>
+    <itunes:author>Domenik Schuster</itunes:author>
+    <itunes:explicit>no</itunes:explicit>
+    <item>
+      <title>Folge 7: Der Sonnencreme-Roboter</title>
+      <guid isPermaLink="false">placeholder-guid-7</guid>
+      <pubDate>Tue, 15 Sep 2026 03:00:00 +0000</pubDate>
+      <enclosure url="https://audio.podigee-cdn.net/2594295-m-f5e8aa3cf404651e6bb01af84e67e73f.mp3?source=feed" length="31480561" type="audio/mpeg"/>
+      <itunes:duration>1973</itunes:duration>
+    </item>
+    <item>
+      <title>Folge 6: Der Trillerpfeifen-Roboter</title>
+      <guid isPermaLink="false">placeholder-guid-6</guid>
+      <pubDate>Tue, 18 Aug 2026 03:00:00 +0000</pubDate>
+      <enclosure url="https://audio.podigee-cdn.net/2477797-m-db90238e0efcfdb9c2546452674116f7.mp3?source=feed" length="31832895" type="audio/mpeg"/>
+      <itunes:duration>2014</itunes:duration>
+    </item>
+    <item>
+      <title>Folge 5: Der Doppel-Schimpfroboter</title>
+      <guid isPermaLink="false">placeholder-guid-5</guid>
+      <pubDate>Tue, 21 Jul 2026 02:59:00 +0000</pubDate>
+      <enclosure url="https://audio.podigee-cdn.net/2551784-m-4c93811aa2c660ed181210c385e8b9fa.mp3?source=feed" length="35737628" type="audio/mpeg"/>
+      <itunes:duration>2276</itunes:duration>
+    </item>
+    <item>
+      <title>Folge 4: Der Tröste-Roboter</title>
+      <guid isPermaLink="false">placeholder-guid-4</guid>
+      <pubDate>Tue, 16 Jun 2026 02:00:00 +0000</pubDate>
+      <enclosure url="https://audio.podigee-cdn.net/2477800-m-0262e82a3a468b67334bfc5e88586532.mp3?source=feed" length="23405605" type="audio/mpeg"/>
+      <itunes:duration>1415</itunes:duration>
+    </item>
+    <item>
+      <title>Folge 3: Der Knall-Ernst-Roboter</title>
+      <guid isPermaLink="false">placeholder-guid-3</guid>
+      <pubDate>Tue, 19 May 2026 03:00:00 +0000</pubDate>
+      <enclosure url="https://audio.podigee-cdn.net/2488737-m-666284c64325d9dbb5ecdbb747178c46.mp3?source=feed" length="23088665" type="audio/mpeg"/>
+      <itunes:duration>1389</itunes:duration>
+    </item>
+    <item>
+      <title>Folge 2: Der Zahnbürsten-Wegrenn-Hindernislauf</title>
+      <guid isPermaLink="false">placeholder-guid-2</guid>
+      <pubDate>Mon, 04 May 2026 11:49:10 +0000</pubDate>
+      <enclosure url="https://audio.podigee-cdn.net/2477791-m-1a3f3b475eb0c8415bf63afe1422f4f0.mp3?source=feed" length="26688670" type="audio/mpeg"/>
+      <itunes:duration>1648</itunes:duration>
+    </item>
+    <item>
+      <title>Folge 1: Die Socken-Saug-Maschine</title>
+      <guid isPermaLink="false">placeholder-guid-1</guid>
+      <pubDate>Mon, 04 May 2026 11:11:08 +0000</pubDate>
+      <enclosure url="https://audio.podigee-cdn.net/2477755-m-2ee46a1b27b5a13672bf49cbe95d94b4.mp3?source=feed" length="26433425" type="audio/mpeg"/>
+      <itunes:duration>1632</itunes:duration>
+    </item>
+  </channel>
+</rss>

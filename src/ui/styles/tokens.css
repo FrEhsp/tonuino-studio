@@ -1,0 +1,395 @@
+/*
+ * Design tokens of the app's look, "Holzwerkstatt" (src/ui/stil.ts). The
+ * look sits on <html> as data-stil='holz', next to data-theme (light or
+ * dark); the blocks below use :where() for it, so they weigh as much as a
+ * plain :root and :root[data-theme='dark'] and a later :root rule in
+ * another file still wins.
+ *
+ * Fonts ship with the app (src/assets/fonts, licences next to them and in
+ * "Über TonUINO Studio"); nothing is loaded from the internet.
+ * Fira Sans for reading, buttons and forms; Shantell Sans, a handwriting
+ * that is set like a real typeface, for headings, notes and speech
+ * bubbles; Permanent Marker only as the stamp of the folder numbers on
+ * shelf cards and stickers. Gochi Hand stays for the printed stickers.
+ */
+
+@font-face {
+  font-family: 'Fira Sans';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../../assets/fonts/fira-sans-latin-400-normal.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Fira Sans';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../../assets/fonts/fira-sans-latin-ext-400-normal.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: 'Fira Sans';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../../assets/fonts/fira-sans-latin-400-italic.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Fira Sans';
+  font-style: normal;
+  font-weight: 500 600;
+  font-display: swap;
+  src: url('../../assets/fonts/fira-sans-latin-600-normal.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Fira Sans';
+  font-style: normal;
+  font-weight: 500 600;
+  font-display: swap;
+  src: url('../../assets/fonts/fira-sans-latin-ext-600-normal.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: 'Fira Sans';
+  font-style: normal;
+  font-weight: 700 900;
+  font-display: swap;
+  src: url('../../assets/fonts/fira-sans-latin-700-normal.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Fira Sans';
+  font-style: normal;
+  font-weight: 700 900;
+  font-display: swap;
+  src: url('../../assets/fonts/fira-sans-latin-ext-700-normal.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+/* Variable: weight 300 to 800, and for the Latin letters also the axes INFM (informal) and BNCE (bounce). */
+@font-face {
+  font-family: 'Shantell Sans';
+  font-style: normal;
+  font-weight: 300 800;
+  font-display: swap;
+  src: url('../../assets/fonts/shantell-sans-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Shantell Sans';
+  font-style: normal;
+  font-weight: 300 800;
+  font-display: swap;
+  src: url('../../assets/fonts/shantell-sans-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: 'Permanent Marker';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../../assets/fonts/permanent-marker-latin.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Gochi Hand';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../../assets/fonts/gochi-hand-latin.woff2') format('woff2');
+}
+
+/* Sticker fonts "Detektiv", "Comic" and "Bilderbuch" (src/features/stickers/fonts.ts); loaded only when a sticker uses them. */
+@font-face {
+  font-family: 'Anton';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../../assets/fonts/anton-latin.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Lilita One';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../../assets/fonts/lilita-one-latin.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Caprasimo';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../../assets/fonts/caprasimo-latin.woff2') format('woff2');
+}
+
+/* Not tied to light or dark. */
+:root {
+  --font-mono: ui-monospace, 'SF Mono', 'Cascadia Mono', 'DejaVu Sans Mono', monospace;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --radius-full: 999px;
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --content-max: 1180px;
+}
+
+/* ------------------------------------------------------------------ Holz */
+
+/*
+ * Design tokens: "Holzwerkstatt". Light paper for the big areas, nearly
+ * black ink (ink is black, only the paper is warm), plywood only as an
+ * accent (the shelf, the sidebar's little box), the TonUINO purple for what
+ * to do, and the flat colours of the TonUINO forum for stickers. No soft
+ * shadows, no gradients: edges are drawn lines (see the frames in
+ * components.css), shadows are hard like paper on a table. Every colour has
+ * a dark-mode counterpart (charcoal with paper-white ink, the shelf in
+ * walnut, amber highlights).
+ */
+:root:where([data-stil='holz']) {
+  color-scheme: light;
+
+  /* Brand: the TonUINO purple (main actions) */
+  --brand-50: #f7eff6;
+  --brand-100: #efdeec;
+  --brand-200: #dfc0db;
+  --brand-300: #c99cc5;
+  --brand-400: #b47daf;
+  --brand-500: #a66aa1;
+  --brand-600: #9c5d98;
+  --brand-700: #84487f;
+  --brand-800: #6b3967;
+  --brand-900: #552d52;
+
+  /* Second brand colour: plywood and wood */
+  --wood: #8c6238;
+  --wood-light: #c9a06d;
+  /* The back wall of the shelf: light birch plywood, so the wood stays an accent. */
+  --plywood: #ecdcbc;
+  --plywood-grain: #d2b88c;
+
+  /* Accent: forum orange */
+  --accent-50: #fdf0de;
+  --accent-100: #fbe1bd;
+  --accent-300: #f9b866;
+  --accent-500: #f7941d;
+  --accent-600: #dd7f0c;
+  --accent-700: #8a4b06;
+
+  /* Flat sticker colours of the TonUINO forum */
+  --sticker-orange: #f7941d;
+  --sticker-green: #9eb83b;
+  --sticker-blue: #0e76bd;
+  --sticker-teal: #12a89d;
+  --sticker-pink: #ed207b;
+  --amber: #fdd459;
+
+  /* The round arcade buttons on the front of many boxes; icons on them stay in ink. */
+  --arcade-red: #e5483b;
+  --arcade-yellow: #f6c12c;
+  --arcade-green: #58ad46;
+  --arcade-blue: #3f8fd6;
+
+  /* A drilled speaker grille (used as a mask, so it takes any colour). */
+  --grille: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50.0' cy='50.0' r='3.1'/%3E%3Ccircle cx='58.0' cy='58.9' r='3.1'/%3E%3Ccircle cx='48.0' cy='61.8' r='3.1'/%3E%3Ccircle cx='39.5' cy='55.8' r='3.1'/%3E%3Ccircle cx='38.9' cy='45.4' r='3.1'/%3E%3Ccircle cx='46.7' cy='38.5' r='3.1'/%3E%3Ccircle cx='56.9' cy='40.2' r='3.1'/%3E%3Ccircle cx='62.0' cy='49.3' r='3.1'/%3E%3Ccircle cx='49.1' cy='73.0' r='3.1'/%3E%3Ccircle cx='38.5' cy='69.9' r='3.1'/%3E%3Ccircle cx='30.6' cy='62.3' r='3.1'/%3E%3Ccircle cx='27.1' cy='51.9' r='3.1'/%3E%3Ccircle cx='28.8' cy='41.0' r='3.1'/%3E%3Ccircle cx='35.4' cy='32.2' r='3.1'/%3E%3Ccircle cx='45.4' cy='27.5' r='3.1'/%3E%3Ccircle cx='56.4' cy='27.9' r='3.1'/%3E%3Ccircle cx='65.9' cy='33.4' r='3.1'/%3E%3Ccircle cx='71.8' cy='42.7' r='3.1'/%3E%3Ccircle cx='72.7' cy='53.7' r='3.1'/%3E%3Ccircle cx='68.4' cy='63.8' r='3.1'/%3E%3Ccircle cx='59.9' cy='70.8' r='3.1'/%3E%3Ccircle cx='25.4' cy='73.5' r='3.1'/%3E%3Ccircle cx='19.1' cy='64.2' r='3.1'/%3E%3Ccircle cx='16.2' cy='53.4' r='3.1'/%3E%3Ccircle cx='16.9' cy='42.2' r='3.1'/%3E%3Ccircle cx='21.2' cy='31.9' r='3.1'/%3E%3Ccircle cx='28.6' cy='23.5' r='3.1'/%3E%3Ccircle cx='38.4' cy='18.0' r='3.1'/%3E%3Ccircle cx='49.4' cy='16.0' r='3.1'/%3E%3Ccircle cx='60.5' cy='17.7' r='3.1'/%3E%3Ccircle cx='70.4' cy='22.8' r='3.1'/%3E%3Ccircle cx='78.1' cy='30.9' r='3.1'/%3E%3Ccircle cx='82.8' cy='41.1' r='3.1'/%3E%3Ccircle cx='83.9' cy='52.2' r='3.1'/%3E%3Ccircle cx='81.4' cy='63.1' r='3.1'/%3E%3Ccircle cx='75.4' cy='72.6' r='3.1'/%3E%3Ccircle cx='66.7' cy='79.6' r='3.1'/%3E%3Ccircle cx='56.2' cy='83.4' r='3.1'/%3E%3Ccircle cx='45.0' cy='83.6' r='3.1'/%3E%3Ccircle cx='34.3' cy='80.2' r='3.1'/%3E%3Ccircle cx='5.0' cy='49.6' r='3.1'/%3E%3Ccircle cx='6.4' cy='38.9' r='3.1'/%3E%3Ccircle cx='10.3' cy='28.8' r='3.1'/%3E%3Ccircle cx='16.6' cy='19.9' r='3.1'/%3E%3Ccircle cx='24.7' cy='12.8' r='3.1'/%3E%3Ccircle cx='34.4' cy='7.8' r='3.1'/%3E%3Ccircle cx='45.0' cy='5.3' r='3.1'/%3E%3Ccircle cx='55.8' cy='5.4' r='3.1'/%3E%3Ccircle cx='66.3' cy='8.1' r='3.1'/%3E%3Ccircle cx='75.9' cy='13.2' r='3.1'/%3E%3Ccircle cx='83.9' cy='20.4' r='3.1'/%3E%3Ccircle cx='90.0' cy='29.4' r='3.1'/%3E%3Ccircle cx='93.8' cy='39.6' r='3.1'/%3E%3Ccircle cx='95.0' cy='50.4' r='3.1'/%3E%3Ccircle cx='93.6' cy='61.1' r='3.1'/%3E%3Ccircle cx='89.7' cy='71.2' r='3.1'/%3E%3Ccircle cx='83.4' cy='80.1' r='3.1'/%3E%3Ccircle cx='75.3' cy='87.2' r='3.1'/%3E%3Ccircle cx='65.6' cy='92.2' r='3.1'/%3E%3Ccircle cx='55.0' cy='94.7' r='3.1'/%3E%3Ccircle cx='44.2' cy='94.6' r='3.1'/%3E%3Ccircle cx='33.7' cy='91.9' r='3.1'/%3E%3Ccircle cx='24.1' cy='86.8' r='3.1'/%3E%3Ccircle cx='16.1' cy='79.6' r='3.1'/%3E%3Ccircle cx='10.0' cy='70.6' r='3.1'/%3E%3Ccircle cx='6.2' cy='60.4' r='3.1'/%3E%3C/svg%3E");
+  --grille-small: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 18'%3E%3Ccircle cx='9.0' cy='9.0' r='1.75'/%3E%3Ccircle cx='14.2' cy='11.1' r='1.75'/%3E%3Ccircle cx='9.7' cy='14.6' r='1.75'/%3E%3Ccircle cx='4.6' cy='12.4' r='1.75'/%3E%3Ccircle cx='3.8' cy='6.9' r='1.75'/%3E%3Ccircle cx='8.3' cy='3.4' r='1.75'/%3E%3Ccircle cx='13.4' cy='5.6' r='1.75'/%3E%3C/svg%3E");
+
+  /* Neutrals: paper and card, only a little warm; ink nearly black */
+  --gray-0: #fffdf9;
+  --gray-25: #fcf9f3;
+  --gray-50: #f6f1e8;
+  --gray-100: #eee8dc;
+  --gray-150: #e4ddcf;
+  --gray-200: #d6cebe;
+  --gray-300: #bdb4a3;
+  --gray-400: #9a9182;
+  --gray-500: #716a5f;
+  --gray-600: #544e46;
+  --gray-700: #3d3833;
+  --gray-800: #2a2622;
+  --gray-900: #1f1a16;
+
+  /* Semantic: a light paper page, cards of near-white card stock on it */
+  --bg: #f6f1e8;
+  --bg-sunken: #ede6d9;
+  --surface: #fffdf8;
+  --surface-raised: #fffefb;
+  --surface-hover: #f8f3ea;
+  --surface-active: #efe8db;
+  --border: #e2d9c8;
+  --border-strong: #bdb3a0;
+  --border-hover: var(--wood);
+  /* Track of a switch that is off. */
+  --control-off: #bdb3a0;
+  /* Terminal commands to copy: a dark box in both themes. */
+  --code-bg: #1f1a16;
+  --code-text: #f6f1e8;
+  --code-border: #1f1a16;
+  --text: #1f1a16;
+  /* 6.4:1 on the page, 7:1 on a card. */
+  --text-muted: #5c554c;
+  --text-soft: #3d3730;
+  --text-on-brand: #ffffff;
+  --primary: var(--brand-600);
+  --primary-hover: var(--brand-700);
+  --primary-soft: #f1e1ee;
+  --primary-soft-text: #6b3967;
+  /* Links and link buttons: the purple, dark enough for small text on paper. */
+  --primary-text: #7e4479;
+  --accent: var(--accent-500);
+  --accent-soft: var(--accent-50);
+  --accent-soft-text: var(--accent-700);
+
+  --success: #4d8a2a;
+  --success-soft: #e5eecf;
+  --success-text: #355f1b;
+  --warning: #d08a10;
+  --warning-soft: #fbefc8;
+  --warning-text: #75500a;
+  --danger: #c2352b;
+  --danger-hover: #a52a21;
+  --danger-soft: #f8dfd6;
+  --danger-text: #9a2a20;
+  --info-soft: #e0ebf2;
+  --info-text: #0b5688;
+
+  /* Drawn lines: the ink of outlines and their width (drawn as pen strokes by src/ui/drawnFrames.ts). */
+  --ink: #1f1a16;
+  --line: 2px;
+  /* Paper on a table: a hard shadow, no blur. */
+  --drop: rgb(31 26 22 / 0.15);
+  /* Behind a dialog: dimmed, not brown. */
+  --backdrop: rgb(20 15 10 / 0.45);
+
+  --focus-color: #7e4479;
+  --focus-ring: 0 0 0 3px var(--focus-color);
+  /* A marker stroke behind a chosen thing, and the yellow of tape and highlights. */
+  --highlight: #fdd459;
+  /*
+   * Three marks of 0.4 that only "Sticker drucken" still uses, until its new
+   * layout: a thin yellow wash, the ink on it, and a pencil line.
+   */
+  --chosen-soft: rgb(253 212 89 / 0.38);
+  --on-highlight: #1f1a16;
+  --pencil: #8a8174;
+  /* Masking tape: a strip of slightly see-through paper. */
+  --tape: rgb(240 226 180 / 0.82);
+  --tape-edge: rgb(150 130 80 / 0.35);
+  /* A note slip: a little more yellow than the cards. */
+  --note-paper: #fffbea;
+  /* The boards of the shelf: sawn plywood edges, a shade darker than the back wall. */
+  --board: #d2ad78;
+  --board-edge: #8c6238;
+
+  /* Type */
+  /* Reading, buttons, forms; also the print on drawings (pins of the Lötplan). */
+  --font: 'Fira Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  /* Headings: handwriting set as a typeface. */
+  --font-display: 'Shantell Sans', 'Comic Sans MS', 'Fira Sans', cursive;
+  /* Notes, speech bubbles, the hand-written names on drawings. */
+  --font-hand: 'Shantell Sans', 'Comic Sans MS', 'Fira Sans', cursive;
+  /* The stamp: only the folder numbers on shelf cards and stickers. */
+  --font-stamp: 'Permanent Marker', 'Shantell Sans', 'Comic Sans MS', cursive;
+  --text-xs: 0.78rem;
+  --text-sm: 0.86rem;
+  --text-base: 0.97rem;
+  --text-md: 1.08rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.5rem;
+  --text-2xl: 1.95rem;
+  --text-3xl: 2.4rem;
+
+  /* Space, radius, elevation */
+  --radius-sm: 6px;
+  --radius: 8px;
+  --radius-lg: 10px;
+  --radius-xl: 14px;
+  --shadow-xs: none;
+  --shadow-sm: 2px 2px 0 var(--drop);
+  --shadow: 3px 3px 0 var(--drop);
+  --shadow-lg: 5px 6px 0 rgb(31 26 22 / 0.2);
+  --sidebar-width: 248px;
+
+  /* Kraft paper: flat colour with a very light grain. */
+  --paper-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.35 0 0 0 0 0.27 0 0 0 0 0.16 0 0 0 0.06 0'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E");
+  /* Plywood: long, slightly wavy grain lines. */
+  --wood-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='120' fill='none' stroke='%23a37a45' stroke-opacity='0.16' stroke-width='1.3'%3E%3Cpath d='M0 14c80-6 150 8 240 2s170-10 360 3'/%3E%3Cpath d='M0 38c120 7 200-6 300 0s200 9 300-2'/%3E%3Cpath d='M0 61c60-4 110 3 190 1 90-3 130-14 210-6s140 9 200 3'/%3E%3Cpath d='M0 88c140-8 220 6 330 1s190-7 270 2'/%3E%3Cpath d='M0 108c90 5 170-3 260 0 110 4 230-8 340 1'/%3E%3Cpath d='M380 52c20-9 48-9 64 0s-40 13-64 0z' stroke-opacity='0.22'/%3E%3C/svg%3E");
+}
+
+:root:where([data-stil='holz'])[data-theme='dark'] {
+  color-scheme: dark;
+  /* Charcoal with a hint of warmth; the walnut stays on the shelf. */
+  --bg: #1d1b19;
+  --bg-sunken: #161513;
+  --surface: #292623;
+  --surface-raised: #2f2c28;
+  --surface-hover: #34302c;
+  --surface-active: #3d3833;
+  --border: #46413a;
+  --border-strong: #625b51;
+  --border-hover: #a77d4f;
+  --control-off: #625b51;
+  --code-bg: #121110;
+  --code-text: #f2ede4;
+  --code-border: var(--border-strong);
+  --text: #f2ede4;
+  --text-muted: #b5ada0;
+  --text-soft: #d9d2c6;
+  --primary: #9c5d98;
+  /* Darker on hover, so the white label keeps its contrast (6:1). */
+  --primary-hover: #864d82;
+  --primary-soft: rgb(156 93 152 / 0.24);
+  --primary-soft-text: #ecc9e8;
+  /* Links lila in the dark too, the one colour for "hier klicken" (7:1 on the page, 6:1 on a card); 0.3.1 had yellow here. */
+  --primary-text: var(--brand-300);
+  --accent: #f7a23f;
+  --accent-soft: rgb(247 148 29 / 0.16);
+  --accent-soft-text: #fbc887;
+  --success: #8fc35a;
+  --success-soft: rgb(143 195 90 / 0.15);
+  --success-text: #b5dc8c;
+  --warning: #fdd459;
+  --warning-soft: rgb(253 212 89 / 0.14);
+  --warning-text: #fde08a;
+  --danger: #e2685e;
+  --danger-hover: #ec8379;
+  --danger-soft: rgb(226 104 94 / 0.16);
+  --danger-text: #ffaaa1;
+  --info-soft: rgb(14 118 189 / 0.2);
+  --info-text: #a9d4f2;
+  --ink: #e8e1d4;
+  --plywood: #4a3524;
+  --plywood-grain: #2f2116;
+  --drop: rgb(0 0 0 / 0.35);
+  --backdrop: rgb(0 0 0 / 0.6);
+  --tape: rgb(214 198 150 / 0.55);
+  --tape-edge: rgb(0 0 0 / 0.25);
+  --note-paper: #312d27;
+  --board: #6b4d33;
+  --board-edge: #1a120b;
+  --focus-color: #fdd459;
+  --chosen-soft: rgb(253 212 89 / 0.2);
+  --pencil: #8e877c;
+  --shadow-lg: 5px 6px 0 rgb(0 0 0 / 0.45);
+  --paper-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.16 0'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E");
+  --wood-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='120' fill='none' stroke='%23120c07' stroke-opacity='0.45' stroke-width='1.3'%3E%3Cpath d='M0 14c80-6 150 8 240 2s170-10 360 3'/%3E%3Cpath d='M0 38c120 7 200-6 300 0s200 9 300-2'/%3E%3Cpath d='M0 61c60-4 110 3 190 1 90-3 130-14 210-6s140 9 200 3'/%3E%3Cpath d='M0 88c140-8 220 6 330 1s190-7 270 2'/%3E%3Cpath d='M0 108c90 5 170-3 260 0 110 4 230-8 340 1'/%3E%3Cpath d='M380 52c20-9 48-9 64 0s-40 13-64 0z' stroke-opacity='0.3'/%3E%3C/svg%3E");
+}

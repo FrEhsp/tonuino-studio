@@ -1,0 +1,25 @@
+{
+ "name": "GitLab repository files API, raw (Global Storybooks German MP3)",
+ "kind": "observed",
+ "observed": "2026-10-05T22:13:27Z",
+ "evidence": [
+  "../../cors/02_gitlab_gsb_local_curl.txt"
+ ],
+ "request": {
+  "method": "GET",
+  "url": "https://gitlab.com/api/v4/projects/6909116/repository/files/de%2F0002%2Fde-0002_animals.mp3/raw?ref=master"
+ },
+ "hops": [
+  {
+   "status": 200,
+   "url": "https://gitlab.com/api/v4/projects/6909116/repository/files/de%2F0002%2Fde-0002_animals.mp3/raw?ref=master",
+   "headers": {
+    "access-control-allow-origin": "*",
+    "content-type": "application/octet-stream",
+    "content-length": "251062",
+    "content-disposition": "attachment; filename=\"de-0002_animals.mp3\"; filename*=UTF-8''de-0002_animals.mp3"
+   }
+  }
+ ],
+ "expect": "direct"
+}

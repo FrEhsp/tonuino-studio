@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Kakadu – Das Kinderhörspiel</title>
+    <link>https://www.kakadu.de/</link>
+    <description>Im Kinderhörspiel von Deutschlandfunk Kultur werden Geschichten lebendig. In unseren Hörspielstudios zaubern wir die unterschiedlichsten Welten herbei: einen Elfenwald, die Tiefsee oder eine Mäusehöhle. Und all das nur durch Musik, Geräusche und die Spielfreude der Schauspieler und der vielen begabten Kinder. Unsere Geschichten eignen sich meist für Hörer ab 7 Jahren.</description>
+    <language>de-DE</language>
+    <copyright>Deutschlandradio - deutschlandradio.de</copyright>
+    <itunes:explicit>No</itunes:explicit>
+    <itunes:category text="Kids &amp; Family"/>
+    <itunes:image href="https://bilder.deutschlandfunk.de/FI/LE/_9/ac/FILE_9ac926df16c242d33aa4876fd8be2676/kakadu-kinderhoerspiel-104-1920x1920.jpg"/>
+    <item>
+      <title>Kinderhörspiel - Das Mammut in der Grube</title>
+      <link>https://www.kakadu.de/kinderhoerspiel-das-mammut-in-der-grube-102.html</link>
+      <description><![CDATA[Anstatt des erwarteten Säbelzahntigers landet ein Mammut in der Grube. Kian versucht, ihm zu helfen, und stürzt dabei selbst in das Erdloch. Nun könnte es gefährlich werden, denn sind die Mammuts wirklich Pflanzenfresser? Von Jens Raschke<br/><br/><a href="https://www.kakadu.de">www.kakadu.de</a>, Kakadu]]></description>
+      <guid isPermaLink="false">83531235-b48a-551a-9400-33f0e43e9f77</guid>
+      <pubDate>Sun, 04 Oct 2026 08:05:39 +0200</pubDate>
+      <enclosure url="https://podcast-mp3.dradio.de/podcast/2026/10/04/kinderhoerspiel_mammut_in_der_grube_drk_20261004_0805_1bd0ec95.mp3?refId=kinderhoerspiel-118" length="50913468" type="audio/mpeg"/>
+      <itunes:duration>52:59</itunes:duration>
+    </item>
+    <item>
+      <title>Kinderhörspiel - Australien, ich komme!</title>
+      <link>https://www.kakadu.de/kinderhoerspiel-australien-ich-komme-100.html</link>
+      <description><![CDATA[Ein Wombat reist um die halbe Welt, um einen Stein zum heiligen Berg zurückzubringen. Von Thilo Reffert<br/><br/><a href="https://www.kakadu.de">www.kakadu.de</a>, Kakadu]]></description>
+      <guid isPermaLink="false">ebe9219c-4621-5a3a-b850-c9fa799d8fa3</guid>
+      <pubDate>Sat, 03 Oct 2026 08:05:47 +0200</pubDate>
+      <enclosure url="https://podcast-mp3.dradio.de/podcast/2026/10/03/kinderhoerspiel_australien_ich_komme_drk_20261003_0805_28ccb837.mp3?refId=kinderhoerspiel-118" length="51601846" type="audio/mpeg"/>
+      <itunes:duration>53:42</itunes:duration>
+    </item>
+    <item>
+      <title>Kinderhörspiel und Geschichten - Ein Fellknäuel namens Heimweh</title>
+      <link>https://www.kakadu.de/kakadu-geschichte-ein-fellknaeuel-namens-heimweh-100.html</link>
+      <description><![CDATA[Heimweh ist doof. Lillys Mama hat ihr gesagt, das Mittel dagegen wäre, mit ihrem Heimweh zu reden. Aber was, wenn das Heimweh ihr antwortet? Von Hartmut El Kurdi<br/><br/><a href="https://www.kakadu.de">www.kakadu.de</a>, Kakadu]]></description>
+      <guid isPermaLink="false">50d5c7f8-7351-5811-92d8-494cdcd8b102</guid>
+      <pubDate>Sun, 27 Sep 2026 08:05:47 +0200</pubDate>
+      <enclosure url="https://podcast-mp3.dradio.de/podcast/2026/09/27/kinderhoerspiel_und_geschichten_ein_fellknaeuel_namens_drk_20260927_0805_37c2136d.mp3?refId=kinderhoerspiel-118" length="21556015" type="audio/mpeg"/>
+      <itunes:duration>22:24</itunes:duration>
+    </item>
+  </channel>
+</rss>

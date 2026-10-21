@@ -1,0 +1,3085 @@
+.app {
+  display: grid;
+  grid-template-columns: var(--sidebar-width) 1fr;
+  height: 100%;
+}
+
+/* ------------------------------------------------------------------ sidebar */
+
+/* The sidebar: a flat purple band like the TonUINO page, black text on it. */
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-5) var(--space-3) var(--space-4);
+  overflow-y: auto;
+}
+
+/* The sidebar scrolls when it is too tall; nothing in it (separator line, SD card box) gets squeezed. */
+.sidebar > * {
+  flex-shrink: 0;
+}
+
+.app-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  user-select: none;
+}
+
+/* The name plate is a link to the start page; it keeps the colours of the menu around it. */
+.sidebar .app-brand,
+.sidebar .app-brand:hover {
+  color: inherit;
+  text-decoration: none;
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+}
+
+.nav a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 42px;
+  padding: 0 var(--space-3);
+  font-weight: 700;
+  text-decoration: none;
+  transition: background 0.12s;
+}
+
+/* A small mark after a menu item, e.g. the progress of a download; a dot when it has no text. */
+.nav a .nav-badge {
+  display: inline-grid;
+  place-items: center;
+  min-width: 24px;
+  height: 20px;
+  margin-left: auto;
+  padding: 0 7px;
+  font-size: 11px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.nav a .nav-badge.dot-only {
+  width: 10px;
+  min-width: 10px;
+  height: 10px;
+  padding: 0;
+}
+
+.nav-sep {
+  margin: var(--space-2) var(--space-3);
+}
+
+.sd-status {
+  margin-top: auto;
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+}
+
+/*
+ * The card's box at the bottom of the menu has the room of a card's box from
+ * the first picture on, card or not: when the card comes in a moment after
+ * the start, its box fills this room and nothing above it moves (the forum
+ * link, the grille). A box taller than that (a long note) still gets its
+ * room; then the grille gives way (stil-holz.css), as before.
+ */
+.sd-slot {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  flex-shrink: 0;
+  min-height: 160px;
+}
+
+.sd-status .sd-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+}
+
+.sd-status .sd-title .ellipsis {
+  flex: 1;
+}
+
+.capacity {
+  background: var(--bg-sunken);
+  overflow: hidden;
+}
+
+.capacity > div {
+  height: 100%;
+  background: var(--primary);
+}
+
+/* ------------------------------------------------------------------ main */
+
+.main {
+  overflow-y: auto;
+  min-width: 0;
+  position: relative;
+}
+
+/*
+ * A page kept mounted while another one shows (App.tsx): laid out at its real width,
+ * so it is finished when it comes back, but taking no room and never painted.
+ */
+.page-slot-hidden {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 0;
+  overflow: hidden;
+  visibility: hidden;
+  pointer-events: none;
+  contain: strict;
+}
+
+.page {
+  max-width: var(--content-max);
+  padding: var(--space-8) var(--space-8) var(--space-12);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+/*
+ * Narrow pages start where the wide ones start, so titles do not jump from
+ * page to page (the Holz look centres .page): the page keeps the full width,
+ * only its content keeps the narrow measure. Without weight (:where), so a
+ * part with its own measure keeps it; dialogs are never squeezed.
+ */
+.page.narrow {
+  max-width: var(--content-max);
+}
+
+:where(.page.narrow) > :where(:not(.dialog-backdrop)) {
+  max-width: 820px;
+}
+
+.page-header {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.page-header .titles {
+  flex: 1;
+  min-width: 260px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* ------------------------------------------------------------------ folder */
+
+.back-link {
+  display: inline-flex;
+  /* In a flex column (.page) it would stretch over the whole width: only the words lead back. */
+  align-self: flex-start;
+  align-items: center;
+  gap: 4px;
+  font-weight: 700;
+  font-size: var(--text-sm);
+  margin-bottom: var(--space-2);
+}
+
+.back-link:hover {
+  color: var(--text);
+  text-decoration: none;
+}
+
+/* ------------------------------------------------------------------ shelf */
+
+.shelf {
+  display: grid;
+}
+
+/* Search and "Hochkant | Quer" above the shelf. */
+.shelf-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3, 12px);
+}
+
+.shelf-tools > .input-group {
+  flex: 1 1 220px;
+}
+
+/*
+ * A folder on the shelf is an RFID card with its cover sticker on it: a
+ * white card with a thick outline, rounded like a real card, a hard shadow
+ * and a small card symbol in the corner.
+ */
+.tile {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  color: inherit;
+}
+
+.tile .tile-cover {
+  position: relative;
+}
+
+/*
+ * The folder number as a label on the sticker: the most important number in
+ * the app, so it is set in the heavy grotesk (the stamp face only reads from
+ * about 24 px up). A drawn cover shows it big already.
+ */
+.tile .tile-num {
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.tile .tile-flag {
+  position: absolute;
+}
+
+/*
+ * The place of the real sticker on a shelf card. The sticker itself, drawn by the sticker
+ * printer, and a calm placeholder until then are in the card's picture (.shelf-card).
+ */
+.folder-sticker {
+  display: block;
+  width: 100%;
+  border-radius: 4px;
+}
+
+/* The sticker and the frame of its card as one picture (FolderSticker.tsx), behind the card's text. */
+.tile-cover > .shelf-card {
+  position: absolute;
+  left: -7px;
+  top: -7px;
+  width: calc(100% + 14px);
+  height: calc(100% + 14px);
+  max-width: none;
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* The canvas until the same pixels are ready as a picture, then the picture. */
+.tile-cover > img.shelf-card,
+.tile-cover.pictured > canvas.shelf-card {
+  visibility: hidden;
+}
+
+.tile-cover.pictured > img.shelf-card {
+  visibility: visible;
+}
+
+.tile .tile-check {
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+}
+
+.tile-title {
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.tile-meta {
+  font-size: var(--text-sm);
+}
+
+.tile.add .tile-cover {
+  display: grid;
+  place-items: center;
+}
+
+/*
+ * Drawn cover for folders without a picture: a home-made sticker in a flat
+ * colour of the TonUINO forum, the folder number big in the stamp face.
+ * Sizes follow the cover's width, so small covers in lists look the same.
+ */
+.gen-cover {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  container-type: inline-size;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+}
+
+/* Tiny covers in lists: just the number. */
+.gen-cover.small {
+  padding: 0;
+}
+
+.cover-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* The whole picture in a square box, e.g. a tall cassette cover in the preview of "Cover auswählen". */
+.cover-img.whole {
+  aspect-ratio: 1;
+  object-fit: contain;
+}
+
+/* ------------------------------------------------------------------ health */
+
+.health-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-5);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+}
+
+.health-banner .health-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+
+.issue {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.issue:last-child {
+  border-bottom: 0;
+}
+
+.issue .issue-icon {
+  flex: none;
+  margin-top: 2px;
+}
+
+.issue.error .issue-icon {
+  color: var(--danger);
+}
+
+.issue.warning .issue-icon {
+  color: var(--warning);
+}
+
+.issue.info .issue-icon {
+  color: var(--primary);
+}
+
+.issue-items {
+  margin-top: 6px;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  max-height: 120px;
+  overflow: auto;
+}
+
+/* ------------------------------------------------------------------ welcome */
+
+.hero {
+  display: grid;
+  gap: var(--space-8);
+  align-items: center;
+}
+
+.hero p {
+  color: var(--text-soft);
+  font-size: var(--text-md);
+}
+
+.hero-art {
+  display: grid;
+  place-items: center;
+  min-width: 0;
+}
+
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: var(--space-5);
+}
+
+.feature {
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--surface);
+}
+
+/* A tip's button, e.g. "Entdecken" on "Hinzufügen". */
+.feature .feature-action {
+  align-self: flex-start;
+  margin-top: 6px;
+}
+
+/* A tip with its own row: text next to the icon, the button at the end (below the text on narrow screens). */
+.feature.feature-wide {
+  grid-column: 1 / -1;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.feature.feature-wide > .grow {
+  flex: 1 1 18rem;
+}
+
+.feature.feature-wide > .feature-action {
+  align-self: center;
+  margin-top: 0;
+}
+
+/* Icon tiles are arcade buttons; their colours are in components.css. */
+.feature .feature-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+}
+
+/* "Fertig für heute?" after a transfer: the button moves below the text before the text gets too narrow. */
+.safe-removal-body {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3) var(--space-4);
+}
+
+.safe-removal-text {
+  flex: 1 1 15rem;
+  min-width: 0;
+}
+
+/* ------------------------------------------------------------------ import */
+
+.import-album {
+  overflow: hidden;
+}
+
+.import-album.has-problem {
+  border-color: var(--danger, #d64545);
+}
+
+.import-album-head {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-5);
+  padding: var(--space-5) var(--space-6);
+}
+
+/* The cover with its links below: "Cover suchen", and when adding to a folder where the picture came from. */
+.import-cover-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  width: 104px;
+  flex: none;
+  text-align: center;
+}
+
+.import-cover-col > .link-button {
+  align-self: center;
+  white-space: nowrap;
+}
+
+/* "Suchen" under the cover: no wider than the picture, with a little air above. */
+.import-cover-col > .btn {
+  margin-top: 6px;
+  max-width: 100%;
+  padding-inline: 8px;
+  gap: 4px;
+}
+
+.import-cover-col > .link-button > svg {
+  flex: none;
+}
+
+.import-cover {
+  position: relative;
+  width: 104px;
+  height: 104px;
+  flex: none;
+  padding: 0;
+  overflow: hidden;
+  background: var(--bg-sunken);
+}
+
+.import-cover-edit {
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: rgb(255 255 255 / 0.92);
+  color: var(--gray-700, #333);
+  box-shadow: var(--shadow-sm);
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.import-cover:hover .import-cover-edit,
+.import-cover:focus-visible .import-cover-edit {
+  opacity: 1;
+}
+
+/* Titles in the review wrap instead of being cut off, also a long word. One line is 40px (album) and 30px (track) tall. */
+.import-album-title {
+  overflow-wrap: anywhere;
+}
+
+/* The folder choice shows the title of a folder to add to: a long one must not stretch the row. */
+.select.compact.import-target {
+  max-width: 11rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Where a recording goes: the question on its own line, the choice under it, as wide as a folder's name needs. */
+.recording-target {
+  flex-basis: 100%;
+  max-width: 30rem;
+}
+
+.recording-target > .select {
+  max-width: 100%;
+}
+
+.wrap-input.album-title {
+  --wrap-pad: 6px;
+  font-size: var(--text-lg);
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.wrap-input.track-title {
+  --wrap-pad: 4px;
+  font-weight: 600;
+  line-height: 1.3333;
+}
+
+.import-notes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: 0 var(--space-6) var(--space-5);
+}
+
+.import-note {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--text-soft);
+}
+
+.import-note svg {
+  flex: none;
+  color: var(--primary);
+}
+
+/* Nothing found for a whole album in one file: the line, and a field to look under another name. */
+.album-search-note {
+  align-items: flex-start;
+}
+
+.album-search-note > svg {
+  margin-top: 2px;
+}
+
+.album-search-form {
+  gap: var(--space-2);
+  max-width: 560px;
+}
+
+.album-search-form .input {
+  min-width: 0;
+}
+
+/* The way out of a problem, under its text. */
+.import-problem-action {
+  align-self: flex-start;
+}
+
+.split-box {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-radius: var(--radius);
+  background: var(--accent-soft);
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+.split-icon {
+  width: 34px;
+  height: 34px;
+  flex: none;
+  display: grid;
+  place-items: center;
+}
+
+.import-tracks {
+  border-top: 1px solid var(--border);
+  max-height: 420px;
+  overflow-y: auto;
+}
+
+.import-track-badges {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex: none;
+}
+
+.import-track-duration {
+  width: 64px;
+  text-align: right;
+}
+
+.import-bar {
+  position: sticky;
+  bottom: var(--space-4);
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-5);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-lg);
+}
+
+/* More files are being read while the review stays open. */
+.import-reading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-5);
+}
+
+.writing-card {
+  padding: var(--space-8);
+}
+
+/* Phones: the cover and the buttons share the first row, the title gets the full width below. */
+@media (max-width: 560px) {
+  .import-album-head {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-areas:
+      'cover . actions'
+      'info info info';
+    gap: var(--space-3);
+    padding: var(--space-4);
+  }
+
+  /* „noch kein Cover“ and „Suchen“ beside the cover, not under it: the first row is only as tall as the cover. */
+  .import-album-head > .import-cover-col {
+    grid-area: cover;
+    display: grid;
+    grid-template-columns: 80px auto;
+    grid-auto-rows: min-content;
+    align-content: center;
+    justify-items: start;
+    column-gap: var(--space-3);
+    row-gap: var(--space-1);
+    width: auto;
+    text-align: left;
+  }
+
+  .import-cover-col > .import-cover {
+    grid-row: 1 / span 4;
+  }
+
+  .import-cover-col > .btn {
+    padding-inline: 6px;
+  }
+
+  .import-cover-col > .import-cover {
+    width: 80px;
+    height: 80px;
+  }
+
+  .import-album-info {
+    grid-area: info;
+  }
+
+  .import-album-actions {
+    grid-area: actions;
+  }
+
+  .import-notes {
+    padding: 0 var(--space-4) var(--space-4);
+  }
+
+  /* The badges of a track get their own line, under the file name. */
+  .import-tracks .list-row {
+    flex-wrap: wrap;
+    row-gap: var(--space-1);
+  }
+
+  .import-tracks .list-row > .grow {
+    flex-basis: 0;
+  }
+
+  .import-track-badges {
+    order: 1;
+    flex-basis: 100%;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    padding-left: calc(34px + var(--space-3) + 8px);
+  }
+
+  /* The duration takes only the room it needs, so a long title gets more of the row and fewer lines. */
+  .import-track-duration {
+    width: auto;
+  }
+
+  .import-reading {
+    padding: var(--space-3) var(--space-4);
+  }
+}
+
+/* import panels on the add page ("Titelliste", src/features/playlist) */
+
+.web-import {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-5) var(--space-6);
+}
+
+.web-import-head {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.web-import-head h2 {
+  font-size: var(--text-lg);
+}
+
+.web-import-icon {
+  width: 40px;
+  height: 40px;
+  flex: none;
+  display: grid;
+  place-items: center;
+}
+
+.web-import-error {
+  margin-top: 6px;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--danger-text);
+}
+
+.web-import-working {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 44px;
+}
+
+.web-import-summary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-sunken);
+}
+
+.web-import-clamp {
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.web-import-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border);
+}
+
+.web-import-notice svg {
+  flex: none;
+  margin-top: 2px;
+}
+
+@media (max-width: 720px) {
+  .web-import {
+    padding: var(--space-4);
+  }
+
+  .import-bar {
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+  }
+
+  .import-bar > .btn {
+    flex: 1 1 100%;
+  }
+}
+
+.writing-cover {
+  width: 56px;
+  height: 56px;
+  flex: none;
+  overflow: hidden;
+}
+
+.done-icon {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+}
+
+/* ------------------------------------------------------------------ responsive */
+
+@media (max-width: 900px) {
+  /* minmax(0, …): a long name of the box in the SD chip on top must not widen the page. */
+  .app {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto 1fr;
+  }
+
+  .sidebar {
+    flex-direction: row;
+    align-items: center;
+    padding: var(--space-2) var(--space-3);
+    border-right: 0;
+    overflow-x: auto;
+  }
+
+  .app-brand {
+    padding: 0 var(--space-2);
+  }
+
+  .brand-name small,
+  .nav-sep,
+  .sd-status {
+    display: none;
+  }
+
+  .nav {
+    flex-direction: row;
+  }
+
+  /* Icons only, but screen readers still hear each link's name. */
+  .nav a span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  /* The icons keep their size; only the room around them shrinks. */
+  .nav a svg {
+    flex: none;
+  }
+
+  /* The mark sits on the icon's corner. */
+  .nav a {
+    position: relative;
+  }
+
+  .nav a .nav-badge {
+    position: absolute;
+    top: 1px;
+    right: -2px;
+    margin: 0;
+    height: 16px;
+    min-width: 16px;
+    padding: 0 4px;
+    font-size: 9.5px;
+  }
+
+  .nav a .nav-badge.dot-only {
+    top: 6px;
+    right: 6px;
+  }
+
+  .page {
+    padding: var(--space-5) var(--space-4) var(--space-10);
+  }
+
+  .hero {
+    grid-template-columns: 1fr;
+    padding: var(--space-6);
+  }
+}
+
+/* Phone: the mark without the name, and the seven icons share the width instead of scrolling away. */
+@media (max-width: 560px) {
+  .sidebar {
+    gap: var(--space-1);
+  }
+
+  .app-brand {
+    padding: 0 var(--space-1);
+  }
+
+  .brand-name {
+    display: none;
+  }
+
+  .nav {
+    min-width: 0;
+  }
+
+  .nav a {
+    width: 40px;
+    min-width: 30px;
+    justify-content: center;
+    padding: 0;
+  }
+}
+
+/* ------------------------------------------------------------------ cover search */
+
+.cover-results {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 14px;
+  max-height: 420px;
+  overflow: auto;
+  /* At the end of the hits the wheel stops there: it does not carry on and move the search field away. */
+  overscroll-behavior: contain;
+  /* Room for the lifted tile and its focus ring. */
+  padding: 6px;
+  margin: -6px;
+}
+
+/* "Cover auswählen": search on the left, preview on the right; on a phone the preview goes below. */
+.cover-dialog-main {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--space-6);
+}
+
+.cover-dialog-pick {
+  flex: 1 1 260px;
+  min-width: 0;
+}
+
+.cover-dialog-preview {
+  width: 200px;
+  flex: none;
+}
+
+/*
+ * With room for both columns the dialog keeps its head still: tabs, search
+ * field and preview stay, only the hits scroll, as high as the window allows.
+ * Lower windows scroll the whole dialog body instead: the preview column
+ * needs about 300px next to the search.
+ */
+@media (min-width: 640px) and (min-height: 680px) {
+  .dialog-body.cover-dialog-body {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .cover-dialog {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  .cover-dialog > * {
+    flex: none;
+  }
+
+  .cover-dialog > .cover-dialog-main {
+    flex: 1 1 auto;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    min-height: 0;
+  }
+
+  /* When notes about the search leave no room for the hits, the column scrolls instead of running over the note below. */
+  .cover-dialog-pick {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    /* Room for focus rings and drawn frames at its edges. */
+    padding: 6px;
+    margin: -6px;
+  }
+
+  .cover-dialog-pick > .cover-search {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  .cover-search > * {
+    flex: none;
+  }
+
+  .cover-search > .cover-results {
+    flex: 0 1 auto;
+    min-height: 120px;
+    max-height: none;
+  }
+
+  .cover-dialog-preview {
+    align-self: flex-start;
+  }
+}
+
+.cover-result {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0;
+  border: 0;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+  min-width: 0;
+}
+
+.cover-result-img {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--bg-sunken);
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.cover-result-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Cassette inlays are taller than wide; some scans show the whole folded-out inlay, so nothing is cut off. */
+.cover-results.tall .cover-result-img {
+  aspect-ratio: 64 / 100;
+}
+
+.cover-results.tall .cover-result-img img {
+  object-fit: contain;
+}
+
+.cover-result:hover:not(:disabled) .cover-result-img,
+.cover-result:focus-visible .cover-result-img {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow), var(--focus-ring);
+}
+
+.cover-result[aria-busy='true'] {
+  cursor: progress;
+}
+
+.cover-result-busy {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, var(--surface) 70%, transparent);
+}
+
+.cover-result-title {
+  font-weight: 600;
+  font-size: 0.86rem;
+  line-height: 1.25;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.cover-result-meta {
+  font-size: 0.78rem;
+  color: var(--text-soft);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ------------------------------------------------------------------ cards page */
+
+.step-heading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.step-num {
+  flex: none;
+  border-radius: var(--radius-full);
+  display: grid;
+  place-items: center;
+  background: var(--primary);
+  color: var(--text-on-brand);
+  font-size: var(--text-sm);
+  font-weight: 800;
+}
+
+.profile-switch {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 330px;
+}
+
+.profile-detected {
+  font-size: var(--text-sm);
+  line-height: 1.4;
+}
+
+/* The firmware asked in step 3 of Karten beschreiben, above how to write. */
+.profile-question {
+  padding-bottom: var(--space-3);
+  border-bottom: 1.5px dashed var(--border);
+}
+
+.profile-question > p {
+  margin: 0;
+}
+
+.card-footer {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  padding: var(--space-3) var(--space-5);
+  border-top: 1px solid var(--border);
+}
+
+.pad-inline {
+  padding: var(--space-5) var(--space-6);
+}
+
+.block {
+  display: block;
+}
+
+.row.tight {
+  gap: 6px;
+}
+
+.success-text {
+  color: var(--success-text);
+  font-weight: 600;
+}
+
+.pick-list {
+  list-style: none;
+  margin: 0;
+  padding: var(--space-2) 0;
+  max-height: 520px;
+  overflow: auto;
+}
+
+/* Step 2 („Womit beschreibst du sie?“) peeks in under the list at 1366×768 and 1440×830, so after the first tick the way on is in view (Prüfrunde 0.5-1). */
+.cards-page .pick-list {
+  max-height: clamp(240px, calc(100vh - 420px), 520px);
+}
+
+.pick-group {
+  padding: var(--space-3) var(--space-6) var(--space-1);
+}
+
+.pick-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 6px var(--space-6);
+}
+
+.pick-row:hover {
+  background: var(--surface-hover);
+}
+
+.pick-row input[type='checkbox'] {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  cursor: pointer;
+}
+
+.pick-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  cursor: pointer;
+}
+
+.pick-cover {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  overflow: hidden;
+}
+
+.special-icon {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+}
+
+.pick-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/*
+ * Two lines for a long name, broken at a syllable (soft hyphens from the
+ * page): on a phone "Unter meinem Bett 2" and "… 3" stay apart instead of
+ * both ending in "Unter meinem B…".
+ */
+.pick-title {
+  font-weight: 650;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow-wrap: anywhere;
+}
+
+.pick-num {
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+  font-weight: 700;
+  margin-right: 8px;
+}
+
+.pick-desc {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pick-change {
+  flex: none;
+  font-size: var(--text-sm);
+}
+
+/* auto-fit: the four ways stretch over the whole width instead of leaving an empty fifth column. */
+.choices.methods {
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+}
+
+.choices.compact {
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+}
+
+/*
+ * An option this app cannot offer here: a dashed outline instead of a faded
+ * card, the text stays readable and the reason is a clear label.
+ */
+.choice.disabled,
+.choice[aria-disabled='true'] {
+  cursor: not-allowed;
+}
+
+.choice-note {
+  font-size: var(--text-xs);
+}
+
+/* the guide at the box */
+
+.key-legend {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius);
+  background: var(--bg-sunken);
+}
+
+.key-legend p {
+  flex: 1;
+  min-width: 240px;
+}
+
+.key-legend-box {
+  display: flex;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.keycap {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 30px;
+  padding: 0 10px;
+  border-radius: 9px;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  box-shadow: 0 2px 0 var(--border-strong);
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.keycap.key-pause {
+  background: var(--primary-soft);
+  color: var(--primary-soft-text);
+  border-color: color-mix(in srgb, var(--primary) 35%, transparent);
+}
+
+.guide {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.guide-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.guide-title {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.guide-title strong {
+  font-size: var(--text-lg);
+}
+
+.guide-count {
+  color: var(--primary-text);
+}
+
+.guide-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  counter-reset: guide;
+}
+
+.guide-step {
+  display: flex;
+  gap: var(--space-4);
+  position: relative;
+}
+
+.guide-step:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: 15px;
+  top: 34px;
+  bottom: calc(-1 * var(--space-4) + 2px);
+  width: 2px;
+  background: var(--border);
+}
+
+.guide-num {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-full);
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  color: var(--text);
+  position: relative;
+  z-index: 1;
+}
+
+.guide-step.kind-done .guide-num {
+  background: var(--success-soft);
+  border-color: var(--success);
+  color: var(--success-text);
+}
+
+.guide-step.kind-card .guide-num,
+.guide-step.kind-admin .guide-num {
+  background: var(--accent-soft);
+  border-color: var(--accent-300);
+  color: var(--accent-soft-text);
+}
+
+.guide-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 4px;
+}
+
+.guide-body > p:first-child,
+.guide-optional-label + p {
+  font-size: var(--text-md);
+  line-height: 1.5;
+}
+
+/* A question only some boxes ask: set apart in a dashed box, without a number of its own. */
+.guide-step.optional .guide-num {
+  border-style: dashed;
+  background: transparent;
+  color: var(--text-soft);
+}
+
+.guide-step.optional .guide-body {
+  border: 2px dashed var(--border-strong);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+}
+
+.guide-optional-label {
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--text-soft);
+}
+
+.guide-hear {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 8px;
+  align-self: flex-start;
+  padding: 6px 12px;
+  border-radius: 12px 12px 12px 4px;
+  background: var(--info-soft);
+  color: var(--info-text);
+  font-size: var(--text-sm);
+  font-style: italic;
+}
+
+.guide-hear svg {
+  flex: none;
+  margin-top: 2px;
+}
+
+.presses {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 16px;
+}
+
+.press {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.press-plus {
+  font-weight: 800;
+  color: var(--text-muted);
+}
+
+.press-count {
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.guide-notes {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.guide-notes p {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.guide-notes svg {
+  flex: none;
+  margin-top: 3px;
+}
+
+.guide-help {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  border-top: 1px dashed var(--border);
+  padding-top: var(--space-3);
+}
+
+/* QR codes for the phone app */
+
+.qr-intro {
+  display: flex;
+  gap: var(--space-4);
+  align-items: flex-start;
+}
+
+/* The second way, after our own Android app: set apart by a pencil line. */
+.qr-intro .qr-second-way {
+  padding-top: var(--space-3);
+  border-top: 1px dashed var(--border);
+}
+
+.qr-intro-icon {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+}
+
+.plain-steps {
+  margin: 0;
+  padding-left: 1.3em;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--text-muted);
+}
+
+.qr-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: var(--space-5);
+}
+
+.qr-block {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+}
+
+.qr-code {
+  background: #fff;
+  border-radius: var(--radius);
+  padding: 10px;
+  aspect-ratio: 1;
+}
+
+.qr-code svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.qr-block figcaption ol {
+  margin: 6px 0 0;
+  padding-left: 1.3em;
+  font-size: var(--text-sm);
+}
+
+/* card reader */
+
+.reader-status {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius);
+  background: var(--bg-sunken);
+}
+
+.reader-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--gray-400);
+  flex: none;
+}
+
+.reader-dot.on {
+  background: var(--success);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--success) 25%, transparent);
+}
+
+.reader-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--space-3);
+  padding: var(--space-8) var(--space-6);
+  border: 2px dashed var(--border-strong);
+  border-radius: var(--radius-lg);
+}
+
+.reader-stage.phase-waiting,
+.reader-stage.phase-writing {
+  border-color: var(--primary);
+  background: color-mix(in srgb, var(--primary-soft) 45%, transparent);
+}
+
+.reader-stage.phase-remove,
+.reader-stage.phase-done {
+  border-style: solid;
+  border-color: var(--success);
+  background: var(--success-soft);
+}
+
+.reader-stage.phase-error {
+  border-style: solid;
+  border-color: var(--warning);
+  background: var(--warning-soft);
+}
+
+.reader-step {
+  color: var(--primary-text);
+}
+
+.reader-swap {
+  display: grid;
+  grid-template-columns: auto minmax(0, auto);
+  justify-content: center;
+  gap: var(--space-1) var(--space-3);
+  margin: 0;
+  text-align: left;
+}
+
+.reader-swap dt {
+  color: var(--text-muted);
+}
+
+.reader-swap dd {
+  margin: 0;
+}
+
+.reader-big {
+  font-size: var(--text-lg);
+  font-weight: 600;
+  max-width: 520px;
+  /* Two even lines instead of a lone „auf.“ in the second. */
+  text-wrap: balance;
+}
+
+.reader-ok {
+  color: var(--success);
+}
+
+.reader-bad {
+  color: var(--warning);
+}
+
+.reader-queue {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.reader-queue li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 8px var(--space-4);
+  border-bottom: 1px solid var(--border);
+  min-width: 0;
+}
+
+.reader-queue li:last-child {
+  border-bottom: 0;
+}
+
+.reader-queue li .soft {
+  max-width: 45%;
+}
+
+.reader-queue-icon {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  font-size: var(--text-xs);
+  font-weight: 700;
+  background: var(--bg-sunken);
+  color: var(--text-muted);
+}
+
+.reader-queue li.done .reader-queue-icon {
+  background: var(--success-soft);
+  color: var(--success-text);
+}
+
+.reader-queue li.error .reader-queue-icon {
+  background: var(--warning-soft);
+  color: var(--warning-text);
+}
+
+/* hints with terminal commands */
+
+.hint-list {
+  margin: 4px 0 0;
+  padding-left: 1.2em;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.command-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  padding: 6px 6px 6px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--code-border);
+  background: var(--code-bg);
+  color: var(--code-text);
+}
+
+.command-line code {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  /* Long commands wrap instead of hiding their end on a phone; the copy button still copies one line. */
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* The near-black block is the grey of a dark-mode card and would vanish on one. */
+:root[data-theme='dark'] .command-line {
+  background: var(--bg-sunken);
+  box-shadow: inset 0 0 0 1px var(--border);
+}
+
+.command-copy {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 6px;
+  background: rgb(255 255 255 / 0.1);
+  color: inherit;
+  cursor: pointer;
+}
+
+.command-copy:hover {
+  background: rgb(255 255 255 / 0.2);
+}
+
+/* special card picker */
+
+.special-picker {
+  display: grid;
+  grid-template-columns: 250px 1fr;
+  gap: var(--space-5);
+  min-height: 380px;
+}
+
+.special-list {
+  display: flex;
+  flex-direction: column;
+  /* Tight enough that all thirteen TNG cards fit at 800 px window height, Admin- and Nochmal-Karte included. */
+  gap: 0;
+  max-height: min(68vh, 700px);
+  overflow: auto;
+  padding: 2px;
+  border-right: 1px solid var(--border);
+  padding-right: var(--space-3);
+  /* A shadow at the bottom while more cards wait below; it scrolls away at the end of the list. */
+  background:
+    linear-gradient(transparent, var(--surface-raised) 70%) bottom / 100% 28px no-repeat local,
+    radial-gradient(farthest-side at 50% 100%, rgb(0 0 0 / 0.16), transparent) bottom / 100% 12px no-repeat scroll;
+}
+
+.special-group {
+  padding: var(--space-3) 10px var(--space-1);
+  color: var(--text-soft);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.special-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 10px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.special-option:hover {
+  background: var(--surface-hover);
+}
+
+.special-option-icon {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+}
+
+.special-option[aria-checked='true'] .special-option-icon {
+  background: var(--primary);
+  color: #fff;
+}
+
+.special-detail {
+  padding: var(--space-2) 0;
+  align-content: start;
+}
+
+.special-detail-icon {
+  width: 52px;
+  height: 52px;
+  display: grid;
+  place-items: center;
+}
+
+.special-detail h3 {
+  font-size: var(--text-xl);
+}
+
+.special-howto {
+  margin-top: auto;
+  padding-top: var(--space-3);
+  border-top: 1px dashed var(--border);
+}
+
+@media (max-width: 720px) {
+  .special-picker {
+    grid-template-columns: 1fr;
+  }
+
+  .special-list {
+    border-right: 0;
+    max-height: 220px;
+  }
+}
+
+/* ------------------------------------------------------------------ sticker studio */
+
+/* The layout of the page itself is in stickers.css (the workbench of 0.4.1). */
+
+.center {
+  text-align: center;
+}
+
+/* With „Noch nie gedruckt“ the links go under the heading when the column is narrow, instead of breaking every word. */
+.sticker-pick-head {
+  flex-wrap: wrap;
+  row-gap: var(--space-1);
+}
+
+.sticker-pick-head > * {
+  white-space: nowrap;
+}
+
+/* The list grows with the folders, no box to scroll in: the preview beside it stays in place (audit 0.4 #11). */
+.sticker-pick {
+  max-height: none;
+  overflow: visible;
+}
+
+.sticker-pick :is(.pick-row, .pick-group) {
+  padding-inline: var(--space-5);
+}
+
+.sticker-pick .pick-group {
+  align-items: baseline;
+}
+
+/* the sheet */
+.sheet-preview-wrap {
+  display: flex;
+  justify-content: center;
+  min-width: 0;
+}
+
+.sheet-preview {
+  position: relative;
+  max-width: 100%;
+  background: #fff;
+}
+
+/* No rounded corners: on a sheet as large as the column, WebKitGTK clipped them anew in every frame while the page scrolled. */
+.sheet-preview canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.sheet-hit {
+  position: absolute;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  transition:
+    box-shadow 0.15s,
+    background 0.15s;
+}
+
+.sheet-hit:hover,
+.sheet-hit:focus-visible {
+  box-shadow:
+    0 0 0 2px #fff,
+    0 0 0 4px var(--primary);
+  outline: none;
+}
+
+/*
+ * A free label under the pointer only hints that a click marks it as gone
+ * (its title says so): a thin dashed line, no thick ring that reads as a
+ * sticker stuck on the sheet.
+ */
+.sheet-hit.empty:hover {
+  box-shadow: none;
+  outline: 1.5px dashed var(--primary);
+  outline-offset: -1.5px;
+}
+
+/* "Anpassen" on the sticker under the pointer, so it is plain that a click edits it. */
+.sheet-hit-tag {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--surface-raised);
+  color: var(--text);
+  font-size: 0.8rem;
+  font-weight: 700;
+  white-space: nowrap;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.25);
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  transition: opacity 0.15s;
+  pointer-events: none;
+}
+
+.sheet-hit:hover .sheet-hit-tag,
+.sheet-hit:focus-visible .sheet-hit-tag {
+  opacity: 1;
+}
+
+/* Moving stickers (sheetMove.ts). The sheet stays white paper in the dark theme too, so its marks keep their colours. */
+.sheet-preview.movable .sheet-hit:not(.empty) {
+  cursor: grab;
+  /* A finger on a sticker drags it instead of scrolling the page. */
+  touch-action: none;
+  /* Held long, no selection, magnifier or menu of the phone or tablet. */
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.sheet-preview.is-moving .sheet-hit {
+  cursor: grabbing;
+}
+
+.sheet-preview.is-moving .sheet-hit:hover {
+  box-shadow: none;
+}
+
+.sheet-preview.is-moving .sheet-hit-tag {
+  opacity: 0;
+}
+
+/* Where the sticker was lifted from: an empty label, outlined in pencil. */
+.sheet-hole {
+  position: absolute;
+  border: 1.5px dashed #b4a993;
+  border-radius: 4px;
+  background: #fff;
+  pointer-events: none;
+}
+
+/* Where it lands: a marker wash in a pen outline, with a note on a strip of tape. */
+.sheet-drop {
+  position: absolute;
+  display: none;
+  border: 2.5px dashed #1f1a16;
+  border-radius: 6px;
+  background: rgb(253 212 89 / 0.38);
+  transform: rotate(-0.8deg) scale(1.03);
+  pointer-events: none;
+}
+
+.sheet-drop[data-kind] {
+  display: block;
+}
+
+.sheet-drop[data-kind='swap'] {
+  border-color: #7e4479;
+  background: rgb(156 93 152 / 0.2);
+}
+
+.sheet-drop-tag {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  padding: 2px 10px 3px;
+  border-left: 1px dashed rgb(150 130 80 / 0.5);
+  border-right: 1px dashed rgb(150 130 80 / 0.5);
+  background: rgb(240 226 180 / 0.95);
+  color: #1f1a16;
+  font-family: var(--font-hand);
+  font-size: 0.95rem;
+  font-weight: 600;
+  white-space: nowrap;
+  /* On the top edge of the label: the sticker in hand covers its middle. */
+  transform: translate(-50%, -70%) rotate(-4deg);
+  box-shadow: 2px 2px 0 rgb(31 26 22 / 0.18);
+}
+
+.sheet-drop-tag > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.sheet-drop[data-kind='move'] .when-swap,
+.sheet-drop[data-kind='swap'] .when-move {
+  display: none;
+}
+
+/* The sticker in hand: a copy out of the sheet, a little smaller and crooked, so the mark below shows around it. */
+.sheet-ghost {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+  opacity: 0.94;
+  border-radius: 4px;
+  box-shadow:
+    0 0 0 1.5px #1f1a16,
+    6px 7px 0 rgb(31 26 22 / 0.22);
+  pointer-events: none;
+  /* A layer of its own: following the pointer moves it without painting the sheet below anew. */
+  will-change: transform;
+}
+
+.sheet-ghost.round {
+  border-radius: 50%;
+}
+
+/* style picker */
+.style-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.style-choice {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: var(--space-3) var(--space-2) var(--space-3);
+  background: var(--surface);
+  text-align: center;
+}
+
+.style-choice:hover {
+  background: var(--surface-hover);
+}
+
+/* round and square stickers: one look, no choice */
+.compact-style {
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.compact-style p {
+  margin: 0;
+}
+
+.style-choice .sticker-thumb {
+  max-width: 100%;
+  margin-bottom: 6px;
+}
+
+.style-name {
+  font-weight: 700;
+}
+
+.style-text {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+.sticker-thumb {
+  display: block;
+  background: var(--bg-sunken);
+}
+
+.sticker-thumb.failed {
+  background: repeating-linear-gradient(45deg, var(--bg-sunken) 0 6px, var(--surface) 6px 12px);
+}
+
+/* fonts */
+.font-choices {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.font-choice {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+  overflow: hidden;
+  padding: var(--space-2) 4px;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+
+.font-choice:hover {
+  background: var(--surface-hover);
+}
+
+.font-sample {
+  font-size: 1.05rem;
+  line-height: 1.3;
+  white-space: nowrap;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: clip;
+}
+
+.logo-file {
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* paper */
+.paper-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.paper-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.paper-option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius);
+  background: var(--surface);
+  text-align: left;
+}
+
+.paper-option:hover {
+  background: var(--surface-hover);
+}
+
+.paper-option .sheet-diagram {
+  flex: none;
+  width: auto;
+}
+
+.paper-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.paper-name {
+  font-weight: 700;
+  font-size: var(--text-sm);
+}
+
+.paper-desc {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+.used-picker {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-3);
+  border-radius: var(--radius);
+  background: var(--bg-sunken);
+}
+
+.sheet-diagram.interactive {
+  width: min(100%, 220px);
+  height: auto;
+}
+
+.sheet-diagram.interactive .sheet-slot {
+  cursor: pointer;
+}
+
+.sheet-diagram.interactive .sheet-slot > rect,
+.sheet-diagram.interactive .sheet-slot > ellipse {
+  fill: #fff;
+  stroke: var(--gray-400);
+  stroke-width: 0.6;
+}
+
+.sheet-diagram.interactive .sheet-slot.used > rect,
+.sheet-diagram.interactive .sheet-slot.used > ellipse {
+  fill: var(--gray-200);
+  stroke: var(--gray-400);
+}
+
+.sheet-diagram.interactive .sheet-slot:focus-visible {
+  outline: none;
+}
+
+.sheet-diagram.interactive .sheet-slot:focus-visible > rect,
+.sheet-diagram.interactive .sheet-slot:focus-visible > ellipse {
+  stroke: var(--primary);
+  stroke-width: 1.6;
+}
+
+.sheet-diagram text {
+  fill: var(--gray-500);
+  font-family: var(--font);
+  font-weight: 700;
+  pointer-events: none;
+}
+
+.sheet-diagram .sheet-slot.used text {
+  fill: var(--gray-600);
+}
+
+.calibrate-row {
+  align-items: center;
+}
+
+/* calibration dialog */
+.input-suffix {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.input-suffix > span {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+.calibration-more summary {
+  cursor: pointer;
+  font-weight: 600;
+  font-size: var(--text-sm);
+  color: var(--primary);
+}
+
+.calibration-more[open] {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.calibration-test {
+  align-items: center;
+  gap: var(--space-2) var(--space-5);
+}
+
+.calibration-now {
+  align-items: center;
+  justify-content: space-between;
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border);
+}
+
+/* sticker editor */
+.sticker-edit {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--space-6);
+  align-items: start;
+}
+
+.sticker-edit-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  background: var(--bg-sunken);
+}
+
+.swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.swatch {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid var(--surface);
+  padding: 0;
+}
+
+.swatch.auto {
+  width: auto;
+  height: 32px;
+  border-radius: var(--radius-full);
+  padding: 0 12px;
+  background: var(--surface);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.swatch.custom {
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.swatch.custom input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.slider-row {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.slider-row input[type='range'] {
+  width: 100%;
+  accent-color: var(--primary);
+}
+
+@media (max-width: 720px) {
+  .sticker-edit {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .font-choices {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Phones: the text keeps the full width, the repair button moves below it. */
+@media (max-width: 560px) {
+  .health-banner {
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    padding: var(--space-4);
+  }
+
+  .health-banner > .grow {
+    flex-basis: calc(100% - 44px - var(--space-3));
+  }
+
+  .health-banner > .btn {
+    flex: 1 1 100%;
+  }
+
+  .issue {
+    flex-wrap: wrap;
+    padding: var(--space-4);
+  }
+
+  .issue > .grow {
+    flex-basis: calc(100% - 20px - var(--space-3));
+  }
+
+  .issue > .btn {
+    margin-left: calc(20px + var(--space-3));
+  }
+}
+
+/* Phones: the button of a tip with its own row moves below the text, lined up with it. */
+@media (max-width: 560px) {
+  .feature.feature-wide > .grow {
+    flex-basis: calc(100% - 40px - var(--space-3));
+  }
+
+  .feature.feature-wide > .feature-action {
+    margin-left: calc(40px + var(--space-3));
+  }
+}
+
+/* Phones: two cards side by side on the shelf, like on a real table. */
+@media (max-width: 560px) {
+  .shelf {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Phones: the folder header stacks, the cover is centred, the actions line up in a grid. */
+@media (max-width: 560px) {
+
+  .folder-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+}
+
+/* ------------------------------------------------------------------ narrow screens: menu as a tab bar */
+
+/* The forum, under the menu of the wide sidebar; on narrow screens it is in "Mehr". */
+.sidebar > .nav-forum {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 6px var(--space-3);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* The labelled tab bar of phones and small tablets; hidden on wide screens. */
+.phone-tabs {
+  display: none;
+}
+
+/*
+ * Below 900 px the sidebar is a slim bar on top with the mark and the SD card
+ * as a chip; the menu is a bar at the bottom with the four everyday tasks and
+ * "Mehr", each with its name. `.app` keeps these ahead of the narrow rules of
+ * the styles.
+ */
+@media (max-width: 900px) {
+  .app .sidebar {
+    gap: var(--space-3);
+    padding: var(--space-2) var(--space-4);
+    overflow: visible;
+  }
+
+  .app .sidebar > .nav,
+  .app .sidebar > .nav-sep,
+  .app .sidebar > .nav-forum {
+    display: none;
+  }
+
+  /* In the bar on top the card is a chip next to the logo; it needs no room kept below. */
+  .app .sidebar > .sd-slot {
+    display: contents;
+  }
+
+  .app .sidebar .sd-status {
+    display: flex;
+    min-width: 0;
+    max-width: 60%;
+    margin: 0 0 0 auto;
+    padding: 6px 10px;
+  }
+
+  .app .sidebar .sd-status > :not(.sd-title) {
+    display: none;
+  }
+
+  /* A menu scrolled into view stops above the tab bar. */
+  .menu {
+    scroll-margin-bottom: calc(80px + env(safe-area-inset-bottom));
+  }
+
+  .phone-tabs {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 60;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 2px;
+    padding: 4px 4px calc(4px + env(safe-area-inset-bottom));
+  }
+
+  .phone-tabs > div {
+    min-width: 0;
+  }
+
+  .phone-tabs > a,
+  .phone-tabs .phone-more {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    width: 100%;
+    min-width: 0;
+    height: 54px;
+    padding: 0 2px;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    font-size: 0.75rem;
+    font-weight: 700;
+    line-height: 1.1;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .app .phone-tabs > a,
+  .app .phone-tabs > a:hover {
+    text-decoration: none;
+  }
+
+  .phone-tabs > a > svg,
+  .phone-tabs .phone-more > svg {
+    flex: none;
+  }
+
+  .phone-tabs > a > span,
+  .phone-tabs .phone-more > span {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* "Mehr" opens upwards and keeps a gap from the edge of the screen. */
+  .phone-tabs .menu {
+    color: var(--text);
+    font-size: var(--text-sm);
+    min-width: 220px;
+    margin-right: var(--space-2);
+  }
+
+  /* Room for the tab bar under the page, and for the toasts above it. */
+  .app .main {
+    padding-bottom: calc(66px + env(safe-area-inset-bottom));
+  }
+
+  .toasts {
+    bottom: calc(74px + env(safe-area-inset-bottom));
+  }
+
+  /* The action bar takes the bottom of a phone: the toasts go to the top. */
+  :root[data-import-bar] .toasts {
+    top: calc(var(--space-3) + env(safe-area-inset-top));
+    bottom: auto;
+  }
+}
+
+/* The short name of a menu entry: only the narrow menu of a tablet held sideways shows it (below). */
+.nav a > .nav-short {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  /* As many tabs as there are (four in the Android app, five elsewhere), sharing the width. */
+  .phone-tabs {
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+  }
+
+  /* A dot on the cap's shoulder: something waits on that page (the SD card in the Android app). */
+  .phone-tabs .nav-badge {
+    position: absolute;
+    top: 6px;
+    left: calc(50% + 9px);
+    min-width: 12px;
+    height: 12px;
+    padding: 0;
+    border-radius: var(--radius-full);
+    background: var(--primary);
+    box-shadow: 0 0 0 2px var(--surface);
+  }
+}
+
+/*
+ * Tablets held sideways (Android app, or the web app on a tablet; never a
+ * computer, whose windows keep the wide menu): the menu is a narrow column
+ * of the button caps with their short names under them, as in the tab bar,
+ * so the pages get the width. The SD card shows as its label only.
+ */
+@media (min-width: 901px) and (max-width: 1366px) {
+  :root[data-handheld] .app {
+    grid-template-columns: 100px minmax(0, 1fr);
+  }
+
+  :root[data-handheld] .sidebar {
+    gap: var(--space-1);
+    padding: var(--space-3) 6px var(--space-3);
+  }
+
+  :root[data-handheld] .app-brand {
+    justify-content: center;
+    padding: 0 0 var(--space-2);
+  }
+
+  :root[data-handheld] .brand-name,
+  :root[data-handheld] .nav-sep + .nav::after {
+    display: none;
+  }
+
+  :root[data-handheld] .nav-sep {
+    margin: var(--space-1) var(--space-2);
+  }
+
+  :root[data-handheld] .nav a {
+    position: relative;
+    flex-direction: column;
+    justify-content: center;
+    gap: 3px;
+    height: auto;
+    min-height: 62px;
+    padding: 6px 2px;
+    font-size: 0.75rem;
+    line-height: 1.1;
+    text-align: center;
+  }
+
+  :root[data-handheld] .nav a > .nav-label {
+    display: none;
+  }
+
+  :root[data-handheld] .nav a > .nav-short {
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  :root[data-handheld] .nav a .nav-badge {
+    position: absolute;
+    top: 6px;
+    left: calc(50% + 9px);
+    margin: 0;
+  }
+
+  :root[data-handheld] .sidebar > .nav-forum {
+    flex-direction: column;
+    gap: 2px;
+    padding: 6px 2px;
+    font-size: 0.7rem;
+    text-align: center;
+    white-space: normal;
+  }
+
+  /* The rail shows the card's label only, at the bottom; no room kept for a whole box. */
+  :root[data-handheld] .sidebar > .sd-slot {
+    display: contents;
+  }
+
+  :root[data-handheld] .sidebar .sd-status {
+    margin-top: auto;
+    padding: var(--space-2) 2px 0;
+  }
+
+  :root[data-handheld] .sidebar .sd-status > :not(.sd-title) {
+    display: none;
+  }
+
+  :root[data-handheld] .sidebar .sd-status > .sd-title {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    text-align: center;
+  }
+
+  :root[data-handheld] .sidebar .sd-status > .sd-title > .ellipsis {
+    max-width: 86px;
+  }
+
+  /* The label in small letters, so a usual box name like "MESSKARTE" fits the rail whole. */
+  :root[data-handheld] .sidebar .sd-status > .sd-title > .ellipsis {
+    font-size: 0.7rem;
+  }
+}
+
+/* Phones: the SD card in the top bar leaves room for the logo. */
+@media (max-width: 560px) {
+  .app .sidebar .sd-status {
+    max-width: calc(100% - 64px);
+  }
+}
+
+/* The done screen of "Hinzufügen": a long name may take more lines, so "… (Teil 1)" and "… (Teil 2)" stay apart. */
+.done-shelf .tile-title {
+  -webkit-line-clamp: 4;
+}
+
+/* Extras of the settings page on the folder page: picking tracks to join, cutting off start and end. */
+.track-list .join-pick {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  cursor: pointer;
+}
+
+.trim-fields .field {
+  flex: 1 1 180px;
+}
+
+.trim-error {
+  color: var(--danger-text);
+  font-weight: 600;
+}
+
+.trim-all {
+  cursor: pointer;
+}
+
+.trim-all input[type='checkbox'] {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  margin-top: 2px;
+}
+
+/* Extra "Mehr als 99 Hörspiele": the albums of the add page as episodes of one folder, and the episodes on the folder page. */
+.episode-planner {
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+.episode-planner-title {
+  font-size: var(--text-lg);
+}
+
+.episode-plan {
+  padding-top: var(--space-3);
+  border-top: 1px dashed var(--border);
+}
+
+.episode-plan-list {
+  margin: 0;
+  padding-left: 1.4em;
+  display: grid;
+  gap: 2px;
+}
+
+.episode-plan-list li::marker {
+  color: var(--text-muted);
+}
+
+.episodes-list {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.episode-row {
+  display: grid;
+  grid-template-columns: 2.2rem minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius);
+  background: var(--surface-hover);
+}
+
+.episode-num {
+  font-weight: 700;
+  color: var(--text-muted);
+  text-align: right;
+}
+
+.episode-range {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.episode-range .select {
+  width: auto;
+}
+
+.episode-actions {
+  display: flex;
+  gap: 2px;
+}
+
+@media (max-width: 640px) {
+  .episode-row {
+    grid-template-columns: 2.2rem minmax(0, 1fr);
+  }
+
+  .episode-range,
+  .episode-actions {
+    grid-column: 2;
+  }
+}
+
+/* Extras of the settings page: spoken titles (folder page, "Hinzufügen") and recording from the microphone. */
+.announce-dialog label,
+.announce-choice label {
+  cursor: pointer;
+}
+
+.announce-dialog input[type='checkbox'],
+.announce-choice input[type='checkbox'] {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  margin-top: 2px;
+}
+
+.announce-choice {
+  align-items: flex-start;
+}
+
+.announce-sample .field {
+  flex: 1 1 220px;
+  min-width: 0;
+}
+
+.record-meter-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.record-dot {
+  width: 12px;
+  height: 12px;
+  flex: none;
+  border-radius: var(--radius-full);
+  background: var(--border);
+}
+
+.record-dot.on {
+  background: var(--danger);
+  animation: record-blink 1.2s ease-in-out infinite;
+}
+
+@keyframes record-blink {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .record-dot.on {
+    animation: none;
+  }
+}
+
+.record-meter {
+  flex: 1;
+  height: 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: var(--surface-hover);
+  overflow: hidden;
+}
+
+.record-meter-fill {
+  height: 100%;
+  background: var(--success);
+  transition: width 60ms linear;
+}
+
+.record-meter-fill.loud {
+  background: var(--danger);
+}
+
+.record-time {
+  min-width: 4.5em;
+  text-align: right;
+}
+
+.record-advice {
+  color: var(--danger-text);
+  font-weight: 600;
+}
+
+.record-dialog > .btn {
+  align-self: flex-start;
+}
+
+/*
+ * "Aufnehmen" of the Android app (RecordPage.tsx): the clock and the meter
+ * on top, the one big round button under them, lower on the screen where
+ * the thumb is, one quiet sentence under it.
+ */
+.recorder {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-4);
+}
+
+.recorder-clock {
+  align-self: center;
+  font-size: 2.6rem;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.recorder-clock.small-clock {
+  font-size: 1.5rem;
+}
+
+.record-button {
+  align-self: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 180px;
+  padding: var(--space-3) var(--space-4);
+  border: 0;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-weight: 700;
+  font-size: var(--text-md);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+/* Round and purple, the main button of the page; a hard edge under it like the other buttons. */
+.record-face {
+  display: grid;
+  place-items: center;
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: var(--text-on-brand);
+  box-shadow:
+    0 0 0 var(--line) var(--ink),
+    0 4px 0 var(--line) var(--ink);
+}
+
+.record-button:hover:not(:disabled) .record-face {
+  background: var(--primary-hover);
+}
+
+.record-button:active:not(:disabled) .record-face {
+  translate: 0 3px;
+  box-shadow:
+    0 0 0 var(--line) var(--ink),
+    0 1px 0 var(--line) var(--ink);
+}
+
+.record-button:disabled {
+  cursor: progress;
+  opacity: 0.7;
+}
+
+.record-button:focus-visible {
+  outline: 3px solid var(--focus-color);
+  outline-offset: 2px;
+  border-radius: var(--radius-lg);
+}
+
+.recorder-hint {
+  align-self: center;
+  max-width: 34ch;
+  margin: 0;
+  text-align: center;
+}
+
+.recorder-take {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.recorder-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-3);
+}
+
+/* Phones: the buttons of a finished take one under the other, the main one first and full width. */
+@media (max-width: 560px) {
+  .recorder-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .recorder-actions > .btn {
+    justify-content: center;
+    min-height: 44px;
+  }
+}
+
+.add-more h2 {
+  font-size: var(--text-lg);
+}

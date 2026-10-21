@@ -1,0 +1,100 @@
+# Vorschlag für den täglichen Bau der Quellenliste "Entdecken" (GitHub Actions).
+# Noch nicht aktiv: Wo die Liste gebaut und veröffentlicht wird, entscheidet der Betreiber.
+# Aktivieren: diese Datei nach .github/workflows/quellen.yml kopieren, die Repository-Variablen
+# SOURCES_CONTACT_URL und SOURCES_WEB_ORIGIN setzen und den Schritt "Veröffentlichen" ausfüllen.
+name: Quellen
+
+on:
+  schedule:
+    - cron: '17 3 * * *'   # täglich: Liste bauen
+    - cron: '41 4 * * 1'   # montags: Wochenprüfung
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['sources/**', 'src/core/sources/**', 'scripts/sources/**']
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: quellen
+  cancel-in-progress: false
+
+jobs:
+  build:
+    if: github.event.schedule != '41 4 * * 1'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx vitest run tests/sources
+      # ETags, Blob-Kennungen von GitLab, CORS-Ergebnisse und die letzte gute Liste von gestern.
+      - uses: actions/cache@v4
+        with:
+          path: .sources-cache
+          key: sources-${{ github.run_id }}
+          restore-keys: sources-
+      - name: Liste bauen
+        run: npm run sources:build
+        env:
+          SOURCES_CONTACT_URL: ${{ vars.SOURCES_CONTACT_URL }}
+          SOURCES_WEB_ORIGIN: ${{ vars.SOURCES_WEB_ORIGIN }}
+      - name: Bericht aufheben
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: quellen-bericht
+          path: |
+            dist-sources/report.json
+            dist-sources/issue.md
+          if-no-files-found: ignore
+      - name: Issue für die Redaktion aktualisieren
+        if: always() && hashFiles('dist-sources/issue.md') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          title="$(head -n 1 dist-sources/issue.md)"
+          number="$(gh issue list --state open --search 'Quellen: in:title' --json number,title --jq '[.[] | select(.title | startswith("Quellen: ") and (contains("Wochenprüfung") | not))][0].number')"
+          if [ -n "$number" ]; then
+            gh issue edit "$number" --title "$title" --body-file dist-sources/issue.md
+          else
+            gh issue create --title "$title" --body-file dist-sources/issue.md
+          fi
+      - name: Veröffentlichen
+        # dist-sources/quellen/index-v1.json neben die Web-App legen (gleiche Herkunft wie die App),
+        # mit Content-Type application/json, Cache-Control public, max-age=3600 und
+        # Access-Control-Allow-Origin * (für die Desktop-App). dist-sources/_headers enthält das für
+        # Netlify und Cloudflare Pages. Der Bericht wird nicht veröffentlicht.
+        run: echo "Hier dist-sources/quellen/ auf den Webserver der App laden."
+
+  weekly:
+    if: github.event.schedule == '41 4 * * 1' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - uses: actions/cache/restore@v4
+        with:
+          path: .sources-cache
+          key: sources-${{ github.run_id }}
+          restore-keys: sources-
+      - name: Quellen prüfen
+        run: npm run sources:check
+        env:
+          SOURCES_CONTACT_URL: ${{ vars.SOURCES_CONTACT_URL }}
+      - name: Issue für die Redaktion
+        if: failure() && hashFiles('dist-sources/check-issue.md') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh issue create --title "$(head -n 1 dist-sources/check-issue.md)" --body-file dist-sources/check-issue.md

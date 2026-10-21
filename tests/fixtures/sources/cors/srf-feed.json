@@ -1,0 +1,23 @@
+{
+ "name": "SRF Kids Hörspiele feed",
+ "kind": "observed",
+ "observed": "2026-10-05T22:18:22Z",
+ "evidence": [
+  "../../cors/03_podcast_hosts_tester.txt"
+ ],
+ "request": {
+  "method": "GET",
+  "url": "https://www.srf.ch/feed/podcast/sd/88072903-e34f-4f51-a9b9-052562d049c2.xml"
+ },
+ "hops": [
+  {
+   "status": 200,
+   "url": "https://www.srf.ch/feed/podcast/sd/88072903-e34f-4f51-a9b9-052562d049c2.xml",
+   "headers": {
+    "access-control-allow-origin": "*",
+    "content-type": "application/xml; charset=UTF-8"
+   }
+  }
+ ],
+ "expect": "direct"
+}

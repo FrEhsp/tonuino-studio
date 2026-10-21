@@ -1,0 +1,586 @@
+/*
+ * 0.4: phones and tablets. Frank wants much less scrolling on the phone,
+ * the main button where the thumb is, and tablets that use their width.
+ * Loaded after stil-holz.css (main.tsx), so these rules win over the
+ * style's own without extra weight. The menu itself (tab bar, the narrow
+ * menu of a tablet held sideways) is in layout.css.
+ *
+ * Phones: up to 560 px, as everywhere else in the app. Tablets: the Android
+ * app or the web app on a tablet (data-handheld on <html>, main.tsx) from
+ * 700 px; a computer's window of the same width keeps its layout.
+ */
+
+/* ------------------------------------------------------------------ folds (PhoneFold.tsx) */
+
+/* One line with what is chosen, "ändern" at the end; the whole line is the button. */
+.fold-line {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: 48px;
+  padding: 6px 2px;
+  border: 0;
+  border-bottom: 1.5px dashed var(--border-strong);
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+
+.fold-summary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex: 1;
+  min-width: 0;
+}
+
+.fold-open {
+  flex: none;
+  color: var(--primary-text);
+  font-size: var(--text-sm);
+  text-decoration: underline;
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 3px;
+  text-decoration-color: color-mix(in srgb, currentColor 40%, transparent);
+}
+
+/* ------------------------------------------------------------------ the bar at the bottom of a phone */
+
+/* Only phones have it (below); on wider screens the page's own button is in view. */
+.phone-bar {
+  display: none;
+}
+
+/* ------------------------------------------------------------------ tablets */
+
+/* The cards page: elsewhere these wrappers add nothing (CardsPage.tsx). */
+.cards-grid,
+.cards-pick,
+.cards-write,
+.folder-body {
+  display: contents;
+}
+
+@media (min-width: 700px) {
+  /*
+   * "Karten beschreiben": the list on the left, "Womit beschreibst du sie?"
+   * and the writing on the right, both in view. The list scrolls in its card
+   * and takes the height of the window, as a list beside its detail does.
+   */
+  :root[data-handheld] .cards-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(300px, 1fr);
+    align-items: start;
+    gap: var(--space-6);
+  }
+
+  :root[data-handheld] .cards-pick,
+  :root[data-handheld] .cards-write {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+    min-width: 0;
+  }
+
+  :root[data-handheld] .cards-page .pick-list {
+    max-height: max(320px, calc(100vh - 330px));
+  }
+
+  /* In the narrower column the heading keeps its line; the count and the links go under it when they must. */
+  :root[data-handheld] .cards-pick .card-header {
+    flex-wrap: wrap;
+    row-gap: 4px;
+  }
+
+  :root[data-handheld] .cards-pick .card-header .step-heading {
+    white-space: nowrap;
+  }
+
+  /*
+   * The page of a folder: its card, name and buttons on the left, the titles
+   * beside them, so the list starts at the top of the screen.
+   */
+  :root[data-handheld] .folder-page {
+    display: grid;
+    grid-template-columns: minmax(250px, 300px) minmax(0, 1fr);
+    align-items: start;
+    gap: var(--space-6) var(--space-8);
+  }
+
+  :root[data-handheld] .folder-page > .back-link {
+    grid-column: 1 / -1;
+  }
+
+  :root[data-handheld] .folder-page > .folder-head {
+    position: sticky;
+    top: var(--space-4);
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  :root[data-handheld] .folder-page .folder-cover {
+    width: 100%;
+  }
+
+  :root[data-handheld] .folder-page .folder-cover > .tile {
+    max-width: 230px;
+  }
+
+  :root[data-handheld] .folder-page .folder-info {
+    flex-basis: auto;
+  }
+
+  :root[data-handheld] .folder-page .folder-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  :root[data-handheld] .folder-page .folder-actions > :nth-child(-n + 3) {
+    grid-column: 1 / -1;
+  }
+
+  :root[data-handheld] .folder-page > .folder-body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+    min-width: 0;
+  }
+
+  /* In the narrower column "Titel" gets its own line, else the hint beside it squeezes it to nothing. */
+  :root[data-handheld] .folder-page .track-list > .card-header {
+    flex-wrap: wrap;
+    row-gap: var(--space-1);
+  }
+
+  :root[data-handheld] .folder-page .track-list > .card-header > h2 {
+    flex: 1 1 100%;
+  }
+}
+
+/* Every button big enough for a finger on a phone or tablet. */
+:root[data-handheld] .btn,
+:root[data-handheld] .btn.sm {
+  min-height: 44px;
+}
+
+:root[data-handheld] .btn.icon,
+:root[data-handheld] .btn.icon.sm {
+  min-width: 44px;
+}
+
+/* A word to tap ("ändern", "Alle auswählen") gets the room of a finger around it, not more space in the line. */
+:root[data-handheld] .link-button {
+  padding-block: 12px;
+  margin-block: -8px;
+}
+
+/* ------------------------------------------------------------------ phones */
+
+@media (max-width: 560px) {
+  /* A title of a folder gets two lines on the phone: „Lied Nummer 1 aus …“ told nothing (Prüfrunde 0.5-1). */
+  .list-row .track-name {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  /*
+   * The bar at the bottom: a strip of paper with an ink edge, the count on
+   * the left, the page's main button on the right, in reach of the thumb.
+   * It stays above the tab bar while the page scrolls.
+   */
+  .phone-bar {
+    position: sticky;
+    bottom: var(--space-3);
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin-top: calc(var(--space-2) * -1);
+    padding: var(--space-3) var(--space-3) var(--space-3) var(--space-4);
+    border-radius: var(--radius-lg);
+    background: var(--surface-raised);
+    box-shadow:
+      0 0 0 var(--line) var(--ink),
+      3px 4px 0 var(--drop);
+  }
+
+  .phone-bar-count {
+    flex: 1;
+    min-width: 0;
+    font-weight: 700;
+    line-height: 1.25;
+  }
+
+  .phone-bar > .btn {
+    flex: none;
+    min-height: 48px;
+  }
+
+  /* Lists flow with the page: a list scrolling inside a scrolling page is hard to handle with a thumb. */
+  .cards-page .pick-list {
+    max-height: none;
+    overflow: visible;
+  }
+
+  /* ---- Karten beschreiben */
+
+  /* The title says it; the line under it gives way to the list. */
+  .cards-page .page-header .titles > p {
+    display: none;
+  }
+
+  /* The firmware of the box in one line: the name and "ändern". */
+  .cards-page .profile-switch {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 2px var(--space-2);
+    max-width: none;
+  }
+
+  .cards-page .profile-detected .profile-auto,
+  .cards-page .profile-detected .muted {
+    display: none;
+  }
+
+  /* "ändern" in a row: the height of a finger. */
+  .cards-page .pick-change {
+    align-self: stretch;
+    padding: 0 var(--space-2);
+    margin: 0 calc(var(--space-2) * -1) 0 0;
+  }
+
+  /* The phone writes from the bar at the bottom: the same button in step 3 would be a second one. */
+  :root[data-handheld] .cards-page .reader-stage.phase-idle > .btn.primary {
+    display: none;
+  }
+
+  /* ---- Meine Box */
+
+  /* The problem on the card in two lines, its button under it. */
+  .health-banner {
+    gap: var(--space-2) var(--space-3);
+    padding: var(--space-3) var(--space-4);
+  }
+
+  .health-banner .health-icon {
+    width: 34px;
+    height: 34px;
+  }
+
+  .health-banner .health-icon svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  .health-banner > .grow {
+    flex-basis: calc(100% - 34px - var(--space-3));
+  }
+
+  .health-banner > .btn {
+    margin-left: calc(34px + var(--space-3));
+  }
+
+  /* The search and the view of the shelf in one row, with short words (box.css). */
+  .shelf-tools {
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .shelf-tools > .input-group {
+    flex: 1 1 140px;
+    min-width: 140px;
+  }
+
+  .shelf-tools > .segmented {
+    flex: none;
+  }
+
+  .shelf-tools > .segmented button {
+    min-height: 44px;
+    padding-inline: 10px;
+  }
+
+  /* ---- the page of a folder */
+
+  /*
+   * The card small at the top left, name, artist and facts beside it, the
+   * rest under both; the folder's titles start much higher up.
+   */
+  .folder-head {
+    display: grid;
+    grid-template-columns: 112px minmax(0, 1fr);
+    align-items: start;
+    gap: var(--space-2) var(--space-4);
+  }
+
+  .folder-head > .folder-info {
+    display: contents;
+  }
+
+  .folder-head > .folder-cover {
+    grid-row: 1 / span 3;
+    width: 112px;
+    gap: 2px;
+  }
+
+  .folder-head > .folder-cover > .tile {
+    max-width: 112px;
+  }
+
+  .folder-head > .folder-cover > .link-button {
+    font-size: 0.8rem;
+  }
+
+  .folder-head > .folder-info > * {
+    grid-column: 2;
+  }
+
+  .folder-head > .folder-info > :nth-child(n + 4) {
+    grid-column: 1 / -1;
+  }
+
+  .folder-info .wrap-input.headline,
+  :root:where([data-stil='holz']) .folder-info .wrap-input.headline {
+    font-size: 1.45rem;
+  }
+
+  /* ---- Hinzufügen */
+
+  .add-page .page-header .titles > p {
+    display: none;
+  }
+
+  /* The field a little lower: its button and the other ways come into view together. */
+  .add-page .dropzone {
+    gap: var(--space-4);
+    padding: var(--space-8) var(--space-4);
+  }
+}
+
+/* ------------------------------------------------------------------ 0.5: phones built around the main task (#74, #75) */
+
+/*
+ * design/handy/handy-regeln.md: per page the main thing in the first screen,
+ * nothing twice, explanations only on request. Phones only; tablets and
+ * computers keep their layout.
+ */
+
+/* The link over the card in the top bar: only phones have it. */
+.sd-chip-link {
+  display: none;
+}
+
+/* Meine Box without a card on a phone (PhoneWelcome.tsx). */
+.phone-welcome {
+  gap: var(--space-4);
+}
+
+.phone-welcome-steps {
+  padding: 0 var(--space-4) var(--space-4);
+}
+
+.phone-welcome-art {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--space-2);
+}
+
+.phone-welcome-art > svg {
+  width: min(100%, 300px);
+  height: auto;
+}
+
+@media (max-width: 560px) {
+  /* The card in the top bar leads to Meine Box, which is under "Mehr" here. */
+  .app .sidebar > .sd-slot {
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    min-width: 0;
+    min-height: 0;
+    max-width: calc(100% - 64px);
+    margin: 0 0 0 auto;
+  }
+
+  .app .sidebar > .sd-slot > .sd-status {
+    max-width: 100%;
+    margin: 0;
+  }
+
+  .sd-chip-link {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    display: block;
+    border-radius: var(--radius-lg);
+  }
+
+  /* Titles say it: the line under them gives way to the page (rule 6). */
+  :is(.ws-page, .help-page, .settings-page, .sources-page, .record-page) > .page-header .titles > p,
+  .sticker-bench .bench-head p,
+  .sticker-bench .bench-tip {
+    display: none;
+  }
+
+  /* The short title in one line, also at 360 px. */
+  .phone-welcome h1 {
+    font-size: clamp(1.45rem, 6.9vw, 1.75rem);
+  }
+
+  /* ---- Meine Box: "Hinzufügen" and "Sticker drucken" are in the tab bar; the problem in two lines and its button. */
+  .box-head .box-actions > .btn:nth-child(-n + 2) {
+    display: none;
+  }
+
+  .box-head .box-actions:not(:has(> .btn:nth-child(3))) {
+    display: none;
+  }
+
+  .health-banner .health-why {
+    display: none;
+  }
+
+  /* ---- Karten ohne SD-Karte: one line and its button. */
+  .nocard-line {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+  .nocard-line > span {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .nocard-line > .btn {
+    flex: none;
+  }
+
+  /* Without a card the list is empty, and „Spezialkarte hinzufügen“ right under it says the rest. */
+  .cards-page:has(.nocard-line) .cards-pick .card > p.soft {
+    display: none;
+  }
+
+  /* The count is on the bar at the bottom once cards are chosen: here only "Alle auswählen" and "…", in one line. */
+  .cards-page .cards-pick .card-header > :is(.spacer, .soft) {
+    display: none;
+  }
+
+  /* With only "…" (no card yet) it stays beside the heading instead of taking a line of its own. */
+  .cards-page .cards-pick .card-header > .step-heading {
+    flex: 1 1 auto;
+  }
+
+  /* ---- Hinzufügen: recording right under the files, the tips that only explain go. */
+  .add-page > .add-more {
+    order: 1;
+  }
+
+  .add-page > .playlist-import {
+    order: 2;
+  }
+
+  .add-page > .feature-grid {
+    order: 3;
+  }
+
+  .add-page > .feature-grid > .feature:not(.feature-wide) {
+    display: none;
+  }
+
+  .add-page > .add-more {
+    padding: var(--space-3) var(--space-4);
+  }
+
+  .add-page > .add-more > h2 {
+    display: none;
+  }
+
+  .add-page .dropzone {
+    padding-block: var(--space-6);
+  }
+
+  /* ---- Sticker drucken: style and text folded to one line (StickerPage.tsx, LookFold). */
+  .bench-card > .fold-line {
+    gap: var(--space-3);
+    min-height: 56px;
+    padding: var(--space-2) var(--space-4);
+  }
+
+  .bench-card > .fold-line .bench-num {
+    flex: none;
+  }
+
+  /* Nothing is dragged on a phone: „Zieh einfach Bilder hierher“ goes, „Bilder hinzufügen“ under it says it. */
+  :root[data-handheld] .sticker-bench .bench-question > p.soft {
+    display: none;
+  }
+
+  /* ---- Ordner: the titles start higher; the hint on dragging is in the help. */
+  .track-list > .card-header > .muted.small {
+    display: none;
+  }
+
+  /* ---- Werkstatt: rows with the cap on the left, the name and its line (rule 9). */
+  .ws-tools {
+    gap: var(--space-2);
+  }
+
+  .ws-tool,
+  :where(:root[data-stil='holz']) .ws-tool {
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr);
+    align-items: center;
+    gap: 2px var(--space-3);
+    padding: var(--space-3) var(--space-4);
+  }
+
+  .ws-tool > .ws-tool-icon,
+  :where(:root[data-stil='holz']) .ws-tool > .ws-tool-icon {
+    grid-row: 1 / span 3;
+    align-self: center;
+    width: 40px;
+    height: 40px;
+    margin: 0;
+  }
+
+  .ws-tool > .ws-tool-icon > svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .ws-tool > :not(.ws-tool-icon) {
+    grid-column: 2;
+  }
+
+  .ws-tool-text {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+  }
+
+  .ws-tool-note {
+    padding-top: 0;
+  }
+}
+
+/* Choices side by side and the way back get a finger's height too (handy-regeln 11), not only the buttons. */
+:root[data-handheld] .segmented button {
+  min-height: 44px;
+}
+
+:root[data-handheld] .back-link {
+  padding-block: 12px;
+  margin-block: -12px;
+}

@@ -1,0 +1,53 @@
+{
+  "name": "tonuino-studio",
+  "version": "0.5.0",
+  "description": "TonUINO Studio: SD-Karte, Karten, Sticker und Firmware für TonUINO-Boxen",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit -p .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:boxsim": "node scripts/firmware/boxsim-run.mjs",
+    "test:labor": "node scripts/labor/run.mjs",
+    "tauri": "tauri",
+    "sources:build": "vite build --ssr scripts/sources/build-index.ts --outDir .sources-build --emptyOutDir && node .sources-build/build-index.js",
+    "sources:check": "vite build --ssr scripts/sources/check-sources.ts --outDir .sources-build --emptyOutDir && node .sources-build/check-sources.js",
+    "sources:fixtures": "vite build --ssr scripts/sources/refresh-fixtures.ts --outDir .sources-build --emptyOutDir && node .sources-build/refresh-fixtures.js",
+    "sources:snapshot": "npm run sources:build -- --out sources/snapshot/index-v1.json"
+  },
+  "author": "TonUINO Studio",
+  "license": "GPL-3.0-or-later",
+  "dependencies": {
+    "@breezystack/lamejs": "^1.2.7",
+    "@expo-google-fonts/baloo-2": "^0.4.2",
+    "@expo-google-fonts/bitter": "^0.4.2",
+    "@expo-google-fonts/figtree": "^0.4.1",
+    "@expo-google-fonts/fredoka": "^0.4.1",
+    "@expo-google-fonts/nunito": "^0.4.2",
+    "@expo-google-fonts/patrick-hand": "^0.4.1",
+    "@fontsource-variable/figtree": "^5.3.0",
+    "@preact/signals": "^2.11.3",
+    "@tauri-apps/api": "^2.12.1",
+    "browser-id3-writer": "^6.4.0",
+    "jspdf": "^4.2.1",
+    "jszip": "^3.10.2",
+    "lucide-preact": "^1.52.0",
+    "mpg123-decoder": "^1.0.3",
+    "music-metadata": "^12.0.0",
+    "preact": "^11.0.0",
+    "qrcode": "^1.5.4"
+  },
+  "devDependencies": {
+    "@preact/preset-vite": "^2.10.6",
+    "@tauri-apps/cli": "^2.12.1",
+    "@types/qrcode": "^1.5.6",
+    "@types/wicg-file-system-access": "^2023.10.7",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.2",
+    "vitest": "^5.0.3"
+  },
+  "private": true,
+  "type": "module"
+}

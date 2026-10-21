@@ -1,0 +1,12 @@
+FILE gsb_de-0001_tall.mp3
+ title: Ein sehr großer Mann | artist: Jula Eberth | album: Storybooks Canada | genre: undefined | year: 2017
+ comment: [{"language":"XXX","descriptor":"","text":"Text by: Cornelius Gulere\nTranslated by: Lisa Birkner\nLanguage: German\nLevel: 2\nLicense: CC-BY\n\nFrom Storybooks Canada (https://storybookscanada.ca)"}]
+ format: MPEG MPEG 1 Layer 3 44100 Hz 1 ch 73 kbps dur 48.8 s
+ native ID3v2.4 TPE1="Jula Eberth" ; TIT2="Ein sehr großer Mann" ; TALB="Storybooks Canada" ; TDRC="2017" ; TRCK="24" ; COMM={"language":"XXX","descriptor":"","text":"Text by: Cornelius Gulere\nTranslated by: Lisa Birkner\nLanguage: German\nLevel: 2\nLicense: CC-BY\n\nFrom Storybooks  ; APIC={"format":"image/jpeg","type":"Cover (front)","description":"Cover","data":{"0":255,"1":216,"2":255,"3":224,"4":0,"5":16,"6":74,"7":70,"8":73,"9":70,"10":0,"11"
+ native ID3v1 title="Ein sehr großer Mann" ; artist="Jula Eberth" ; album="Storybooks Canada" ; comment="Text by: Cornelius Gulere\nTr" ; track=24 ; year="2017"
+FILE gsb_de-0002_animals.mp3
+ title: Sieh Dir die Tiere an! | artist: Jula Eberth | album: Storybooks Canada | genre: undefined | year: 2017
+ comment: [{"language":"XXX","descriptor":"","text":"Text by: Jenny Katz\nTranslated by: Lisa Birkner\nLanguage: German\nLevel: 1\nLicense: CC-BY-NC\n\nFrom Storybooks Canada (https://storybookscanada.ca)"}]
+ format: MPEG MPEG 1 Layer 3 44100 Hz 1 ch 68 kbps dur 28.4 s
+ native ID3v2.4 TPE1="Jula Eberth" ; TIT2="Sieh Dir die Tiere an!" ; TALB="Storybooks Canada" ; TDRC="2017" ; TRCK="6" ; COMM={"language":"XXX","descriptor":"","text":"Text by: Jenny Katz\nTranslated by: Lisa Birkner\nLanguage: German\nLevel: 1\nLicense: CC-BY-NC\n\nFrom Storybooks Can ; APIC={"format":"image/jpeg","type":"Cover (front)","description":"Cover","data":{"0":255,"1":216,"2":255,"3":224,"4":0,"5":16,"6":74,"7":70,"8":73,"9":70,"10":0,"11"
+ native ID3v1 title="Sieh Dir die Tiere an!" ; artist="Jula Eberth" ; album="Storybooks Canada" ; comment="Text by: Jenny Katz\nTranslat" ; track=6 ; year="2017"

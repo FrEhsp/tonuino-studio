@@ -1,0 +1,27 @@
+{
+ "name": "redirect to the same host keeps the page Origin; both hops \"*\" -> ok",
+ "kind": "synthetic",
+ "request": {
+  "method": "GET",
+  "url": "https://a.example/old.mp3"
+ },
+ "hops": [
+  {
+   "status": 301,
+   "url": "https://a.example/old.mp3",
+   "headers": {
+    "location": "/new.mp3",
+    "access-control-allow-origin": "*"
+   }
+  },
+  {
+   "status": 200,
+   "url": "https://a.example/new.mp3",
+   "headers": {
+    "access-control-allow-origin": "*",
+    "content-type": "audio/mpeg"
+   }
+  }
+ ],
+ "expect": "direct"
+}

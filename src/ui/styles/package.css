@@ -1,0 +1,292 @@
+/* The card in Firefox and Safari: reading it in, the Paket, the guide and the check. */
+
+/* ------------------------------------------------------------------ reading the card */
+
+.hero.card-drop,
+.card.card-drop {
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+}
+
+.hero.card-drop.over,
+.card.card-drop.over {
+  border-color: var(--primary);
+  box-shadow:
+    0 0 0 2px var(--primary),
+    var(--shadow-sm);
+}
+
+.card-drop-line {
+  color: var(--text-soft);
+  font-weight: 600;
+}
+
+.card-drop-line.over {
+  color: var(--primary);
+}
+
+.card-reading:empty {
+  display: none;
+}
+
+.card-note {
+  gap: var(--space-3);
+  align-items: center;
+}
+
+.card-note > .grow {
+  min-width: 200px;
+}
+
+.dropzone.compact {
+  align-items: stretch;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  text-align: left;
+}
+
+/* The ghost button in the line under the box name. */
+.page-header p .meta-action {
+  margin-left: var(--space-2);
+  vertical-align: middle;
+}
+
+/* ------------------------------------------------------------------ what waits for the card */
+
+.package-banner.pending .health-icon {
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+
+.package-banner.downloaded .health-icon {
+  background: var(--accent-soft);
+  color: var(--accent-soft-text);
+}
+
+.package-banner-actions {
+  gap: var(--space-2);
+}
+
+.package-gate {
+  align-items: flex-start;
+}
+
+.page .package-gate {
+  max-width: 560px;
+  margin: var(--space-10) auto 0;
+  padding: var(--space-8);
+  border-radius: var(--radius-xl);
+  background: var(--surface);
+}
+
+.package-gate-icon {
+  width: 56px;
+  height: 56px;
+  display: grid;
+  place-items: center;
+}
+
+/* ------------------------------------------------------------------ the Paket dialog */
+
+.package-lines,
+.package-reasons {
+  margin: 0;
+  padding-left: 1.2em;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.package-reasons {
+  margin-top: var(--space-2);
+  color: var(--text-soft);
+}
+
+.choices.package-modes {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.choice.package-mode .choice-title {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.choice.package-mode .badge {
+  margin-top: 0;
+}
+
+.break {
+  overflow-wrap: anywhere;
+}
+
+/* ------------------------------------------------------------------ the guide */
+
+.package-download {
+  padding: var(--space-4);
+  border-radius: var(--radius);
+  background: var(--bg-sunken);
+}
+
+.guide-tabs {
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.guide-tabs button {
+  flex: none;
+}
+
+/* The steps per system (Windows, macOS, Linux): their own list, not the steps at the box on the cards page. */
+.os-steps {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: guide;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.os-steps > .guide-step {
+  counter-increment: guide;
+  position: relative;
+  padding-left: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.os-steps > .guide-step::before {
+  content: counter(guide);
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: var(--text-xs);
+}
+
+/* The line between the steps runs through the middle of the smaller numbers. */
+.os-steps > .guide-step:not(:last-child)::after {
+  left: 12px;
+  top: 30px;
+}
+
+.os-steps > .guide-step.note {
+  /* An info note is not a step: the numbers of the steps around it run on. */
+  counter-increment: none;
+}
+
+.os-steps > .guide-step.note::before {
+  content: 'i';
+  background: var(--bg-sunken);
+  color: var(--text-muted);
+  font-family: Georgia, serif;
+  font-style: italic;
+}
+
+.os-steps > .guide-step .command-line {
+  margin-top: 0;
+}
+
+.guide-name {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: 320px;
+}
+
+.guide-warning {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--warning-text);
+}
+
+.guide-warning svg {
+  flex: none;
+  margin-top: 2px;
+}
+
+.guide-more summary {
+  cursor: pointer;
+  font-weight: 600;
+  font-size: var(--text-sm);
+  color: var(--text-soft);
+}
+
+.guide-more[open] summary {
+  margin-bottom: var(--space-2);
+}
+
+/* ------------------------------------------------------------------ the check */
+
+.check-option {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  cursor: pointer;
+}
+
+.check-option input {
+  flex: none;
+  margin-top: 3px;
+}
+
+.check-findings {
+  margin: 0;
+  padding-left: 1.2em;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+@media (max-width: 560px) {
+  /* All banners on the box page (also the health banner): the text gets the width, the buttons go below. */
+  .health-banner {
+    flex-wrap: wrap;
+  }
+
+  .health-banner > .grow {
+    flex-basis: calc(100% - 64px);
+  }
+
+  .health-banner > .btn,
+  .package-banner-actions {
+    flex: 1 1 100%;
+  }
+
+  .package-banner-actions .btn {
+    flex: 1 1 auto;
+  }
+
+  .page .package-gate {
+    margin-top: var(--space-4);
+    padding: var(--space-5);
+  }
+
+  .os-steps > .guide-step {
+    padding-left: 34px;
+  }
+
+  /* Four systems side by side, without scrolling the tabs. */
+  .guide-tabs {
+    gap: 0;
+  }
+
+  .guide-tabs button {
+    flex: 1 1 auto;
+    justify-content: center;
+    padding: 10px 6px;
+    font-size: 0.9rem;
+  }
+}

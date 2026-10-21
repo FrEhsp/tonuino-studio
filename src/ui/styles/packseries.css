@@ -1,0 +1,40 @@
+/*
+ * "Reihe in einen Ordner packen" (src/features/box/PackSeries.tsx): one line
+ * under "Platz auf der Karte", the sentence and its button side by side
+ * while there is room, the button below it in the narrow column.
+ */
+.pack-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  margin-top: var(--space-3);
+}
+
+.pack-line > span:first-child {
+  flex: 1 1 180px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.pack-line-actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.pack-folders {
+  max-height: 260px;
+}
+
+.pack-sum {
+  margin: 0;
+}
+
+/* The arrows that move an episode up or down, close together at the end of its row. */
+.pack-move {
+  display: inline-flex;
+  flex: none;
+  gap: 2px;
+}

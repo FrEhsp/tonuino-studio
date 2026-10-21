@@ -1,0 +1,36 @@
+/* "Neue Version da" in the sidebar (src/app/UpdateNotice.tsx). */
+
+.sidebar > .update-notice {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0 var(--space-2);
+  padding: 4px 4px 4px var(--space-2);
+  border: 1.5px dashed var(--border-strong, var(--border));
+  border-radius: var(--radius);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.update-notice-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+
+.update-notice-close {
+  border: 0;
+  background: none;
+  color: var(--text-soft);
+  padding: 4px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+@media (max-width: 900px) {
+  .app .sidebar > .update-notice {
+    display: none;
+  }
+}

@@ -1,0 +1,16 @@
+/*
+ * Hand marks of the 0.4 look: the highlighter in three parts (ragged ends, a
+ * middle that stretches); underline, tick, arrow, loop and box as masks that
+ * take the text colour. Since 0.4.1 only the 0.4 rules of "Sticker drucken"
+ * still use them (stil-holz.css), until that page gets its new layout.
+ */
+:root {
+  --mark-hl-left: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 20' preserveAspectRatio='none'%3E%3Cpath d='M12 1.2 L4.6 2.4 L2.2 5.8 L3.4 8.2 L0.8 11.6 L1.6 14.6 L0.4 18.4 L12 18.9 Z' fill='%23fdd459'/%3E%3C/svg%3E");
+  --mark-hl-right: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 20' preserveAspectRatio='none'%3E%3Cpath d='M0 1.4 L6.8 0.8 L9.4 3.2 L8.2 5.4 L11 8.6 L9.6 11.4 L11.4 14.2 L8.8 17.6 L4.2 18.6 L0 18.8 Z' fill='%23fdd459'/%3E%3C/svg%3E");
+  --mark-hl-mid: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 20' preserveAspectRatio='none'%3E%3Cpath d='M0 1.4 Q12.5 1.27 25 1.6 Q37.5 1.95 50 1.19 Q62.5 1.71 75 1.73 Q87.5 1.29 100 1.35 L100 18.73 Q87.5 19.53 75 18.92 Q62.5 19.02 50 18.66 Q37.5 18.52 25 18.62 Q12.5 18.32 0 18.83 Z' fill='%23fdd459'/%3E%3Cpath d='M0 6.2 Q50 5.2 100 6.6' stroke='%23fff3b8' stroke-width='1.4' fill='none' opacity='0.7'/%3E%3C/svg%3E");
+  --mark-underline: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 7' preserveAspectRatio='none'%3E%3Cpath d='M1 5.6 Q28 3.8 56 4.8 T96 3.4 Q98.6 2.6 99.2 1.4' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round'/%3E%3C/svg%3E");
+  --mark-tick: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3.2 12.6 Q6 15 8.8 19 Q13 10.8 20.8 4.4' fill='none' stroke='%23000' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  --mark-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 19 13'%3E%3Cpath d='M1.2 7.4 Q8 5.8 17 6.4 M12.6 2.4 Q15.2 4.8 17.6 6.4 Q15 8.4 12.8 10.6' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  --mark-circle: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 40' preserveAspectRatio='none'%3E%3Cpath d='M14 9 C30 2 78 1 93 10 C101 16 98 30 80 35 C60 40 22 39 9 32 C-1 26 2 13 20 6.5 C26 4.6 34 4 40 4.6' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round'/%3E%3C/svg%3E");
+  --mark-box: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M4.4 4.3 L19.7 3.9 L20.1 19.7 L4 20.2 L4.3 3.2' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}

@@ -1,0 +1,44 @@
+# TonUINO Studio: access to TonUINO boxes and NFC readers for the person at the computer.
+#
+# TAG+="uaccess" gives the logged-in desktop user access to the device
+# (no "dialout" group membership and no re-login needed).
+# ID_MM_DEVICE_IGNORE keeps ModemManager from probing the boxes as modems,
+# which otherwise blocks the port for several seconds after plugging in.
+#
+# Installed by the .deb to /usr/lib/udev/rules.d, or by the app's one-time
+# USB setup to /etc/udev/rules.d. The number must stay below 73 (uaccess).
+
+ACTION=="remove", GOTO="tonuino_studio_end"
+
+# --- USB serial adapters (Arduino Nano clones, LKP AiO, ESP32 boards) -------
+SUBSYSTEM!="tty", GOTO="tonuino_studio_usb"
+
+# WCH CH340 / CH341 (Arduino Nano clones)
+ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="7523", TAG+="uaccess", ENV{ID_MM_DEVICE_IGNORE}="1"
+# WCH CH9102 / CH343 (ESP32 boards)
+ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="55d4", TAG+="uaccess", ENV{ID_MM_DEVICE_IGNORE}="1"
+# Holtek HT42B534 (LKP AiO board)
+ATTRS{idVendor}=="04d9", ATTRS{idProduct}=="b534", TAG+="uaccess", ENV{ID_MM_DEVICE_IGNORE}="1"
+# FTDI FT232R
+ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6001", TAG+="uaccess", ENV{ID_MM_DEVICE_IGNORE}="1"
+# Silicon Labs CP210x
+ATTRS{idVendor}=="10c4", ATTRS{idProduct}=="ea60", TAG+="uaccess", ENV{ID_MM_DEVICE_IGNORE}="1"
+# Arduino (all products)
+ATTRS{idVendor}=="2341", TAG+="uaccess", ENV{ID_MM_DEVICE_IGNORE}="1"
+
+GOTO="tonuino_studio_end"
+
+# --- USB devices ------------------------------------------------------------
+LABEL="tonuino_studio_usb"
+SUBSYSTEM!="usb", GOTO="tonuino_studio_end"
+ENV{DEVTYPE}!="usb_device", GOTO="tonuino_studio_end"
+
+# ACS ACR122U NFC reader (used through pcscd)
+ATTRS{idVendor}=="072f", ATTRS{idProduct}=="2200", TAG+="uaccess"
+# Keep ModemManager away from the serial adapters at USB level, too.
+ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="7523", ENV{ID_MM_DEVICE_IGNORE}="1"
+ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="55d4", ENV{ID_MM_DEVICE_IGNORE}="1"
+ATTRS{idVendor}=="04d9", ATTRS{idProduct}=="b534", ENV{ID_MM_DEVICE_IGNORE}="1"
+ATTRS{idVendor}=="2341", ENV{ID_MM_DEVICE_IGNORE}="1"
+
+LABEL="tonuino_studio_end"

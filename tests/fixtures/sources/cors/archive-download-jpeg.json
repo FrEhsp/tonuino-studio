@@ -1,0 +1,28 @@
+{
+ "name": "archive.org /download/ JPEG of the LibriVox item (same path as the MP3s), fresh",
+ "kind": "observed",
+ "observed": "2026-10-05T22:12:15Z",
+ "evidence": [
+  "../../cors/01_archive_org_tester.txt (2)"
+ ],
+ "note": "the tester follows redirects and printed only the final headers",
+ "request": {
+  "method": "GET",
+  "url": "https://archive.org/download/peterchens_mondfahrt_librivox/peterchens_mondfahrt_1004.jpg"
+ },
+ "hops": [
+  {
+   "status": 200,
+   "url": "(final, after redirect)",
+   "headers": {
+    "access-control-allow-origin": "*",
+    "access-control-allow-credentials": "true",
+    "content-type": "image/jpeg",
+    "content-length": "39002",
+    "cache-control": "max-age=14400",
+    "server": "cloudflare"
+   }
+  }
+ ],
+ "expect": "direct"
+}

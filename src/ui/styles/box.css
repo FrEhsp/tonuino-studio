@@ -1,0 +1,616 @@
+/*
+ * 0.5 (#80, regal audit of 20.10.2026, design/meine-box-2026-10-20/audit.md):
+ * "Meine Box", the shelf over the whole width. On top the name, the facts
+ * (with the health check when all is fine) and the buttons in one line;
+ * notes and problems as boxes under it; then search, the choice
+ * "Cover | Sticker | Liste" and the room on the card (one line where it
+ * fits, else two); then the shelf (BoxPage.tsx, ShelfViews.tsx). Phones
+ * stack all of it and show the room on the card after the shelf.
+ *
+ * Loaded after the style and the phone sheet (main.tsx). Everything here
+ * hangs on .box-bench: the page with the card and the remembered box
+ * (Remembered.tsx) share it; the cards on the done screen of "Hinzufügen"
+ * and the folder page keep their own look.
+ */
+
+/* The shelf takes what the window gives: on a big screen the whole box shows at once. */
+.page.box-page {
+  max-width: none;
+}
+
+.box-bench {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.box-bench > .box-tools {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.box-bench > .box-tools:empty {
+  display: none;
+}
+
+.box-bench > .box-piece {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.box-bench > .picks-teaser {
+  margin-top: var(--space-4);
+}
+
+/* Why the problem matters, under its title (draft B). */
+.health-banner .health-why {
+  margin: var(--space-2) 0 0;
+  max-width: 60ch;
+}
+
+/* ------------------------------------------------------------------ the head: name, facts, buttons in one line */
+
+.box-head.page-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3) var(--space-8);
+}
+
+.box-head .titles {
+  flex: 1 1 320px;
+  min-width: 0;
+}
+
+.box-name {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.box-name > h1 {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* The "…" of the card right after the pencil: at the far end of a wide head it was lost. */
+.box-name > .box-more {
+  margin-left: 0;
+}
+
+/* The facts and, when all is fine, the health check's quiet line beside them. */
+.box-facts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-6);
+}
+
+.box-facts > p {
+  margin: 0;
+}
+
+.box-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.box-actions > .btn {
+  height: 46px;
+  padding-inline: var(--space-5);
+}
+
+/* ------------------------------------------------------------------ the bar: search, view, room on the card */
+
+/*
+ * Search and view, then the room on the card, in one line where it fits
+ * (from about 1870 px); else the room goes above them (wrap-reverse), so
+ * search and view stay right over the shelf.
+ */
+.box-bar {
+  display: flex;
+  flex-wrap: wrap-reverse;
+  align-items: center;
+  gap: var(--space-3) var(--space-8);
+}
+
+.box-bar > .shelf-tools {
+  flex: 1 1 520px;
+  min-width: 0;
+}
+
+.box-bar > .box-room {
+  flex: 0 1 auto;
+}
+
+/* ------------------------------------------------------------------ notes and the room on the card */
+
+/* Everything else said about the card, in one calm box. */
+.box-notes.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-5);
+}
+
+.box-notes > .callout {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  color: var(--text);
+}
+
+.box-notes > :is(.shelf-note, .rebuild-entry) + :is(.shelf-note, .rebuild-entry),
+.box-notes > .callout + * {
+  padding-top: var(--space-3);
+  border-top: 1px dashed var(--border-strong);
+}
+
+.box-notes > .rebuild-entry {
+  margin: 0;
+}
+
+/* The question: its sign beside the sentence, the answers under it. */
+.box-notes > .remember-offer {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: var(--space-3) var(--space-2);
+}
+
+.box-notes > .remember-offer > svg {
+  margin-top: 3px;
+}
+
+.box-notes > .remember-offer > .remember-answers {
+  grid-column: 2;
+  gap: var(--space-3);
+}
+
+.box-notes > .remember-offer .btn {
+  min-width: 64px;
+}
+
+/* The room on the card in one line: its name, then each number with a short bar, then the series line. */
+.box-room {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-6);
+  min-width: 0;
+}
+
+.box-room h2 {
+  margin: 0;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.box-room-line {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.box-room-line b {
+  color: var(--text);
+}
+
+/* Grey: a measure, nothing to click (lila means that). */
+.box-room .capacity {
+  display: block;
+  width: 72px;
+  height: 10px;
+  background: var(--surface);
+}
+
+.box-room .capacity > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--gray-400);
+  box-shadow: inset 0 0 0 1.5px var(--ink);
+}
+
+.box-room .pack-line {
+  margin-top: 0;
+}
+
+/* ------------------------------------------------------------------ the shelf */
+
+.box-bench .shelf-tools > .input-group {
+  flex: 1 1 260px;
+  max-width: 440px;
+}
+
+/* The choice of the view at the end of the line, where it was. */
+.box-bench .shelf-tools > .segmented {
+  margin-left: auto;
+}
+
+.box-bench .shelf {
+  gap: var(--space-6) 20px;
+  padding: 20px;
+}
+
+/* A card far from the window, for the first frame after the shelf shows (nearFirst in ShelfViews.tsx). */
+.shelf > [data-later] {
+  visibility: hidden;
+}
+
+/* "Cover": small cards, many in a row: cover, number and name on each. */
+.box-bench .shelf-cover {
+  grid-template-columns: repeat(auto-fill, minmax(144px, 1fr));
+  gap: var(--space-5) var(--space-4);
+}
+
+.box-bench .shelf-cover .tile {
+  gap: 6px;
+}
+
+.box-bench .shelf-cover .tile .tile-cover {
+  padding: 6px 6px 0;
+}
+
+.box-bench .shelf-cover .tile .tile-num {
+  height: 30px;
+  font-size: 1.15rem;
+}
+
+/* The flag stays on the card's corner, not over the cover's own corner sign. */
+.box-bench .shelf-cover .tile .tile-flag {
+  top: 10px;
+  right: 10px;
+}
+
+/* The name on the card's paper under the number, at most two lines; the cards of a row grow alike. */
+.box-bench .shelf .tile .tile-cover > .tile-title {
+  max-width: none;
+  margin: -2px 0 6px;
+  padding: 0 4px;
+  border-radius: 0;
+  background: none;
+  color: #1f1a16;
+  font-size: 0.95rem;
+  line-height: 1.25;
+  hyphens: manual;
+  overflow-wrap: anywhere;
+}
+
+/* "Sticker": each folder's sticker as printed, at least 180 px wide so it reads (five in a row at 1366 px). */
+.box-bench .shelf-sticker {
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+}
+
+/*
+ * Number, name and facts stand on the card's paper, under the sticker. The
+ * foot has the same height on every card (two lines of name, one of facts),
+ * so a card's size only follows the shelf's width: its finished picture
+ * (FolderSticker.tsx) stays valid while the search thins out the shelf, and
+ * no card waits for its words to be laid out.
+ */
+.box-bench .tile .tile-cover.sticker {
+  padding: 8px 8px 0;
+}
+
+.box-bench .tile-foot {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: 2.6em auto;
+  column-gap: var(--space-2);
+  align-items: baseline;
+  height: calc(12px + 2.6em + 4px + 1.35 * var(--text-sm) + 8px);
+  padding: 12px 4px 0;
+  overflow: hidden;
+  font-size: 1rem;
+}
+
+.box-bench .tile-foot > .tile-num {
+  display: block;
+  height: auto;
+  padding: 0;
+  font-size: 1.3rem;
+  line-height: 1.1;
+}
+
+.box-bench .tile-foot > .tile-num::after {
+  content: none;
+}
+
+/* A long word breaks rather than being cut off without a sign. */
+.box-bench .tile-foot > .tile-title {
+  -webkit-line-clamp: 2;
+  align-self: start;
+  line-height: 1.3;
+  hyphens: auto;
+  overflow-wrap: anywhere;
+}
+
+/* The card is light paper in the dark look too: its ink stays dark. */
+.box-bench .tile-foot > .tile-meta {
+  grid-column: 1 / -1;
+  display: block;
+  margin: 4px 0 0;
+  overflow: hidden;
+  color: #5c554c;
+  line-height: 1.35;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.box-bench .shelf .tile-foot > :is(.tile-title, .tile-meta) {
+  max-width: none;
+  padding: 0;
+  border-radius: 0;
+  background: none;
+  margin-left: 0;
+}
+
+/* Every card fills its place in the row, the empty "Hinzufügen" card too. */
+.box-bench .shelf .tile > .tile-cover,
+.box-bench .tile.add > .tile-cover {
+  flex: 1;
+}
+
+/*
+ * "Liste": one line per folder on a sheet of paper, in columns like a
+ * contents list (01 to 17, 18 to 34 …), so the numbers run down as on the
+ * printed one. Small cover, number, name, artist and facts.
+ */
+.box-bench .shelf-list {
+  columns: 400px;
+  column-gap: var(--space-8);
+  padding: var(--space-3) var(--space-4);
+}
+
+.shelf-row {
+  display: grid;
+  grid-template-columns: 44px 2.1em minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: 56px;
+  padding: 6px var(--space-2);
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  break-inside: avoid;
+  cursor: pointer;
+}
+
+.shelf-row:hover {
+  background: var(--surface-hover);
+}
+
+.shelf-row:focus-visible {
+  outline: 3px solid var(--focus-color);
+  outline-offset: 0;
+}
+
+.shelf-row + .shelf-row {
+  border-top: 1px dashed var(--border);
+  border-radius: 0;
+}
+
+.shelf-row-cover {
+  width: 44px;
+  height: 44px;
+  overflow: hidden;
+  border-radius: 3px;
+  box-shadow: 0 0 0 1.5px var(--ink);
+}
+
+.shelf-row-cover > :is(.cover-img, .gen-cover) {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.shelf-row-num {
+  font-family: var(--font-stamp);
+  font-size: 1.25rem;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.shelf-row-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.shelf-row-title {
+  font-weight: 700;
+  line-height: 1.3;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.shelf-row-meta {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.shelf-row > .tile-flag {
+  position: static;
+}
+
+/* ------------------------------------------------------------------ big screens */
+
+/* The covers keep their size and more of them fit in a row: on 2560 px the whole box of 49 shows at once. */
+@media (min-width: 1800px) {
+  .box-bench .shelf {
+    padding: var(--space-6);
+  }
+}
+
+/* ------------------------------------------------------------------ phones */
+
+@media (max-width: 560px) {
+  .box-bench {
+    gap: var(--space-4);
+  }
+
+  /* The room on the card after the shelf: the folders come first. */
+  .box-bench > .box-bar {
+    display: contents;
+  }
+
+  /* In the page's column now: its height is its own, not the 520 px it asks for in the bar's row. */
+  .box-bar > .shelf-tools {
+    flex: none;
+  }
+
+  .box-bar > .box-status {
+    order: 2;
+    padding-top: var(--space-3);
+    border-top: 1px dashed var(--border-strong);
+  }
+
+  .box-bench > .picks-teaser {
+    order: 3;
+  }
+
+  .box-head.page-header {
+    gap: var(--space-3);
+  }
+
+  .box-actions {
+    width: 100%;
+    gap: var(--space-3);
+  }
+
+  .box-actions > .btn {
+    flex: 1 1 0;
+    min-height: 44px;
+    padding-inline: var(--space-3);
+  }
+
+  .box-notes.card {
+    padding: var(--space-4);
+  }
+
+  .box-notes > .remember-offer .btn {
+    min-height: 44px;
+  }
+
+  /* Search and the view in one line: the words of the choice without their signs. */
+  .box-bench .shelf-tools {
+    flex-wrap: nowrap;
+  }
+
+  .box-bench .shelf-tools > .input-group {
+    flex: 1 1 100px;
+    min-width: 0;
+    max-width: none;
+  }
+
+  .box-bench .shelf-tools > .segmented svg {
+    display: none;
+  }
+
+  .box-bench .shelf-cover {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-4) var(--space-3);
+    padding: var(--space-3);
+  }
+
+  .box-bench .shelf-cover .tile .tile-cover {
+    padding: 4px 4px 0;
+  }
+
+  .box-bench .shelf-cover .tile .tile-num {
+    height: 24px;
+    padding: 0 2px;
+    font-size: 1rem;
+  }
+
+  .box-bench .shelf-cover .tile .tile-num::after {
+    width: 14px;
+    height: 12px;
+  }
+
+  /* Three short lines: "Unter meinem Bett 2" keeps its number on a narrow card. */
+  .box-bench .shelf .tile .tile-cover > .tile-title {
+    -webkit-line-clamp: 3;
+    margin-bottom: 4px;
+    padding: 0 2px;
+    font-size: 0.86rem;
+  }
+
+  .box-bench .shelf-sticker {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .box-bench .shelf-sticker .tile-foot {
+    padding-top: 8px;
+    grid-template-rows: 3.9em auto;
+    height: calc(8px + 3.9em + 4px + 1.35 * var(--text-sm) + 6px);
+  }
+
+  .box-bench .shelf-sticker .tile-foot > .tile-title {
+    -webkit-line-clamp: 3;
+  }
+
+  .box-bench .tile-foot > .tile-num {
+    font-size: 1.1rem;
+  }
+
+  .box-bench .shelf-list {
+    padding: var(--space-1) var(--space-2);
+  }
+
+  /* Nothing cut off on a narrow line: name and facts break onto a second line instead. */
+  .shelf-row-title,
+  .shelf-row-meta {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .shelf-row {
+    min-height: 56px;
+    gap: var(--space-2);
+  }
+}
+
+/*
+ * "Lautstärke anpassen" (SoundDialog.tsx): the four choices of how loud a
+ * folder should be as two rows of two equal buttons, the same at every
+ * width (four in a row broke into three and one); the slider beside its dB.
+ */
+.level-pick .segmented {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-self: stretch;
+}
+
+.level-pick .segmented button {
+  justify-content: center;
+}
+
+.level-slider {
+  grid-template-columns: auto minmax(0, 1fr) 4.5em;
+}
+
+.level-slider-value {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}

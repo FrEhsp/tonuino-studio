@@ -1,0 +1,24 @@
+{
+ "name": "Podigee feed (Radio Klops)",
+ "kind": "observed",
+ "observed": "2026-10-05T22:20:37Z",
+ "evidence": [
+  "../../cors/03_podcast_hosts_tester.txt"
+ ],
+ "request": {
+  "method": "GET",
+  "url": "https://radioklops.podigee.io/feed/mp3"
+ },
+ "hops": [
+  {
+   "status": 200,
+   "url": "https://radioklops.podigee.io/feed/mp3",
+   "headers": {
+    "access-control-allow-origin": "*",
+    "content-type": "application/rss+xml; charset=utf-8",
+    "vary": "Origin,Accept-Encoding"
+   }
+  }
+ ],
+ "expect": "direct"
+}

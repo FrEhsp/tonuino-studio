@@ -1,0 +1,22 @@
+{
+ "name": "GitLab web raw URL (/-/raw/): no CORS header -> never use it, use the API URL",
+ "kind": "observed",
+ "observed": "2026-10-05T16:44:00Z",
+ "evidence": [
+  "/tmp/ts-quellen/recht-jugendschutz/cors/cors_checks.txt (GitLab section)"
+ ],
+ "request": {
+  "method": "GET",
+  "url": "https://gitlab.com/global-asp/gsn-audio/-/raw/master/de/0001/de-0001_tall.mp3"
+ },
+ "hops": [
+  {
+   "status": 206,
+   "url": "https://gitlab.com/global-asp/gsn-audio/-/raw/master/de/0001/de-0001_tall.mp3",
+   "headers": {
+    "content-type": "audio/mpeg"
+   }
+  }
+ ],
+ "expect": "browser"
+}

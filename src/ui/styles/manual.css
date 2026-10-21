@@ -1,0 +1,127 @@
+/*
+ * Werkstatt › Bedienkarte: the settings on the left, the card as it will be
+ * printed on the right. The preview is paper: light in the dark theme too,
+ * like the PDF. Headings in the stamp of the app (Permanent Marker, stamp
+ * blue), pencil frames, no logo.
+ */
+
+.manual-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+  gap: var(--space-5, 24px);
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .manual-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.manual-detected {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--success, #2f7a3d);
+  font-weight: 600;
+}
+
+.manual-more summary {
+  cursor: pointer;
+  font-weight: 600;
+  font-size: var(--text-sm);
+  color: var(--text-soft);
+}
+
+.manual-more[open] summary {
+  margin-bottom: var(--space-2);
+}
+
+.manual-paper {
+  --m-ink: #2a1f16;
+  --m-pencil: #8a7866;
+  --m-stamp: #2f4f86;
+  background: #fffdf8 var(--paper-grain);
+  color: var(--m-ink);
+  padding: 22px 22px 18px;
+  border-radius: 4px;
+  box-shadow: var(--shadow-lg);
+  aspect-ratio: 148 / 210;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 0.82rem;
+  rotate: 0.4deg;
+}
+
+.manual-title {
+  font-family: var(--font-hand);
+  font-size: 1.55rem;
+  line-height: 1.1;
+  margin: 0;
+}
+
+.manual-about {
+  margin: -6px 0 2px;
+  color: var(--m-pencil);
+  font-size: 0.74rem;
+}
+
+.manual-stamp {
+  font-family: var(--font-stamp);
+  font-weight: 400;
+  color: var(--m-stamp);
+  font-size: 1.05rem;
+  margin: 0 0 4px;
+  letter-spacing: 0.02em;
+}
+
+.manual-rows {
+  margin: 0;
+  padding: 6px 8px;
+  border: 1.3px solid var(--m-pencil);
+  border-radius: 3px 6px 4px 5px;
+  display: grid;
+  gap: 3px;
+}
+
+.manual-rows > div {
+  display: grid;
+  grid-template-columns: 9.5em minmax(0, 1fr);
+  gap: 8px;
+}
+
+.manual-rows dt {
+  font-weight: 700;
+}
+
+.manual-rows dd {
+  margin: 0;
+}
+
+.manual-contact {
+  margin: auto 0 0;
+  color: var(--m-pencil);
+  font-size: 0.74rem;
+  display: flex;
+  gap: 4px;
+}
+
+.manual-contact span {
+  flex: 1;
+  color: var(--m-ink);
+  border-bottom: 1px solid var(--m-pencil);
+}
+
+@media (max-width: 520px) {
+  .manual-paper {
+    aspect-ratio: auto;
+    padding: 16px 14px;
+  }
+
+  .manual-rows > div {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+}

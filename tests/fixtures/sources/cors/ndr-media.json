@@ -1,0 +1,29 @@
+{
+ "name": "NDR podcast MP3 (Oct 2024 episode, still online)",
+ "kind": "observed",
+ "observed": "2026-10-05T22:19:01Z",
+ "evidence": [
+  "../../cors/03_podcast_hosts_tester.txt"
+ ],
+ "request": {
+  "method": "HEAD",
+  "url": "https://ndr-podcast.ard-mcdn.de/progressive/2024/1023/AU-20241023-2141-0200.mp3"
+ },
+ "hops": [
+  {
+   "status": 200,
+   "url": "https://ndr-podcast.ard-mcdn.de/progressive/2024/1023/AU-20241023-2141-0200.mp3",
+   "headers": {
+    "access-control-allow-origin": "*",
+    "access-control-allow-credentials": "false",
+    "access-control-allow-headers": "*",
+    "access-control-allow-methods": "GET,POST",
+    "access-control-max-age": "86400",
+    "accept-ranges": "bytes",
+    "content-type": "audio/mpeg",
+    "content-length": "57455723"
+   }
+  }
+ ],
+ "expect": "direct"
+}

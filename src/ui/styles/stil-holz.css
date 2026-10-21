@@ -1,0 +1,2772 @@
+/* ------------------------------------------------------------------ base.css */
+
+:where(:root[data-stil='holz']) body {
+  background: var(--bg) var(--paper-grain);
+}
+
+:where(:root[data-stil='holz']) h1 {
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.005em;
+}
+
+/* Short headings in the same handwriting as the page title, one step smaller. */
+:where(:root[data-stil='holz']) h2 {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  line-height: 1.25;
+  font-weight: 650;
+}
+
+:where(:root[data-stil='holz']) h3 {
+  font-weight: 700;
+}
+
+:where(:root[data-stil='holz']) a:hover {
+  text-decoration: underline;
+}
+
+/* Links inside running text are underlined, so they do not rely on colour alone. */
+:where(:root[data-stil='holz']) :where(p, li, dd, figcaption, .callout, .field-hint) a:where(:not(.btn)) {
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, currentColor 45%, transparent);
+}
+
+:where(:root[data-stil='holz']) :where(p, li, dd, figcaption, .callout, .field-hint) a:where(:not(.btn)):hover {
+  text-decoration-color: currentColor;
+}
+
+/* Links standing on their own line or next to a button look like the link buttons beside them. */
+:where(:root[data-stil='holz']) :where(.row, .stack) > a:where(:not([class]), .small) {
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, currentColor 45%, transparent);
+}
+
+:where(:root[data-stil='holz']) :where(.row, .stack) > a:where(:not([class]), .small):hover {
+  text-decoration-color: currentColor;
+}
+
+/* Icons are drawn with a thick felt pen. */
+:where(:root[data-stil='holz']) svg.lucide {
+  stroke-width: 2.5px;
+}
+
+:where(:root[data-stil='holz']) :focus-visible {
+  outline: 3px solid var(--focus-color);
+  outline-offset: 2px;
+}
+
+/* A dialog takes the focus itself when it has no field or main button: a ring around the whole dialog says nothing (WebKit drew one). */
+:where(:root[data-stil='holz']) .dialog:focus-visible {
+  outline: none;
+}
+
+:where(:root[data-stil='holz']) ::selection {
+  background: color-mix(in srgb, var(--amber) 70%, transparent);
+  color: #1f1a16;
+}
+
+:where(:root[data-stil='holz']) * {
+  scrollbar-color: var(--border-strong) transparent;
+}
+
+/* ------------------------------------------------------------------ components.css */
+
+:where(:root[data-stil='holz']) .btn {
+  --btn-border: var(--border-strong);
+  --frame-color: var(--ink);
+  position: relative;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  transition:
+    background 0.15s var(--ease),
+    box-shadow 0.1s var(--ease),
+    transform 0.1s var(--ease);
+  /* Like a key on the box: a hard edge under it, pressed down when clicked. */
+  box-shadow: 0 2px 0 var(--frame-color);
+}
+
+:where(:root[data-stil='holz']) a.btn:hover {
+  text-decoration: none;
+}
+
+:where(:root[data-stil='holz']) .btn:active:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow: 0 0 0 var(--frame-color);
+}
+
+:where(:root[data-stil='holz']) .btn.primary {
+  --btn-border: transparent;
+}
+
+:where(:root[data-stil='holz']) .btn.accent {
+  --btn-bg: var(--accent);
+  --btn-fg: #fff;
+  --btn-border: transparent;
+  --btn-hover: var(--accent-600);
+}
+
+:where(:root[data-stil='holz']) .btn.danger {
+  --btn-border: transparent;
+}
+
+:where(:root[data-stil='holz']) .btn.ghost {
+  box-shadow: none;
+}
+
+:where(:root[data-stil='holz']) .btn.soft {
+  --btn-hover: color-mix(in srgb, var(--primary-soft) 70%, var(--primary) 12%);
+  box-shadow: none;
+}
+
+:where(:root[data-stil='holz']) .btn.ghost:active:not(:disabled),
+:where(:root[data-stil='holz']) .btn.soft:active:not(:disabled) {
+  box-shadow: none;
+}
+
+:where(:root[data-stil='holz']) .btn.sm:not(.ghost, .soft) {
+  box-shadow: 0 1.5px 0 var(--frame-color);
+}
+
+:where(:root[data-stil='holz']) .btn.sm:active:not(:disabled, .ghost, .soft) {
+  box-shadow: 0 0 0 var(--frame-color);
+}
+
+:where(:root[data-stil='holz']) .btn.lg {
+  height: 48px;
+}
+
+:where(:root[data-stil='holz']) .field > label,
+:where(:root[data-stil='holz']) .field-label {
+  font-weight: 700;
+}
+
+:where(:root[data-stil='holz']) .input,
+:where(:root[data-stil='holz']) .select,
+:where(:root[data-stil='holz']) .textarea {
+  border: 1.5px solid color-mix(in srgb, var(--ink) 55%, var(--surface));
+  border-radius: var(--radius-sm);
+  background: var(--surface-raised);
+}
+
+:where(:root[data-stil='holz']) .select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%237a6550' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m4 6 4 4 4-4'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+}
+
+:where(:root[data-stil='holz']) .input:hover,
+:where(:root[data-stil='holz']) .select:hover,
+:where(:root[data-stil='holz']) .textarea:hover {
+  border-color: var(--ink);
+}
+
+:where(:root[data-stil='holz']) .input:focus,
+:where(:root[data-stil='holz']) .select:focus,
+:where(:root[data-stil='holz']) .textarea:focus {
+  border-color: var(--primary);
+}
+
+/* As in components.css, repeated so it still comes after this style's own rules. */
+:where(:root[data-stil='holz']) .input.inline-edit {
+  border-color: transparent;
+}
+
+:where(:root[data-stil='holz']) .input.inline-edit:hover {
+  border-color: var(--border);
+}
+
+:where(:root[data-stil='holz']) .input.inline-edit:focus {
+  border-color: var(--primary);
+}
+
+:where(:root[data-stil='holz']) input[type='checkbox'],
+:where(:root[data-stil='holz']) input[type='radio'] {
+  width: 16px;
+  height: 16px;
+}
+
+:where(:root[data-stil='holz']) .switch input {
+  width: 44px;
+  height: 26px;
+  border-radius: 7px;
+  border: 2px solid var(--ink);
+}
+
+:where(:root[data-stil='holz']) .switch input::after {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  background: #fffcf5;
+  box-shadow: inset 0 0 0 2px #1f1a16;
+}
+
+:where(:root[data-stil='holz']) .switch input:checked::after {
+  transform: translateX(16px);
+}
+
+:where(:root[data-stil='holz']) .segmented {
+  padding: 4px;
+  background: var(--bg-sunken);
+  border: 1px solid transparent;
+  gap: 2px;
+}
+
+:where(:root[data-stil='holz']) .segmented button {
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+:where(:root[data-stil='holz']) .segmented button[aria-pressed='true'] {
+  background: var(--surface-raised);
+  color: var(--text);
+  font-weight: 700;
+  box-shadow: inset 0 0 0 2px var(--ink);
+}
+
+:where(:root[data-stil='holz']) .card {
+  position: relative;
+  border: 1px solid transparent;
+  border-radius: var(--radius-lg);
+}
+
+:where(:root[data-stil='holz']) .card-header {
+  border-bottom: 1.5px dashed var(--border-strong);
+}
+
+/* A small heading: handwritten, like a note on a box of parts. */
+:where(:root[data-stil='holz']) .section-title {
+  font-family: var(--font-hand);
+  font-size: 1.2rem;
+  line-height: 1.25;
+  font-weight: 400;
+  color: var(--text-soft);
+}
+
+:where(:root[data-stil='holz']) .link-button {
+  color: var(--primary-text);
+  text-decoration-color: color-mix(in srgb, currentColor 40%, transparent);
+}
+
+:where(:root[data-stil='holz']) .link-button:hover {
+  text-decoration-color: currentColor;
+}
+
+:where(:root[data-stil='holz']) .choice {
+  border: 1.5px solid transparent;
+  border-radius: var(--radius);
+  color: inherit;
+  transition:
+    box-shadow 0.15s,
+    background 0.15s;
+}
+
+:where(:root[data-stil='holz']) .choice[aria-checked='true'] {
+  --frame-color: var(--primary);
+  --frame-w: 3px;
+  background: var(--primary-soft);
+  box-shadow: none;
+}
+
+:where(:root[data-stil='holz']) .choice .choice-icon {
+  width: 38px;
+  height: 38px;
+  background: var(--bg-sunken);
+  box-shadow: inset 0 0 0 1.5px var(--border-strong);
+}
+
+:where(:root[data-stil='holz']) .choice[aria-checked='true'] .choice-icon {
+  background: var(--primary);
+  color: #fff;
+}
+
+:where(:root[data-stil='holz']) .choice-title {
+  font-weight: 700;
+}
+
+:where(:root[data-stil='holz']) .choice-text {
+  color: var(--text-muted);
+}
+
+:where(:root[data-stil='holz']) .badge {
+  border-radius: 4px;
+  font-weight: 700;
+  background: var(--bg-sunken);
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, currentColor 45%, transparent);
+}
+
+:where(:root[data-stil='holz']) .badge.brand {
+  background: var(--primary-soft);
+  color: var(--primary-soft-text);
+}
+
+:where(:root[data-stil='holz']) .callout {
+  border-radius: var(--radius-sm);
+  border-left: 4px solid currentColor;
+}
+
+:where(:root[data-stil='holz']) .trouble {
+  position: relative;
+  border: 1px solid transparent;
+  border-radius: var(--radius-lg);
+}
+
+:where(:root[data-stil='holz']) .trouble > summary {
+  font-weight: 650;
+}
+
+:where(:root[data-stil='holz']) .trouble[open] > summary {
+  border-bottom: 1.5px dashed var(--border-strong);
+}
+
+:where(:root[data-stil='holz']) .progress {
+  height: 12px;
+  border-radius: 4px;
+  background: var(--bg-sunken);
+  box-shadow: inset 0 0 0 1.5px var(--ink);
+}
+
+:where(:root[data-stil='holz']) .progress > div {
+  border-radius: 3px 0 0 3px;
+  box-shadow: inset 0 0 0 1.5px var(--ink);
+}
+
+:where(:root[data-stil='holz']) .skeleton {
+  animation: shimmer 1.4s ease-in-out infinite alternate;
+}
+
+@keyframes shimmer {
+  to {
+    background: var(--surface-active);
+  }
+}
+
+:where(:root[data-stil='holz']) .dialog-backdrop {
+  background: var(--backdrop);
+}
+
+:where(:root[data-stil='holz']) .dialog {
+  position: relative;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid transparent;
+}
+
+:where(:root[data-stil='holz']) .dialog-head h2 {
+  font-size: 1.75rem;
+}
+
+:where(:root[data-stil='holz']) .dialog-foot {
+  border-top: 1.5px dashed var(--border-strong);
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+  background: var(--surface);
+}
+
+@media (max-width: 560px) {
+  /* As in components.css, repeated so it still comes after this style's own rules. */
+  :where(:root[data-stil='holz']) .dialog-foot > .btn {
+    height: auto;
+  }
+}
+
+:where(:root[data-stil='holz']) .toast {
+  border-radius: var(--radius-sm);
+  color: #fbf6ec;
+  box-shadow: var(--shadow-lg);
+}
+
+:root[data-theme='dark']:where([data-stil='holz']) .toast {
+  border: 1px solid var(--border-strong);
+}
+
+:where(:root[data-stil='holz']) .toast.success > svg {
+  color: #b5dc8c;
+}
+
+:where(:root[data-stil='holz']) .toast.error > svg {
+  color: #ffaaa1;
+}
+
+/* As in components.css, repeated so it still comes after this style's own rules. */
+:where(:root[data-stil='holz']) .toast button {
+  border: 0;
+}
+
+:where(:root[data-stil='holz']) .menu {
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+:where(:root[data-stil='holz']) .menu button {
+  border: 0;
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+/* As in components.css, repeated so it still comes after this style's own rules. */
+:where(:root[data-stil='holz']) .menu button:hover {
+  background: var(--surface-hover);
+}
+
+/* As in components.css, repeated so it still comes after this style's own rules. */
+:where(:root[data-stil='holz']) .menu button.danger {
+  color: var(--danger-text);
+}
+
+/* Lists in a card are not clipped (that would cut the drawn frame): the last row keeps the round corners itself. */
+:where(:root[data-stil='holz']) .card > .list:last-child > .list-row:last-child {
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+}
+
+:where(:root[data-stil='holz']) .empty h2 {
+  font-size: 1.9rem;
+}
+
+:where(:root[data-stil='holz']) .dropzone {
+  position: relative;
+  border: 2px solid transparent;
+  border-radius: var(--radius-xl);
+  transition:
+    background 0.15s,
+    transform 0.15s var(--ease);
+}
+
+:where(:root[data-stil='holz']) .dropzone h2 {
+  font-size: 1.8rem;
+}
+
+:where(:root[data-stil='holz']) .dropzone-icon {
+  width: 72px;
+  height: 72px;
+  /* The big yellow arcade button of the box. */
+  background: var(--arcade-yellow);
+  color: #1f1a16;
+  box-shadow:
+    inset 0 0 0 2.5px #1f1a16,
+    inset 0 6px 0 rgb(255 255 255 / 0.4),
+    inset 0 -7px 0 rgb(31 26 22 / 0.18);
+  outline: 2.5px solid var(--ink);
+  outline-offset: 3px;
+}
+
+:where(:root[data-stil='holz']) .dropzone.over {
+  --frame-color: var(--primary);
+}
+
+:where(:root[data-stil='holz']) .page.drop-over {
+  outline: 3px dashed var(--primary-text);
+  outline-offset: -12px;
+}
+
+:where(:root[data-stil='holz']) .steps {
+  font-weight: 600;
+}
+
+:where(:root[data-stil='holz']) .steps .step-num {
+  width: 24px;
+  height: 24px;
+  background: var(--bg-sunken);
+  box-shadow: inset 0 0 0 1.5px currentColor;
+}
+
+:where(:root[data-stil='holz']) .steps .sep {
+  border-top: 2px dashed var(--border-strong);
+}
+
+:where(:root[data-stil='holz']) .tabs {
+  border-bottom: 1.5px solid var(--border-strong);
+}
+
+:where(:root[data-stil='holz']) .tabs button {
+  border: 0;
+  font-weight: 600;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -1.5px;
+}
+
+/* As in components.css, repeated so it still comes after this style's own rules. */
+:where(:root[data-stil='holz']) .tabs button[aria-selected='true'] {
+  color: var(--text);
+}
+
+:where(:root[data-stil='holz']) kbd {
+  border-radius: 6px;
+  border: 1px solid var(--border-strong);
+  border-bottom-width: 2px;
+}
+
+/*
+ * Outlines look drawn with a pen: a layer over the element's edge carries
+ * the ink line, a plain border at first. src/ui/drawnFrames.ts swaps it for
+ * a pen stroke (bowed sides, thin-thick-thin, corners that meet or run on)
+ * before the box is painted for the first time: [data-fc-before] below.
+ * Only that layer is drawn, never the text. The element keeps a transparent
+ * border, so nothing moves. --frame-color, --frame-w and --frame-style
+ * change the line, e.g. for a selected choice. Each framed box starts from
+ * the plain line again (the :where rule below), so a button inside a dashed
+ * drop zone is not dashed too.
+ */
+:where(:root[data-stil='holz']) .sketch-defs {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+:where(:root[data-stil='holz']) :where( .card, .dialog, .choice, .trouble, .menu, .segmented, .dropzone, .bubble, .shelf, .tile-cover, .feature, .health-banner, .sd-status, .import-bar, .style-choice, .font-choice, .paper-option, .ws-tool, .help-topic-card, .source-card, .source-pick, .picks-teaser, .qr-block, .guide, .page > .package-gate, .btn, .nav a ) {
+  --frame-color: var(--ink);
+  --frame-w: var(--line);
+  --frame-style: solid;
+  position: relative;
+}
+
+:root:where([data-stil='holz']) :is( .card, .dialog, .choice, .trouble, .menu, .segmented, .dropzone, .bubble, .shelf, .tile-cover, .feature, .health-banner, .sd-status, .import-bar, .style-choice, .font-choice, .paper-option, .ws-tool, .help-topic-card, .source-card, .source-pick, .picks-teaser, .qr-block, .guide, .page > .package-gate )::before, :root:where([data-stil='holz']) .nav a[aria-current='page']::before, :root:where([data-stil='holz']) .btn:not(.ghost, .soft)::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border: var(--frame-w) var(--frame-style) var(--frame-color);
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+/*
+ * The pen stroke (src/ui/drawnFrames.ts): the layer reaches 6px (FRAME_PAD) further out for
+ * bows and corners that run on, keeps its border width but not its colour, and shows the
+ * line colour through the stroke's shape. Hover and focus colours apply as before.
+ */
+/*
+ * The stroke's shape is not passed on to everything inside the box: a box that grows gets a new
+ * shape, and a list of a hundred titles in it had all its styles worked out again each time.
+ * The layers take it from their box on purpose (inherit).
+ */
+@property --fc-before {
+  syntax: '*';
+  inherits: false;
+}
+
+@property --fc-after {
+  syntax: '*';
+  inherits: false;
+}
+
+:root:where([data-stil='holz']) [data-fc-before]::before {
+  --fc-before: inherit;
+  inset: -7px !important;
+  border-color: transparent !important;
+  border-radius: 0 !important;
+  background: var(--frame-color) !important;
+  clip-path: var(--fc-before);
+}
+
+/* WebKit: the shape comes in a plain, inherited property instead (src/ui/drawnFrames.ts, PLAIN). */
+:root[data-fc-webkit]:where([data-stil='holz']) [data-fc-before]::before {
+  clip-path: var(--fcw-before);
+}
+
+:root[data-fc-webkit]:where([data-stil='holz']) .sidebar[data-fc-after]::after {
+  clip-path: var(--fcw-after);
+}
+
+:root:where([data-stil='holz']) .sidebar[data-fc-after]::after {
+  --fc-after: inherit;
+  right: -6px;
+  width: 12px;
+  border-right-color: transparent;
+  background: var(--ink);
+  clip-path: var(--fc-after);
+}
+
+/* In the foot of a dialog, "Abbrechen" and its neighbours are real buttons with an edge, in every dialog alike. */
+:where(:root[data-stil='holz']) .dialog-foot .btn.ghost {
+  --btn-bg: var(--surface);
+  --btn-hover: var(--surface-hover);
+  box-shadow: 0 2px 0 var(--frame-color);
+}
+
+:where(:root[data-stil='holz']) .dialog-foot .btn.ghost::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border: var(--frame-w) var(--frame-style) var(--frame-color);
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+/* Boxes of single pages get the drawn edge too; their own straight border steps back. */
+html:root:where([data-stil='holz']) :is(.ws-tool, .help-topic-card, .source-card, .source-pick, .picks-teaser, .qr-block, .guide) {
+  position: relative;
+  border-color: transparent;
+}
+
+/* In dark mode the ink is light; the purple primary button keeps a dark line, so its white label stays the loudest part. */
+:root[data-theme='dark']:where([data-stil='holz']) .btn.primary {
+  --frame-color: #120c07;
+}
+
+:where(:root[data-stil='holz']) .dropzone {
+  --frame-style: dashed;
+  --frame-w: 2.5px;
+}
+
+:where(:root[data-stil='holz']) .card .card,
+:where(:root[data-stil='holz']) .dialog .card {
+  --frame-w: 1.5px;
+}
+
+/*
+ * A comic speech bubble with a short note in handwriting (Bubble in
+ * Sketch.tsx). Paper and ink in both themes, like a cut-out stuck on.
+ */
+:where(:root[data-stil='holz']) .bubble {
+  --frame-color: #1f1a16;
+  position: relative;
+  display: inline-block;
+  align-self: flex-start;
+  max-width: 26rem;
+  margin: 0;
+  padding: 8px 20px 10px;
+  border: 1px solid transparent;
+  border-radius: 22px;
+  background: #fffcf5;
+  color: #1f1a16;
+  font-family: var(--font-hand);
+  font-size: 1.45rem;
+  line-height: 1.2;
+  text-align: left;
+}
+
+/* Paper and ink, whatever text style is around it (".hero p", ".empty p" …). */
+:root:where([data-stil='holz']) .bubble {
+  color: #1f1a16;
+  font-family: var(--font-hand);
+  font-size: 1.45rem;
+  line-height: 1.2;
+}
+
+/* A bubble under the thing it talks about leaves room for its tail. */
+:where(:root[data-stil='holz']) .bubble.tail-top {
+  margin-top: 14px;
+}
+
+:where(:root[data-stil='holz']) .bubble.tail-bottom {
+  margin-bottom: 14px;
+}
+
+:where(:root[data-stil='holz']) .bubble-tail {
+  position: absolute;
+  left: 30px;
+  bottom: -19px;
+  width: 28px;
+  height: 22px;
+  overflow: visible;
+}
+
+:where(:root[data-stil='holz']) .bubble-tail path {
+  fill: #fffcf5;
+  stroke: #1f1a16;
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+:where(:root[data-stil='holz']) .bubble.tail-left .bubble-tail {
+  left: -20px;
+  bottom: auto;
+  top: calc(50% - 11px);
+  transform: rotate(90deg);
+}
+
+:where(:root[data-stil='holz']) .bubble.tail-top .bubble-tail {
+  bottom: auto;
+  top: -19px;
+  transform: rotate(180deg);
+}
+
+@media print {
+  :where(:root[data-stil='holz']) .bubble {
+    display: none;
+  }
+}
+
+/* "Hinzufügen": a tip stuck next to the big upload button, pointing at it. */
+:where(:root[data-stil='holz']) .dropzone > .dropzone-bubble {
+  position: absolute;
+  /* Centred on the button: the drop zone's top padding plus half the button. */
+  top: calc(var(--space-12) + 36px);
+  left: calc(50% + 66px);
+  width: max-content;
+  max-width: min(18rem, calc(50% - 80px));
+  font-size: 1.3rem;
+  transform: translateY(-50%) rotate(1.5deg);
+}
+
+@media (max-width: 900px) {
+  :where(:root[data-stil='holz']) .dropzone > .dropzone-icon {
+    order: -1;
+  }
+
+  :where(:root[data-stil='holz']) .dropzone > .dropzone-bubble {
+    position: relative;
+    top: auto;
+    left: auto;
+    max-width: 100%;
+    align-self: center;
+    margin: 0;
+    text-align: center;
+    transform: none;
+  }
+
+  :where(:root[data-stil='holz']) .dropzone > .dropzone-bubble .bubble-tail {
+    left: calc(50% - 14px);
+    top: -19px;
+    bottom: auto;
+    transform: rotate(180deg);
+  }
+}
+
+/* An empty page: a short note next to the drawing, pointing at it. */
+:where(:root[data-stil='holz']) .empty-art-note {
+  position: relative;
+}
+
+:where(:root[data-stil='holz']) .empty-art-note > .empty-note {
+  position: absolute;
+  left: calc(100% + 22px);
+  top: 50%;
+  width: max-content;
+  max-width: 12rem;
+  translate: 0 -60%;
+  rotate: -2deg;
+}
+
+@media (max-width: 720px) {
+  :where(:root[data-stil='holz']) .empty-art-note {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  :where(:root[data-stil='holz']) .empty-art-note > .empty-note {
+    position: relative;
+    left: auto;
+    top: auto;
+    max-width: 100%;
+    margin: 4px 0 var(--space-3);
+    translate: none;
+    rotate: none;
+  }
+
+  :where(:root[data-stil='holz']) .empty-art-note > .empty-note .bubble-tail {
+    left: calc(50% - 14px);
+    top: -19px;
+    bottom: auto;
+    transform: rotate(180deg);
+  }
+}
+
+html:root:where([data-stil='holz']) .help-topic-link {
+  text-decoration: none;
+}
+
+/*
+ * Many home-made boxes have big round arcade buttons on the wooden front,
+ * red, yellow, green and blue. Icon discs look like them: a coloured cap
+ * with an ink edge, a light lip on top, a shade at the bottom and the ring
+ * of the bezel around it. --arcade picks the colour; the icon stays in ink.
+ */
+html:root:where([data-stil='holz']) :is(.feature-icon, .ws-tool-icon, .settings-section-icon, .help-topic-icon, .web-import-icon, .qr-intro-icon, .special-detail-icon) {
+  border-radius: 50%;
+  background: var(--arcade, var(--arcade-blue));
+  color: #1f1a16;
+  box-shadow:
+    inset 0 0 0 2px #1f1a16,
+    inset 0 4px 0 rgb(255 255 255 / 0.4),
+    inset 0 -5px 0 rgb(31 26 22 / 0.2);
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+/* Rows of them take turns, like the buttons on a box. */
+:where(:root[data-stil='holz']) :is(.feature, .settings-section, .help-topic-card):nth-child(4n + 1) :is(.feature-icon, .settings-section-icon, .help-topic-icon) {
+  --arcade: var(--arcade-red);
+}
+
+:where(:root[data-stil='holz']) :is(.feature, .settings-section, .help-topic-card):nth-child(4n + 2) :is(.feature-icon, .settings-section-icon, .help-topic-icon) {
+  --arcade: var(--arcade-yellow);
+}
+
+:where(:root[data-stil='holz']) :is(.feature, .settings-section, .help-topic-card):nth-child(4n + 3) :is(.feature-icon, .settings-section-icon, .help-topic-icon) {
+  --arcade: var(--arcade-green);
+}
+
+:where(:root[data-stil='holz']) .ws-tool-icon.accent,
+:where(:root[data-stil='holz']) .special-detail-icon,
+:where(:root[data-stil='holz']) .help-topic-icon.big {
+  --arcade: var(--arcade-red);
+}
+
+:where(:root[data-stil='holz']) .ws-tool-icon.success {
+  --arcade: var(--arcade-green);
+}
+
+:where(:root[data-stil='holz']) .ws-tool-icon.warning,
+:where(:root[data-stil='holz']) .qr-intro-icon {
+  --arcade: var(--arcade-yellow);
+}
+
+/* The special cards: unlit buttons; the chosen one lights up in purple. */
+html:root:where([data-stil='holz']) .special-option-icon {
+  border-radius: 50%;
+  background: var(--surface-raised);
+  color: var(--text);
+  box-shadow:
+    inset 0 0 0 1.5px var(--ink),
+    inset 0 -3px 0 rgb(31 26 22 / 0.12);
+}
+
+html:root:where([data-stil='holz']) .special-option[aria-checked='true'] .special-option-icon {
+  background: var(--primary);
+  color: #fff;
+  box-shadow:
+    inset 0 0 0 2px #1f1a16,
+    inset 0 3px 0 rgb(255 255 255 / 0.3),
+    inset 0 -3px 0 rgb(31 26 22 / 0.25);
+}
+
+/*
+ * The main button of a page: the same shape as the others (no pill), with a
+ * light lip on top and a hard ink edge below, a little like an arcade button.
+ */
+:root:where([data-stil='holz']) .btn.primary {
+  box-shadow:
+    inset 0 3px 0 rgb(255 255 255 / 0.22),
+    0 3px 0 var(--frame-color);
+}
+
+:root:where([data-stil='holz']) .btn.primary:active:not(:disabled) {
+  transform: translateY(3px);
+  box-shadow: inset 0 3px 0 rgb(255 255 255 / 0.12);
+}
+
+:root:where([data-stil='holz']) .btn.primary.icon {
+  border-radius: 50%;
+}
+
+/* Behind the picture of an empty page: the drilled holes of a box speaker, faint. */
+:where(:root[data-stil='holz']) .empty .empty-art {
+  position: relative;
+  isolation: isolate;
+}
+
+:where(:root[data-stil='holz']) .empty .empty-art::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  left: 50%;
+  top: 50%;
+  width: 190px;
+  height: 190px;
+  translate: -50% -50%;
+  background: var(--wood);
+  opacity: 0.16;
+  -webkit-mask: var(--grille) center / contain no-repeat;
+  mask: var(--grille) center / contain no-repeat;
+  pointer-events: none;
+}
+
+/* A small drilled speaker in front of short section titles. */
+:where(:root[data-stil='holz']) .section-title::before {
+  content: '';
+  display: inline-block;
+  width: 0.8em;
+  height: 0.8em;
+  margin-right: 0.4em;
+  vertical-align: -0.05em;
+  background: var(--wood);
+  -webkit-mask: var(--grille-small) center / contain no-repeat;
+  mask: var(--grille-small) center / contain no-repeat;
+}
+
+:root[data-theme='dark']:where([data-stil='holz']) :is(.empty .empty-art, .section-title)::before {
+  background: var(--wood-light);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']):where([data-stil='holz']) :is(.empty .empty-art, .section-title)::before {
+    background: var(--wood-light);
+  }
+}
+
+/* Cards that used to clip their corners must let the drawn frame show. */
+html:root:where([data-stil='holz']) :is(.settings-section, .import-album, .ws-log-card) {
+  overflow: visible;
+}
+
+html:root:where([data-stil='holz']) .import-album.has-problem {
+  --frame-color: var(--danger);
+}
+
+/* ------------------------------------------------------------------ layout.css */
+
+:where(:root[data-stil='holz']) .sidebar {
+  position: relative;
+  background: var(--surface) var(--paper-grain);
+}
+
+/* The edge of the paper: a drawn line. */
+:where(:root[data-stil='holz']) .sidebar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  border-right: var(--line) solid var(--ink);
+  pointer-events: none;
+}
+
+:where(:root[data-stil='holz']) .app-brand {
+  padding: 0 var(--space-1) var(--space-4);
+}
+
+/* The app's name in bold handwriting, the line under it in thin handwriting. */
+:where(:root[data-stil='holz']) .brand-name {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.12rem;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+:where(:root[data-stil='holz']) .brand-name small {
+  display: block;
+  margin-top: 2px;
+  font-family: var(--font-hand);
+  font-size: 0.84rem;
+  font-weight: 450;
+  color: var(--text-soft);
+  letter-spacing: 0.01em;
+}
+
+:where(:root[data-stil='holz']) .nav {
+  gap: 2px;
+}
+
+:where(:root[data-stil='holz']) .nav a {
+  position: relative;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: var(--text-soft);
+  text-decoration: none;
+}
+
+:where(:root[data-stil='holz']) .nav a:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+
+/* The open page: a paper tab with a drawn edge and a purple icon. */
+:where(:root[data-stil='holz']) .nav a[aria-current='page'] {
+  background: var(--primary-soft);
+  color: var(--text);
+}
+
+:where(:root[data-stil='holz']) .nav a .nav-badge {
+  border-radius: var(--radius-full);
+  background: var(--primary);
+  color: var(--text-on-brand);
+  box-shadow: inset 0 0 0 1.5px var(--ink);
+  font-weight: 800;
+}
+
+:where(:root[data-stil='holz']) .nav a .nav-badge.dot-only {
+  background: var(--accent);
+}
+
+:where(:root[data-stil='holz']) .nav-sep {
+  border-top: 2px dashed var(--border-strong);
+}
+
+:where(:root[data-stil='holz']) .sd-status {
+  --frame-style: dashed;
+  --frame-w: 1.5px;
+  position: relative;
+  border-radius: var(--radius);
+  border: 1px solid transparent;
+  background: var(--bg);
+}
+
+:where(:root[data-stil='holz']) .capacity {
+  height: 8px;
+  border-radius: 3px;
+  box-shadow: inset 0 0 0 1.5px var(--ink);
+}
+
+:where(:root[data-stil='holz']) .capacity > div {
+  border-radius: inherit;
+}
+
+:where(:root[data-stil='holz']) .page {
+  margin: 0 auto;
+}
+
+:where(:root[data-stil='holz']) .page-header {
+  align-items: flex-end;
+  gap: var(--space-4);
+}
+
+:where(:root[data-stil='holz']) .page-header p {
+  color: var(--text-muted);
+}
+
+:where(:root[data-stil='holz']) h1.user-name {
+  hyphens: manual;
+}
+
+:where(:root[data-stil='holz']) .back-link {
+  color: var(--text-muted);
+  text-decoration: none;
+}
+
+:where(:root[data-stil='holz']) .shelf {
+  position: relative;
+  grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
+  gap: var(--space-8) var(--space-6);
+  padding: var(--space-6) var(--space-6) var(--space-8);
+  border: 1px solid transparent;
+  border-radius: var(--radius-lg);
+  background: var(--plywood) var(--wood-grain);
+  box-shadow: 4px 5px 0 var(--drop);
+}
+
+/*
+ * The shelf of "Meine Box" carries its grain on a layer of its own under the cards
+ * (.shelf-grain, ShelfViews.tsx), in the same place as a background of the shelf: over
+ * its border, the pattern starting inside it. So it can cover only the part near the
+ * window for the first frame after the shelf shows (nearFirst there).
+ */
+:where(:root[data-stil='holz']) :is(.shelf-cover, .shelf-sticker) {
+  background: var(--plywood);
+  isolation: isolate;
+}
+
+:where(:root[data-stil='holz']) .shelf-grain {
+  position: absolute;
+  inset: -1px;
+  z-index: -1;
+  border-radius: inherit;
+  background: var(--wood-grain) 1px 1px;
+  pointer-events: none;
+}
+
+:where(:root[data-stil='holz']) .tile {
+  gap: 10px;
+  border: 0;
+  padding: 0;
+  background: none;
+  border-radius: var(--radius);
+}
+
+:where(:root[data-stil='holz']) .tile .tile-cover {
+  --frame-color: #1f1a16;
+  padding: 8px 8px 0;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: #fffcf5;
+  color: #1f1a16;
+  box-shadow: 3px 4px 0 var(--drop);
+  /* Lifts at once, without a transition: WebKitGTK gave each moving card a layer of its own and painted the page again. */
+  transform: rotate(var(--tilt, 0deg));
+}
+
+:where(:root[data-stil='holz']) .tile .tile-cover > .cover-img,
+:where(:root[data-stil='holz']) .tile .tile-cover > .gen-cover {
+  height: auto;
+  aspect-ratio: 1;
+  border-radius: 4px;
+}
+
+/*
+ * A cover picture on a turned card keeps square corners, like a printed cover: WebKitGTK cut
+ * rounded corners out of every turned picture again on each frame, and the remembered shelf
+ * scrolled at five frames a second.
+ */
+:where(:root[data-stil='holz']) .shelf .tile .tile-cover > .cover-img {
+  border-radius: 0;
+}
+
+/* On the shelf the card carries the folder's real sticker, as "Sticker drucken" prints it. */
+:where(:root[data-stil='holz']) .tile .tile-cover.sticker > .folder-sticker {
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+/* The card holds the picture of its sticker and frame (FolderSticker.tsx) above its paper. */
+:where(:root[data-stil='holz']) .tile .tile-cover.sticker {
+  isolation: isolate;
+}
+
+:root:where([data-stil='holz']) .tile-cover.baked::before {
+  visibility: hidden;
+}
+
+:where(:root[data-stil='holz']) .shelf > .tile:nth-child(5n + 1) {
+  --tilt: -1.3deg;
+}
+
+:where(:root[data-stil='holz']) .shelf > .tile:nth-child(5n + 2) {
+  --tilt: 0.9deg;
+}
+
+:where(:root[data-stil='holz']) .shelf > .tile:nth-child(5n + 3) {
+  --tilt: -0.5deg;
+}
+
+:where(:root[data-stil='holz']) .shelf > .tile:nth-child(5n + 4) {
+  --tilt: 1.4deg;
+}
+
+:where(:root[data-stil='holz']) .shelf > .tile:nth-child(5n) {
+  --tilt: -0.9deg;
+}
+
+/*
+ * Not while the shelf scrolls (data-scrolling, App.tsx): the cards passing under a resting pointer
+ * lifted one after the other. Not pointer-events: WebKit paints the whole page again when that changes.
+ */
+:where(:root[data-stil='holz']) .tile:hover:where(:not(.shelf[data-scrolling] > .tile)) .tile-cover {
+  transform: rotate(var(--tilt, 0deg)) translateY(-4px);
+  box-shadow: 5px 8px 0 var(--drop);
+}
+
+/* With the keyboard the card lies straight, so the focus ring is easy to follow. */
+:where(:root[data-stil='holz']) .tile:focus-visible {
+  outline: none;
+}
+
+:where(:root[data-stil='holz']) .tile:focus-visible .tile-cover {
+  --tilt: 0deg;
+  outline: 3px solid var(--focus-color);
+  outline-offset: 4px;
+}
+
+/* A sticker made by hand carries the number itself; the card keeps it for screen readers only. */
+:where(:root[data-stil='holz']) .tile .tile-cover:has(> .gen-cover:not(.no-num)) > .tile-num {
+  color: transparent;
+}
+
+:where(:root[data-stil='holz']) .tile .tile-num {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 4px 0 2px;
+  font-family: var(--font-stamp);
+  font-size: 1.3rem;
+  color: #1f1a16;
+}
+
+:where(:root[data-stil='holz']) .tile .tile-num::after {
+  content: '';
+  width: 20px;
+  height: 16px;
+  margin-left: auto;
+  opacity: 0.55;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 16' fill='none' stroke='%232a1f16' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M3 5.5c1.3 1.5 1.3 3.5 0 5'/%3E%3Cpath d='M7.5 3c2.6 3 2.6 7 0 10'/%3E%3Cpath d='M12 1c3.6 4.2 3.6 9.8 0 14'/%3E%3C/svg%3E") no-repeat center / contain;
+}
+
+:where(:root[data-stil='holz']) .tile .tile-flag {
+  right: 4px;
+  top: 4px;
+}
+
+:where(:root[data-stil='holz']) .tile .tile-check {
+  right: 6px;
+  bottom: 6px;
+  background: #fffcf5;
+  color: var(--gray-500);
+  box-shadow: inset 0 0 0 2px #1f1a16;
+}
+
+:where(:root[data-stil='holz']) .tile.selected .tile-cover {
+  --frame-color: var(--primary);
+  --frame-w: 3px;
+  box-shadow: 3px 4px 0 var(--primary);
+}
+
+:where(:root[data-stil='holz']) .tile.selected .tile-check {
+  background: var(--primary);
+  color: #fff;
+}
+
+:where(:root[data-stil='holz']) .tile-title {
+  font-weight: 700;
+}
+
+:where(:root[data-stil='holz']) .tile-meta {
+  color: var(--text-soft);
+  margin-top: -6px;
+}
+
+/* On the board, name and facts sit on a patch of plain wood: no grain line runs through the letters. */
+:where(:root[data-stil='holz']) .shelf .tile-title,
+:where(:root[data-stil='holz']) .shelf .tile-meta {
+  align-self: flex-start;
+  max-width: 100%;
+  margin-left: -5px;
+  padding: 0 5px;
+  border-radius: 3px;
+  background: var(--plywood);
+}
+
+:where(:root[data-stil='holz']) .tile.add .tile-cover {
+  --frame-style: dashed;
+  --frame-color: var(--ink);
+  flex: 1;
+  min-height: 120px;
+  box-shadow: none;
+  background: color-mix(in srgb, var(--surface) 45%, transparent);
+  color: var(--text);
+}
+
+:where(:root[data-stil='holz']) .tile.add:hover .tile-cover {
+  --frame-color: var(--primary);
+  color: var(--primary-text);
+  background: var(--primary-soft);
+}
+
+/*
+ * On the shelf of "Meine Box" (only the card in its tile there) the card's hard shadow is a
+ * plain shape under it, turned with it: as box-shadow of a turned card WebKitGTK drew every
+ * shadow through a picture of its own, and going back to a shelf of 47 folders took about
+ * 70 ms longer. Same place, size and colour as the box-shadow above, also when lifted.
+ */
+:where(:root[data-stil='holz']) :is(.shelf-cover, .shelf-sticker) > .tile {
+  position: relative;
+}
+
+:where(:root[data-stil='holz']) :is(.shelf-cover, .shelf-sticker) > .tile::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  /* As .tile-cover. */
+  border-radius: 9px;
+  background: var(--drop);
+  transform: rotate(var(--tilt, 0deg)) translate(3px, 4px);
+  pointer-events: none;
+}
+
+:where(:root[data-stil='holz']) :is(.shelf-cover, .shelf-sticker) > .tile > .tile-cover {
+  box-shadow: none;
+}
+
+/* Lifted: the card 4 px up, its shadow 5 px right and 8 px below it. */
+:where(:root[data-stil='holz']) :is(.shelf-cover, .shelf-sticker) > .tile:hover:where(:not(.shelf[data-scrolling] > .tile))::before {
+  transform: rotate(var(--tilt, 0deg)) translate(5px, 4px);
+}
+
+:where(:root[data-stil='holz']) :is(.shelf-cover, .shelf-sticker) > .tile:focus-visible::before {
+  --tilt: 0deg;
+}
+
+:where(:root[data-stil='holz']) :is(.shelf-cover, .shelf-sticker) > .tile.selected::before {
+  background: var(--primary);
+}
+
+:where(:root[data-stil='holz']) :is(.shelf-cover, .shelf-sticker) > .tile.add::before {
+  content: none;
+}
+
+:where(:root[data-stil='holz']) .gen-cover {
+  align-items: flex-start;
+  gap: 4px;
+  padding: 7% 8% 9%;
+  background: var(--gc-bg, var(--sticker-orange));
+  color: var(--gc-fg, #1f1a16);
+}
+
+:where(:root[data-stil='holz']) .gen-cover .gen-num {
+  font-family: var(--font-stamp);
+  font-size: 30cqw;
+  line-height: 1;
+}
+
+:where(:root[data-stil='holz']) .gen-cover .gen-title {
+  max-width: 100%;
+  padding: 1.5cqw 4cqw 2cqw;
+  border-radius: 2px;
+  background: #fffcf5;
+  color: #1f1a16;
+  box-shadow: 1px 2px 0 rgb(31 26 22 / 0.25);
+  font-family: var(--font-hand);
+  font-size: clamp(0.72rem, 10.5cqw, 1.35rem);
+  line-height: 1.1;
+  transform: rotate(-2deg);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  /* A word breaks only when it does not fit a line on its own. */
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+/* place-content too: the space-between of layout.css would put the one column at the start. */
+:where(:root[data-stil='holz']) .gen-cover.small {
+  display: grid;
+  place-items: center;
+  place-content: center;
+}
+
+/* Under the stand-in sticker in the review: a note that it is no cover yet. */
+:where(:root[data-stil='holz']) .import-cover-note {
+  font-family: var(--font-hand);
+  font-size: var(--text-sm);
+  transform: rotate(-2deg);
+}
+
+:where(:root[data-stil='holz']) .gen-cover.small .gen-num {
+  font-size: 44cqw;
+  transform: rotate(-4deg);
+}
+
+/* The card of the folder on the left, its name, facts and buttons on the right. */
+:where(:root[data-stil='holz']) .folder-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--space-8);
+}
+
+:where(:root[data-stil='holz']) .folder-cover {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  flex: none;
+  width: 220px;
+}
+
+:where(:root[data-stil='holz']) .folder-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  flex: 1 1 300px;
+  min-width: 0;
+  padding-top: 2px;
+}
+
+/* The name of the folder: handwriting like the page titles, the biggest thing next to the cover. */
+:root:where([data-stil='holz']) .folder-info .wrap-input.headline {
+  --wrap-pad: 2px;
+  font-family: var(--font-display);
+  font-size: 2.1rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+:where(:root[data-stil='holz']) .folder-info input.inline-edit {
+  height: 34px;
+  font-size: var(--text-md);
+}
+
+:where(:root[data-stil='holz']) .folder-info .folder-meta {
+  margin: 0 0 var(--space-1);
+}
+
+:where(:root[data-stil='holz']) .folder-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  margin-top: var(--space-2);
+}
+
+:where(:root[data-stil='holz']) .health-banner {
+  position: relative;
+  border: 1px solid transparent;
+}
+
+:where(:root[data-stil='holz']) .health-banner .health-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 2px currentColor;
+}
+
+:where(:root[data-stil='holz']) .health-banner.ok .health-icon {
+  background: var(--success-soft);
+  color: var(--success);
+}
+
+:where(:root[data-stil='holz']) .health-banner.warning .health-icon {
+  background: var(--amber);
+  color: #1f1a16;
+}
+
+:where(:root[data-stil='holz']) .health-banner.error .health-icon {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+/* A warning looks like one: amber paper inside the drawn frame, a problem red paper. */
+:where(:root[data-stil='holz']) .health-banner.warning {
+  background: var(--warning-soft);
+}
+
+:where(:root[data-stil='holz']) .health-banner.error {
+  background: var(--danger-soft);
+}
+
+:where(:root[data-stil='holz']) .health-banner.warning > .grow > b {
+  color: var(--warning-text);
+}
+
+:where(:root[data-stil='holz']) .health-banner.error > .grow > b {
+  color: var(--danger-text);
+}
+
+:where(:root[data-stil='holz']) .health-banner.warning .health-icon {
+  box-shadow: inset 0 0 0 2px #1f1a16;
+}
+
+/* The list of a check, inside a scrolling dialog: no frame around it (it would be cut at the edges), dashed lines between. */
+:where(:root[data-stil='holz']) .issue-list {
+  border-block: 2px dashed var(--border-strong);
+}
+
+:where(:root[data-stil='holz']) .issue {
+  padding: var(--space-4) var(--space-2);
+  border-bottom: 1.5px dashed var(--border);
+}
+
+:where(:root[data-stil='holz']) .hero {
+  position: relative;
+  grid-template-columns: 1fr 1fr;
+  padding: var(--space-4) 0 var(--space-6);
+  border: 1px solid transparent;
+}
+
+/* The greeting is a whole sentence: handwriting reads easier there than the marker. */
+:where(:root[data-stil='holz']) .hero h1 {
+  font-family: var(--font-hand);
+  font-size: 2.75rem;
+  line-height: 1.1;
+}
+
+/* As in layout.css, repeated so it still comes after this style's own rules. */
+:where(:root[data-stil='holz']) .hero p {
+  color: var(--text-soft);
+}
+
+:where(:root[data-stil='holz']) .hero .bubble {
+  margin-left: var(--space-3);
+}
+
+/* Drawings: notes and arrows in the theme's ink, writing in the hand fonts. */
+:where(:root[data-stil='holz']) .sketch-art {
+  color: var(--ink);
+  overflow: visible;
+}
+
+:where(:root[data-stil='holz']) .sketch-hand {
+  font-family: var(--font-hand);
+}
+
+:where(:root[data-stil='holz']) .sketch-marker {
+  font-family: var(--font-stamp);
+}
+
+:where(:root[data-stil='holz']) .welcome-art {
+  width: 100%;
+  max-width: 460px;
+  height: auto;
+}
+
+/* The box of the welcome (Art.tsx, WelcomeBoxArt): without buttons, speaker notes and slot (Frank). */
+:where(:root[data-stil='holz']) .welcome-box-art {
+  display: block;
+  width: 100%;
+  max-width: 480px;
+  height: auto;
+  color: var(--ink);
+}
+
+/* The note "Da drin steckt die SD-Karte" leads to the help on taking the card out. */
+:where(:root[data-stil='holz']) .welcome-box-link {
+  cursor: pointer;
+}
+
+:where(:root[data-stil='holz']) .welcome-box-link:hover {
+  color: var(--primary-text);
+}
+
+/* The app mark keeps its size in the menu bar. */
+:where(:root[data-stil='holz']) .logo-mark {
+  flex: none;
+}
+
+:where(:root[data-stil='holz']) .feature {
+  position: relative;
+  border-radius: var(--radius);
+  border: 1px solid transparent;
+}
+
+/* Tips on a narrow page (Hinzufügen): three side by side, no lonely card in a second row. */
+:where(:root[data-stil='holz']) .page.narrow > .feature-grid {
+  grid-template-columns: repeat(auto-fill, minmax(215px, 1fr));
+}
+
+/* The four tiles of the welcome page: four or two in a row, never three and one alone (1280 px, tablets). */
+:where(:root[data-stil='holz']) .page > .feature-grid.four {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+@media (max-width: 1365px) {
+  :where(:root[data-stil='holz']) .page > .feature-grid.four {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  :where(:root[data-stil='holz']) .page > .feature-grid.four {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+:where(:root[data-stil='holz']) .feature .feature-icon {
+  width: 42px;
+  height: 42px;
+}
+
+:where(:root[data-stil='holz']) .import-cover {
+  border: 0;
+  border-radius: var(--radius-sm);
+  box-shadow:
+    inset 0 0 0 2px var(--ink),
+    var(--shadow-sm);
+}
+
+:where(:root[data-stil='holz']) .split-icon {
+  border-radius: 10px;
+  background: var(--accent);
+  color: #fff;
+}
+
+:where(:root[data-stil='holz']) .import-bar {
+  border: 1px solid transparent;
+}
+
+/* As in layout.css, repeated so it still comes after this style's own rules. */
+:where(:root[data-stil='holz']) .web-import-head h2 {
+  font-size: var(--text-lg);
+}
+
+:where(:root[data-stil='holz']) .web-import-icon {
+  border-radius: 12px;
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+
+:where(:root[data-stil='holz']) .writing-cover {
+  border-radius: 5px;
+  box-shadow: 0 0 0 2px var(--ink);
+}
+
+:where(:root[data-stil='holz']) .done-icon {
+  background: var(--success-soft);
+  color: var(--success);
+}
+
+:where(:root[data-stil='holz']) .done-icon.warn {
+  background: var(--warning-soft);
+  color: var(--warning-text, #8a6100);
+}
+
+@media (max-width: 900px) {
+  :where(:root[data-stil='holz']) .sidebar {
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* As in layout.css, repeated so it still comes after this style's own rules. */
+  :where(:root[data-stil='holz']) .app-brand {
+    padding: 0 var(--space-2);
+  }
+
+  /* As in layout.css, repeated so it still comes after this style's own rules. */
+  :where(:root[data-stil='holz']) .brand-name small,
+  :where(:root[data-stil='holz']) .nav-sep,
+  :where(:root[data-stil='holz']) .sd-status {
+    display: none;
+  }
+
+  /* As in layout.css, repeated so it still comes after this style's own rules. */
+  :where(:root[data-stil='holz']) .nav a {
+    position: relative;
+  }
+
+  /* As in layout.css, repeated so it still comes after this style's own rules. */
+  :where(:root[data-stil='holz']) .nav a .nav-badge {
+    position: absolute;
+    height: 16px;
+  }
+
+  /* As in layout.css, repeated so it still comes after this style's own rules. */
+  :where(:root[data-stil='holz']) .hero {
+    grid-template-columns: 1fr;
+    padding: var(--space-6);
+  }
+}
+
+@media (max-width: 560px) {
+  /* As in layout.css, repeated so it still comes after this style's own rules. */
+  :where(:root[data-stil='holz']) .app-brand {
+    padding: 0 var(--space-1);
+  }
+}
+
+:where(:root[data-stil='holz']) .step-num {
+  width: 30px;
+  height: 30px;
+  box-shadow: inset 0 0 0 2px var(--ink);
+}
+
+/* The hand-written digit fills the cap; at the heading's size it was a speck. */
+:where(:root[data-stil='holz']) .step-heading > .step-num {
+  font-family: var(--font-hand);
+  font-size: 24px;
+  line-height: 1;
+}
+
+/* The switch stands next to the title, top aligned, so the title starts as high as on every other page. */
+:where(:root[data-stil='holz']) .page-header:has(> .profile-switch) {
+  align-items: flex-start;
+}
+
+:where(:root[data-stil='holz']) .pick-group {
+  font-family: var(--font-hand);
+  font-size: 1.15rem;
+  color: var(--text-soft);
+}
+
+:where(:root[data-stil='holz']) .pick-row.checked {
+  background: color-mix(in srgb, var(--primary-soft) 30%, transparent);
+}
+
+/* As in layout.css, repeated so it still comes after this style's own rules. */
+:where(:root[data-stil='holz']) .pick-row input[type='checkbox'] {
+  height: 18px;
+}
+
+:where(:root[data-stil='holz']) .pick-cover {
+  border-radius: 5px;
+  box-shadow: 0 0 0 1.5px var(--ink);
+}
+
+:where(:root[data-stil='holz']) .special-icon {
+  background: var(--accent-soft);
+  color: var(--accent-soft-text);
+}
+
+/* Greyed out, but the note that says why stays readable. */
+:where(:root[data-stil='holz']) .choice.disabled > :not(.choice-note),
+:where(:root[data-stil='holz']) .choice[aria-disabled='true'] > :not(.choice-note) {
+  opacity: 0.62;
+}
+
+:where(:root[data-stil='holz']) .choice.disabled:hover {
+  background: none;
+  border-color: var(--border-strong);
+}
+
+:where(:root[data-stil='holz']) .choice-note {
+  margin-top: 4px;
+  font-weight: 700;
+  color: var(--text-soft);
+}
+
+:where(:root[data-stil='holz']) .guide-count {
+  font-family: var(--font-hand);
+  font-size: 1.15rem;
+}
+
+:where(:root[data-stil='holz']) .guide-num {
+  background: var(--bg-sunken);
+  border: 2px solid var(--border-strong);
+}
+
+:where(:root[data-stil='holz']) .guide-optional-label {
+  font-family: var(--font-hand);
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+:where(:root[data-stil='holz']) .qr-intro-icon {
+  border-radius: 12px;
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+
+/* As in layout.css, repeated so it still comes after this style's own rules. */
+:where(:root[data-stil='holz']) .qr-code svg {
+  width: 100%;
+  height: 100%;
+}
+
+:where(:root[data-stil='holz']) .reader-step {
+  font-family: var(--font-hand);
+  font-size: 1.2rem;
+}
+
+:where(:root[data-stil='holz']) .reader-queue li.active {
+  background: var(--primary-soft);
+}
+
+:where(:root[data-stil='holz']) .special-option[aria-checked='true'] {
+  /* Holds the tick at the end of its own row; without it the tick sat at the corner of the dialog. */
+  position: relative;
+  background: var(--primary-soft);
+  color: var(--primary-soft-text);
+}
+
+:where(:root[data-stil='holz']) .special-option-icon {
+  border-radius: 8px;
+  background: var(--bg-sunken);
+  color: var(--text-muted);
+}
+
+:where(:root[data-stil='holz']) .special-detail-icon {
+  border-radius: 14px;
+  background: var(--accent-soft);
+  color: var(--accent-soft-text);
+}
+
+:where(:root[data-stil='holz']) .sheet-preview {
+  border-radius: 2px;
+  box-shadow:
+    0 0 0 1.5px var(--ink),
+    5px 6px 0 var(--drop);
+}
+
+:where(:root[data-stil='holz']) .style-choice {
+  position: relative;
+  border: 1.5px solid transparent;
+  border-radius: var(--radius);
+  color: inherit;
+  transition:
+    box-shadow 0.15s,
+    background 0.15s;
+}
+
+:where(:root[data-stil='holz']) .style-choice[aria-checked='true'] {
+  --frame-color: var(--primary);
+  --frame-w: 3px;
+  background: var(--primary-soft);
+  box-shadow: none;
+}
+
+:where(:root[data-stil='holz']) .sticker-thumb {
+  box-shadow:
+    0 0 0 1px rgb(31 26 22 / 0.25),
+    2px 2px 0 var(--drop);
+}
+
+:where(:root[data-stil='holz']) .font-choice {
+  position: relative;
+  border: 1.5px solid transparent;
+  border-radius: var(--radius-sm);
+  color: inherit;
+}
+
+:where(:root[data-stil='holz']) .font-choice[aria-checked='true'] {
+  --frame-color: var(--primary);
+  --frame-w: 3px;
+  background: var(--primary-soft);
+}
+
+:where(:root[data-stil='holz']) .paper-option {
+  position: relative;
+  border: 1.5px solid transparent;
+  border-radius: var(--radius);
+  color: inherit;
+  transition: background 0.15s;
+}
+
+:where(:root[data-stil='holz']) .paper-option[aria-checked='true'] {
+  --frame-color: var(--primary);
+  --frame-w: 3px;
+  background: var(--primary-soft);
+}
+
+:where(:root[data-stil='holz']) .sheet-diagram .sheet-page {
+  fill: #fff;
+  stroke: var(--gray-300);
+  stroke-width: 1.2;
+}
+
+:where(:root[data-stil='holz']) .sheet-diagram .sheet-slot > rect,
+:where(:root[data-stil='holz']) .sheet-diagram .sheet-slot > ellipse {
+  fill: var(--brand-100);
+  stroke: var(--brand-300);
+  stroke-width: 0.8;
+}
+
+:where(:root[data-stil='holz']) .paper-option[aria-checked='true'] .sheet-slot > rect,
+:where(:root[data-stil='holz']) .paper-option[aria-checked='true'] .sheet-slot > ellipse {
+  fill: var(--brand-300);
+  stroke: var(--brand-500);
+}
+
+/* As in layout.css, repeated so it still comes after this style's own rules. */
+:where(:root[data-stil='holz']) .sheet-diagram.interactive .sheet-slot > rect,
+:where(:root[data-stil='holz']) .sheet-diagram.interactive .sheet-slot > ellipse {
+  fill: #fff;
+  stroke: var(--gray-400);
+  stroke-width: 0.6;
+}
+
+:where(:root[data-stil='holz']) .sheet-diagram.interactive .sheet-slot:hover > rect,
+:where(:root[data-stil='holz']) .sheet-diagram.interactive .sheet-slot:hover > ellipse {
+  fill: var(--brand-50);
+  stroke: var(--primary);
+}
+
+/* As in layout.css, repeated so it still comes after this style's own rules. */
+:where(:root[data-stil='holz']) .sheet-diagram.interactive .sheet-slot.used > rect,
+:where(:root[data-stil='holz']) .sheet-diagram.interactive .sheet-slot.used > ellipse {
+  fill: var(--gray-200);
+  stroke: var(--gray-400);
+}
+
+/* As in layout.css, repeated so it still comes after this style's own rules. */
+:where(:root[data-stil='holz']) .sheet-diagram.interactive .sheet-slot:focus-visible > rect,
+:where(:root[data-stil='holz']) .sheet-diagram.interactive .sheet-slot:focus-visible > ellipse {
+  stroke: var(--primary);
+  stroke-width: 1.6;
+}
+
+/* As in layout.css, repeated so it still comes after this style's own rules. */
+:where(:root[data-stil='holz']) .calibration-more summary {
+  font-weight: 600;
+}
+
+:where(:root[data-stil='holz']) .swatch {
+  box-shadow: 0 0 0 1.5px var(--ink);
+}
+
+:where(:root[data-stil='holz']) .swatch[aria-checked='true'] {
+  box-shadow: 0 0 0 3px var(--primary);
+}
+
+:where(:root[data-stil='holz']) .swatch.custom {
+  background: conic-gradient(var(--sticker-orange) 0 25%, var(--sticker-green) 0 50%, var(--sticker-blue) 0 75%, var(--sticker-pink) 0);
+}
+
+/* As in layout.css, repeated so it still comes after this style's own rules. */
+:where(:root[data-stil='holz']) .swatch.custom input {
+  position: absolute;
+}
+
+@media (max-width: 560px) {
+  /* As in layout.css, repeated so it still comes after this style's own rules. */
+  :where(:root[data-stil='holz']) .issue {
+    padding: var(--space-4);
+  }
+}
+
+@media (max-width: 900px) {
+  :where(:root[data-stil='holz']) .sidebar::after {
+    top: auto;
+    left: 0;
+    border-right: 0;
+    border-bottom: var(--line) solid var(--ink);
+  }
+
+  :root:where([data-stil='holz']) .sidebar[data-fc-after]::after {
+    right: 0;
+    bottom: -6px;
+    width: auto;
+    height: 12px;
+    border-bottom-color: transparent;
+  }
+
+  :where(:root[data-stil='holz']) .hero {
+    padding-top: 0;
+  }
+}
+
+@media (max-width: 560px) {
+  :where(:root[data-stil='holz']) .shelf {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-5) var(--space-4);
+    padding: var(--space-4) var(--space-4) var(--space-5);
+  }
+
+  :where(:root[data-stil='holz']) .shelf > .tile:nth-child(n) {
+    --tilt: 0deg;
+  }
+
+  :where(:root[data-stil='holz']) .tile .tile-num {
+    height: 30px;
+    font-size: 1.1rem;
+  }
+
+  :where(:root[data-stil='holz']) .hero h1 {
+    font-size: var(--text-2xl);
+  }
+
+  /* Page titles in marker run wide: one size down, so a box name fits on one line. */
+  :where(:root[data-stil='holz']) .page-header h1 {
+    font-size: var(--text-xl);
+  }
+
+  :where(:root[data-stil='holz']) .folder-head {
+    gap: var(--space-5);
+  }
+
+  :where(:root[data-stil='holz']) .folder-cover {
+    width: 100%;
+  }
+
+  :where(:root[data-stil='holz']) .folder-cover > .tile {
+    max-width: 260px;
+  }
+
+  :where(:root[data-stil='holz']) .folder-info {
+    flex-basis: 100%;
+  }
+
+  :root:where([data-stil='holz']) .folder-info .wrap-input.headline {
+    font-size: 1.8rem;
+  }
+
+  /* As in layout.css, repeated so it still comes after this style's own rules. */
+  :where(:root[data-stil='holz']) .folder-actions {
+    display: grid;
+  }
+
+  :where(:root[data-stil='holz']) .folder-actions > :nth-child(-n + 2) {
+    grid-column: 1 / -1;
+  }
+
+  :where(:root[data-stil='holz']) .folder-actions > .btn {
+    width: 100%;
+  }
+
+  :where(:root[data-stil='holz']) .card-header {
+    flex-wrap: wrap;
+    gap: var(--space-1) var(--space-3);
+    padding: var(--space-4);
+  }
+
+  :where(:root[data-stil='holz']) .card-header > h2 {
+    flex: 1 1 100%;
+  }
+}
+
+/* ------------------------------------------------------------------ help.css */
+
+:where(:root[data-stil='holz']) .help-page mark {
+  background: color-mix(in srgb, var(--accent) 30%, transparent);
+  color: inherit;
+}
+
+:where(:root[data-stil='holz']) .help-result {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+:where(:root[data-stil='holz']) .help-result:hover {
+  border-color: var(--border-hover);
+}
+
+:where(:root[data-stil='holz']) .help-result-where {
+  font-family: var(--font-hand);
+  font-size: 1.1rem;
+}
+
+:where(:root[data-stil='holz']) .help-topic-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xs);
+  transition:
+    border-color 0.15s var(--ease),
+    transform 0.15s var(--ease);
+}
+
+:where(:root[data-stil='holz']) .help-topic-card:hover {
+  border-color: var(--border-hover);
+  transform: translateY(-1px);
+}
+
+:where(:root[data-stil='holz']) .help-topic-icon {
+  border-radius: 12px;
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+
+:where(:root[data-stil='holz']) .help-toc ol {
+  border-left: 2px solid var(--border);
+}
+
+:where(:root[data-stil='holz']) .help-toc a {
+  text-decoration: none;
+  margin-left: -2px;
+  border-left: 2px solid transparent;
+  color: var(--text-soft);
+}
+
+:where(:root[data-stil='holz']) .help-toc a:hover {
+  color: var(--text);
+  text-decoration: none;
+  border-left-color: var(--border-hover);
+}
+
+:where(:root[data-stil='holz']) .help-toc a[aria-current='location'] {
+  color: var(--primary-soft-text);
+  border-left-color: var(--primary);
+}
+
+/* As in help.css, repeated so it still comes after this style's own rules. */
+:where(:root[data-stil='holz']) .help-page [tabindex='-1']:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+:where(:root[data-stil='holz']) .help-steps li::before {
+  background: var(--primary-soft);
+  color: var(--primary-soft-text);
+  font-weight: 700;
+}
+
+/* As in help.css, repeated so it still comes after this style's own rules. */
+:where(:root[data-stil='holz']) .help-links .btn {
+  height: auto;
+}
+
+:where(:root[data-stil='holz']) .help-defs,
+:where(:root[data-stil='holz']) .help-notice-list {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+/* As in help.css, repeated so it still comes after this style's own rules. */
+:where(:root[data-stil='holz']) .help-notice-list .help-def-head a {
+  font-weight: 650;
+}
+
+:where(:root[data-stil='holz']) .help-pager-link {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+:where(:root[data-stil='holz']) .help-pager-link:hover {
+  border-color: var(--border-hover);
+}
+
+/* As in help.css, repeated so it still comes after this style's own rules. */
+:where(:root[data-stil='holz']) .help-pager-link.next {
+  grid-column: 2;
+}
+
+@media (max-width: 1000px) {
+  :where(:root[data-stil='holz']) .help-toc {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+  }
+}
+
+@media (max-width: 600px) {
+  /* As in help.css, repeated so it still comes after this style's own rules. */
+  :where(:root[data-stil='holz']) .help-pager-link.next {
+    grid-column: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* As in help.css, repeated so it still comes after this style's own rules. */
+  :where(:root[data-stil='holz']) .help-topic-card:hover {
+    transform: none;
+  }
+}
+
+/* ------------------------------------------------------------------ package.css */
+
+/* As in package.css, repeated so it still comes after this style's own rules. */
+:where(:root[data-stil='holz']) .hero.card-drop.over,
+:where(:root[data-stil='holz']) .card.card-drop.over {
+  box-shadow:
+    0 0 0 2px var(--primary),
+    var(--shadow-sm);
+}
+
+/* As in package.css, repeated so it still comes after this style's own rules. */
+:where(:root[data-stil='holz']) .package-banner.pending .health-icon {
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+
+/* As in package.css, repeated so it still comes after this style's own rules. */
+:where(:root[data-stil='holz']) .package-banner.downloaded .health-icon {
+  background: var(--accent-soft);
+  color: var(--accent-soft-text);
+}
+
+:where(:root[data-stil='holz']) .package-gate-icon {
+  border-radius: 16px;
+  background: var(--accent-soft);
+  color: var(--accent-soft-text);
+}
+
+:where(:root[data-stil='holz']) .os-steps > .guide-step::before {
+  font-weight: 700;
+  background: var(--primary-soft);
+  color: var(--primary-soft-text);
+}
+
+/* As in package.css, repeated so it still comes after this style's own rules. */
+:where(:root[data-stil='holz']) .guide-more summary {
+  font-weight: 600;
+}
+
+/* ------------------------------------------------------------------ readertest.css */
+
+:where(:root[data-stil='holz']) .rt-icon {
+  border-radius: 14px;
+}
+
+@media (max-width: 480px) {
+  /* As in readertest.css, repeated so it still comes after this style's own rules. */
+  :where(:root[data-stil='holz']) .rt-icon {
+    border-radius: 12px;
+  }
+}
+
+:where(:root[data-stil='holz']) .rt-dot.current {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: var(--primary-soft);
+}
+
+/* ------------------------------------------------------------------ settings.css */
+
+:where(:root[data-stil='holz']) .settings-section-icon {
+  border-radius: 10px;
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+
+/* As in settings.css, repeated so it still comes after this style's own rules. */
+:where(:root[data-stil='holz']) .settings-address .input[aria-invalid='true'] {
+  border-color: var(--danger);
+}
+
+/* As in settings.css, repeated so it still comes after this style's own rules. */
+:where(:root[data-stil='holz']) .settings-page [tabindex='-1']:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+:where(:root[data-stil='holz']) .settings-changes {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+/* ------------------------------------------------------------------ stickers.css */
+
+:where(:root[data-stil='holz']) .own-size-sheet {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+/* ------------------------------------------------------------------ workshop.css */
+
+:where(:root[data-stil='holz']) .ws-tool {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  text-decoration: none;
+  transition:
+    box-shadow 0.15s,
+    transform 0.15s;
+}
+
+:where(:root[data-stil='holz']) .ws-tool:hover {
+  box-shadow: var(--shadow);
+  transform: translateY(-2px);
+}
+
+/* The card's own shadow would hide the global focus ring, so it is set again here. */
+:where(:root[data-stil='holz']) .ws-tool:focus-visible {
+  border-color: var(--primary);
+  box-shadow: var(--focus-ring);
+}
+
+:where(:root[data-stil='holz']) .ws-tool-icon {
+  width: 46px;
+  height: 46px;
+}
+
+:where(:root[data-stil='holz']) .ws-tool-title {
+  font-weight: 700;
+}
+
+:where(:root[data-stil='holz']) .ws-numbered > li::before {
+  font-weight: 800;
+  background: var(--primary-soft);
+  color: var(--primary-soft-text);
+}
+
+/* As in workshop.css, repeated so it still comes after this style's own rules. */
+:where(:root[data-stil='holz']) .ws-check input {
+  width: 20px;
+  height: 20px;
+}
+
+:where(:root[data-stil='holz']) .ws-backup {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+/* As in workshop.css, repeated so it still comes after this style's own rules. */
+:where(:root[data-stil='holz']) .ws-hold-check input {
+  width: 20px;
+  height: 20px;
+}
+
+:where(:root[data-stil='holz']) .ws-port {
+  border: 1.5px solid var(--border-strong);
+  border-radius: var(--radius);
+}
+
+:where(:root[data-stil='holz']) .ws-port[aria-checked='true'] {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+}
+
+/* As in workshop.css, repeated so it still comes after this style's own rules. */
+:where(:root[data-stil='holz']) .ws-port.ws-port-static,
+:where(:root[data-stil='holz']) .ws-port.ws-port-static:hover {
+  border-color: var(--border);
+  background: var(--surface);
+}
+
+:where(:root[data-stil='holz']) .ws-port[aria-checked='true'] .ws-port-dot {
+  border-color: var(--primary);
+  box-shadow: inset 0 0 0 4px var(--surface);
+  background: var(--primary);
+}
+
+:where(:root[data-stil='holz']) .link-button.ws-show-all {
+  border: 1.5px solid var(--primary);
+  border-radius: var(--radius-sm);
+  background: var(--primary-soft);
+  color: var(--primary-soft-text);
+}
+
+/* As in workshop.css, repeated so it still comes after this style's own rules. */
+:where(:root[data-stil='holz']) .ws-miss a {
+  color: var(--primary-text, var(--primary));
+  text-decoration: underline;
+}
+
+/* As in workshop.css, repeated so it still comes after this style's own rules. */
+:where(:root[data-stil='holz']) .ws-phases li[aria-current='step'] {
+  color: var(--text);
+  font-weight: 700;
+}
+
+/* As in workshop.css, repeated so it still comes after this style's own rules. */
+:where(:root[data-stil='holz']) .ws-phases li.done {
+  color: var(--success-text);
+}
+
+:where(:root[data-stil='holz']) .ws-next-item {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+/* As in workshop.css, repeated so it still comes after this style's own rules. */
+:where(:root[data-stil='holz']) .ws-next-item.ws-next-wide {
+  grid-column: 1 / -1;
+}
+
+:where(:root[data-stil='holz']) .ws-problem-icon {
+  border-radius: 14px;
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+:where(:root[data-stil='holz']) .ws-tech {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+/* As in workshop.css, repeated so it still comes after this style's own rules. */
+:where(:root[data-stil='holz']) .ws-tech summary {
+  font-weight: 600;
+}
+
+/* As in workshop.css, repeated so it still comes after this style's own rules. */
+:where(:root[data-stil='holz']) .ws-tech[open] summary {
+  border-bottom: 1px solid var(--border);
+}
+
+:where(:root[data-stil='holz']) .ws-link {
+  border-radius: var(--radius-sm);
+}
+
+/* As in workshop.css, repeated so it still comes after this style's own rules. */
+:where(:root[data-stil='holz']) .ws-help h2 {
+  font-size: var(--text-md);
+}
+
+:where(:root[data-stil='holz']) .ws-later > summary {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  font-weight: 600;
+}
+
+:where(:root[data-stil='holz']) .ws-radio.on {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+  box-shadow: 0 0 0 1px var(--primary);
+}
+
+/* As in workshop.css, repeated so it still comes after this style's own rules. */
+:where(:root[data-stil='holz']) .ws-radio:focus-within {
+  box-shadow: var(--focus-ring);
+}
+
+/* As in workshop.css, repeated so it still comes after this style's own rules. */
+:where(:root[data-stil='holz']) .ws-radio.on:focus-within {
+  box-shadow:
+    0 0 0 1px var(--primary),
+    var(--focus-ring);
+}
+
+/* ------------------------------------------------------------------ bulkcover.css */
+
+:where(:root[data-stil='holz']) .bulk-rows {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+:where(:root[data-stil='holz']) .bulk-row.checked {
+  background: color-mix(in srgb, var(--primary-soft) 55%, var(--surface));
+}
+
+/* As in bulkcover.css, repeated so it still comes after this style's own rules. */
+:where(:root[data-stil='holz']) .bulk-row input[type='checkbox'] {
+  height: 18px;
+}
+
+/* As in bulkcover.css, repeated so it still comes after this style's own rules. */
+:where(:root[data-stil='holz']) .bulk-row.saved .bulk-picture {
+  box-shadow: 0 0 0 2px var(--success);
+}
+
+/* ------------------------------------------------------------------ sources.css */
+
+/* As in sources.css, repeated so it still comes after this style's own rules. */
+:where(:root[data-stil='holz']) .source-card.skeleton-card:hover {
+  box-shadow: var(--shadow-xs);
+}
+
+/* As in sources.css, repeated so it still comes after this style's own rules. */
+:where(:root[data-stil='holz']) .sources-footer > * + *::before {
+  content: '·';
+  margin: 0 var(--space-3);
+}
+
+/* As in sources.css, repeated so it still comes after this style's own rules. */
+:where(:root[data-stil='holz']) .source-rights h2 {
+  font-size: var(--text-md);
+}
+
+/* As in sources.css, repeated so it still comes after this style's own rules. */
+:where(:root[data-stil='holz']) .source-list-head h2 {
+  font-size: var(--text-md);
+}
+
+/* The source's own cover: a print in a paper frame, a little crooked, with a hard shadow. Without one nothing is drawn. */
+:root:where([data-stil='holz']) .source-cover {
+  border: 5px solid #fffcf5;
+  border-radius: 6px;
+  box-shadow:
+    0 0 0 1.5px var(--ink),
+    3px 4px 0 var(--drop);
+  transform: rotate(-1.5deg);
+}
+
+:root:where([data-stil='holz']) :is(.source-card, .source-pick):nth-child(even) .source-cover {
+  transform: rotate(1.2deg);
+}
+
+:root:where([data-stil='holz']) .source-pick-title {
+  font-family: var(--font-hand);
+  font-weight: 400;
+  font-size: var(--text-lg);
+  line-height: 1.2;
+}
+
+:where(:root[data-stil='holz']) .source-item.picked {
+  background: color-mix(in srgb, var(--primary-soft) 70%, transparent);
+}
+
+/* As in sources.css, repeated so it still comes after this style's own rules. */
+:where(:root[data-stil='holz']) .source-item-main input[type='checkbox'] {
+  height: 18px;
+}
+
+/* As in sources.css, repeated so it still comes after this style's own rules. */
+:where(:root[data-stil='holz']) a.badge.source-licence-link {
+  color: var(--text-soft);
+}
+
+/* ------------------------------------------------------------------ forum link and tab bar */
+
+:where(:root[data-stil='holz']) .nav-forum {
+  color: var(--text-soft);
+  text-decoration: underline;
+  text-decoration-style: wavy;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+:where(:root[data-stil='holz']) .nav-forum:hover {
+  color: var(--text);
+}
+
+@media (max-width: 900px) {
+  /* Paper at the bottom with a drawn ink line; the open page sits on a lit arcade button, as in the wide menu. */
+  :where(:root[data-stil='holz']) .phone-tabs {
+    background: var(--surface) var(--paper-grain);
+    color: var(--text-soft);
+    border-top: var(--line) solid var(--ink);
+  }
+
+  :where(:root[data-stil='holz']) .phone-tabs > a,
+  :where(:root[data-stil='holz']) .phone-tabs .phone-more {
+    border-radius: 8px;
+    color: var(--text-soft);
+  }
+
+  :where(:root[data-stil='holz']) .phone-tabs > a:hover,
+  :where(:root[data-stil='holz']) .phone-tabs .phone-more:hover {
+    background: var(--surface-hover);
+    color: var(--text);
+  }
+
+  :where(:root[data-stil='holz']) .phone-tabs [aria-current='page'] {
+    color: var(--text);
+  }
+
+  :where(:root[data-stil='holz']) .phone-tabs :focus-visible {
+    outline: 3px solid var(--focus-color);
+    outline-offset: -3px;
+  }
+}
+
+/* ------------------------------------------------------------------ copy dialog */
+
+/* The folder number in marker, as on the shelf. */
+:where(:root[data-stil='holz']) .copy-num {
+  font-family: var(--font-stamp);
+  font-size: 1.1rem;
+  font-weight: 400;
+  color: var(--text);
+}
+
+/* ------------------------------------------------------------------ 0.2: sidebar grille */
+
+/*
+ * Under "Einstellungen": the speaker grille of the Bastelstube, taken over
+ * as it was (Frank liked it there). Only the holes, no drawn box.
+ * It gives way when the window is short (1366x768, 1280x800): the menu
+ * shrinks by the grille, never by a link, so the SD card box below keeps
+ * its buttons in view.
+ */
+:where(:root[data-stil='holz']) .sidebar > .nav-sep + .nav {
+  flex-shrink: 1;
+  min-height: 0;
+}
+
+:where(:root[data-stil='holz']) .nav-sep + .nav > a {
+  flex-shrink: 0;
+}
+
+:where(:root[data-stil='holz']) .nav-sep + .nav::after {
+  content: '';
+  display: block;
+  align-self: center;
+  flex: 0 1 128px;
+  min-height: 0;
+  width: 128px;
+  margin-top: clamp(var(--space-2), calc(100vh - 820px), var(--space-10));
+  background: currentColor;
+  opacity: 0.2;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'%3E%3Ccircle cx='60' cy='60' r='4'/%3E%3Ccircle cx='73.0' cy='60.0' r='4'/%3E%3Ccircle cx='69.2' cy='69.2' r='4'/%3E%3Ccircle cx='60.0' cy='73.0' r='4'/%3E%3Ccircle cx='50.8' cy='69.2' r='4'/%3E%3Ccircle cx='47.0' cy='60.0' r='4'/%3E%3Ccircle cx='50.8' cy='50.8' r='4'/%3E%3Ccircle cx='60.0' cy='47.0' r='4'/%3E%3Ccircle cx='69.2' cy='50.8' r='4'/%3E%3Ccircle cx='84.5' cy='65.0' r='4'/%3E%3Ccircle cx='80.4' cy='74.5' r='4'/%3E%3Ccircle cx='72.7' cy='81.5' r='4'/%3E%3Ccircle cx='62.8' cy='84.8' r='4'/%3E%3Ccircle cx='52.5' cy='83.8' r='4'/%3E%3Ccircle cx='43.4' cy='78.7' r='4'/%3E%3Ccircle cx='37.3' cy='70.4' r='4'/%3E%3Ccircle cx='35.0' cy='60.2' r='4'/%3E%3Ccircle cx='37.1' cy='50.0' r='4'/%3E%3Ccircle cx='43.1' cy='41.6' r='4'/%3E%3Ccircle cx='52.1' cy='36.3' r='4'/%3E%3Ccircle cx='62.4' cy='35.1' r='4'/%3E%3Ccircle cx='72.3' cy='38.2' r='4'/%3E%3Ccircle cx='80.1' cy='45.1' r='4'/%3E%3Ccircle cx='84.4' cy='54.6' r='4'/%3E%3Ccircle cx='94.1' cy='74.4' r='4'/%3E%3Ccircle cx='88.6' cy='83.4' r='4'/%3E%3Ccircle cx='80.9' cy='90.5' r='4'/%3E%3Ccircle cx='71.4' cy='95.2' r='4'/%3E%3Ccircle cx='61.1' cy='97.0' r='4'/%3E%3Ccircle cx='50.6' cy='95.8' r='4'/%3E%3Ccircle cx='40.9' cy='91.7' r='4'/%3E%3Ccircle cx='32.7' cy='85.0' r='4'/%3E%3Ccircle cx='26.8' cy='76.3' r='4'/%3E%3Ccircle cx='23.5' cy='66.3' r='4'/%3E%3Ccircle cx='23.2' cy='55.8' r='4'/%3E%3Ccircle cx='25.9' cy='45.6' r='4'/%3E%3Ccircle cx='31.4' cy='36.6' r='4'/%3E%3Ccircle cx='39.1' cy='29.5' r='4'/%3E%3Ccircle cx='48.6' cy='24.8' r='4'/%3E%3Ccircle cx='58.9' cy='23.0' r='4'/%3E%3Ccircle cx='69.4' cy='24.2' r='4'/%3E%3Ccircle cx='79.1' cy='28.3' r='4'/%3E%3Ccircle cx='87.3' cy='35.0' r='4'/%3E%3Ccircle cx='93.2' cy='43.7' r='4'/%3E%3Ccircle cx='96.5' cy='53.7' r='4'/%3E%3Ccircle cx='96.8' cy='64.2' r='4'/%3E%3Ccircle cx='100.4' cy='87.7' r='4'/%3E%3Ccircle cx='93.5' cy='95.7' r='4'/%3E%3Ccircle cx='85.1' cy='102.1' r='4'/%3E%3Ccircle cx='75.5' cy='106.5' r='4'/%3E%3Ccircle cx='65.1' cy='108.7' r='4'/%3E%3Ccircle cx='54.5' cy='108.7' r='4'/%3E%3Ccircle cx='44.2' cy='106.4' r='4'/%3E%3Ccircle cx='34.6' cy='101.9' r='4'/%3E%3Ccircle cx='26.2' cy='95.4' r='4'/%3E%3Ccircle cx='19.3' cy='87.3' r='4'/%3E%3Ccircle cx='14.4' cy='77.9' r='4'/%3E%3Ccircle cx='11.6' cy='67.7' r='4'/%3E%3Ccircle cx='11.1' cy='57.1' r='4'/%3E%3Ccircle cx='12.8' cy='46.7' r='4'/%3E%3Ccircle cx='16.8' cy='36.9' r='4'/%3E%3Ccircle cx='22.8' cy='28.1' r='4'/%3E%3Ccircle cx='30.5' cy='20.9' r='4'/%3E%3Ccircle cx='39.6' cy='15.4' r='4'/%3E%3Ccircle cx='49.7' cy='12.1' r='4'/%3E%3Ccircle cx='60.2' cy='11.0' r='4'/%3E%3Ccircle cx='70.7' cy='12.2' r='4'/%3E%3Ccircle cx='80.8' cy='15.6' r='4'/%3E%3Ccircle cx='89.8' cy='21.1' r='4'/%3E%3Ccircle cx='97.5' cy='28.4' r='4'/%3E%3Ccircle cx='103.4' cy='37.2' r='4'/%3E%3Ccircle cx='107.3' cy='47.1' r='4'/%3E%3Ccircle cx='108.9' cy='57.6' r='4'/%3E%3Ccircle cx='108.3' cy='68.1' r='4'/%3E%3Ccircle cx='105.4' cy='78.3' r='4'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'%3E%3Ccircle cx='60' cy='60' r='4'/%3E%3Ccircle cx='73.0' cy='60.0' r='4'/%3E%3Ccircle cx='69.2' cy='69.2' r='4'/%3E%3Ccircle cx='60.0' cy='73.0' r='4'/%3E%3Ccircle cx='50.8' cy='69.2' r='4'/%3E%3Ccircle cx='47.0' cy='60.0' r='4'/%3E%3Ccircle cx='50.8' cy='50.8' r='4'/%3E%3Ccircle cx='60.0' cy='47.0' r='4'/%3E%3Ccircle cx='69.2' cy='50.8' r='4'/%3E%3Ccircle cx='84.5' cy='65.0' r='4'/%3E%3Ccircle cx='80.4' cy='74.5' r='4'/%3E%3Ccircle cx='72.7' cy='81.5' r='4'/%3E%3Ccircle cx='62.8' cy='84.8' r='4'/%3E%3Ccircle cx='52.5' cy='83.8' r='4'/%3E%3Ccircle cx='43.4' cy='78.7' r='4'/%3E%3Ccircle cx='37.3' cy='70.4' r='4'/%3E%3Ccircle cx='35.0' cy='60.2' r='4'/%3E%3Ccircle cx='37.1' cy='50.0' r='4'/%3E%3Ccircle cx='43.1' cy='41.6' r='4'/%3E%3Ccircle cx='52.1' cy='36.3' r='4'/%3E%3Ccircle cx='62.4' cy='35.1' r='4'/%3E%3Ccircle cx='72.3' cy='38.2' r='4'/%3E%3Ccircle cx='80.1' cy='45.1' r='4'/%3E%3Ccircle cx='84.4' cy='54.6' r='4'/%3E%3Ccircle cx='94.1' cy='74.4' r='4'/%3E%3Ccircle cx='88.6' cy='83.4' r='4'/%3E%3Ccircle cx='80.9' cy='90.5' r='4'/%3E%3Ccircle cx='71.4' cy='95.2' r='4'/%3E%3Ccircle cx='61.1' cy='97.0' r='4'/%3E%3Ccircle cx='50.6' cy='95.8' r='4'/%3E%3Ccircle cx='40.9' cy='91.7' r='4'/%3E%3Ccircle cx='32.7' cy='85.0' r='4'/%3E%3Ccircle cx='26.8' cy='76.3' r='4'/%3E%3Ccircle cx='23.5' cy='66.3' r='4'/%3E%3Ccircle cx='23.2' cy='55.8' r='4'/%3E%3Ccircle cx='25.9' cy='45.6' r='4'/%3E%3Ccircle cx='31.4' cy='36.6' r='4'/%3E%3Ccircle cx='39.1' cy='29.5' r='4'/%3E%3Ccircle cx='48.6' cy='24.8' r='4'/%3E%3Ccircle cx='58.9' cy='23.0' r='4'/%3E%3Ccircle cx='69.4' cy='24.2' r='4'/%3E%3Ccircle cx='79.1' cy='28.3' r='4'/%3E%3Ccircle cx='87.3' cy='35.0' r='4'/%3E%3Ccircle cx='93.2' cy='43.7' r='4'/%3E%3Ccircle cx='96.5' cy='53.7' r='4'/%3E%3Ccircle cx='96.8' cy='64.2' r='4'/%3E%3Ccircle cx='100.4' cy='87.7' r='4'/%3E%3Ccircle cx='93.5' cy='95.7' r='4'/%3E%3Ccircle cx='85.1' cy='102.1' r='4'/%3E%3Ccircle cx='75.5' cy='106.5' r='4'/%3E%3Ccircle cx='65.1' cy='108.7' r='4'/%3E%3Ccircle cx='54.5' cy='108.7' r='4'/%3E%3Ccircle cx='44.2' cy='106.4' r='4'/%3E%3Ccircle cx='34.6' cy='101.9' r='4'/%3E%3Ccircle cx='26.2' cy='95.4' r='4'/%3E%3Ccircle cx='19.3' cy='87.3' r='4'/%3E%3Ccircle cx='14.4' cy='77.9' r='4'/%3E%3Ccircle cx='11.6' cy='67.7' r='4'/%3E%3Ccircle cx='11.1' cy='57.1' r='4'/%3E%3Ccircle cx='12.8' cy='46.7' r='4'/%3E%3Ccircle cx='16.8' cy='36.9' r='4'/%3E%3Ccircle cx='22.8' cy='28.1' r='4'/%3E%3Ccircle cx='30.5' cy='20.9' r='4'/%3E%3Ccircle cx='39.6' cy='15.4' r='4'/%3E%3Ccircle cx='49.7' cy='12.1' r='4'/%3E%3Ccircle cx='60.2' cy='11.0' r='4'/%3E%3Ccircle cx='70.7' cy='12.2' r='4'/%3E%3Ccircle cx='80.8' cy='15.6' r='4'/%3E%3Ccircle cx='89.8' cy='21.1' r='4'/%3E%3Ccircle cx='97.5' cy='28.4' r='4'/%3E%3Ccircle cx='103.4' cy='37.2' r='4'/%3E%3Ccircle cx='107.3' cy='47.1' r='4'/%3E%3Ccircle cx='108.9' cy='57.6' r='4'/%3E%3Ccircle cx='108.3' cy='68.1' r='4'/%3E%3Ccircle cx='105.4' cy='78.3' r='4'/%3E%3C/svg%3E") center / contain no-repeat;
+  pointer-events: none;
+}
+
+@media (max-height: 720px), (max-width: 900px) {
+  :where(:root[data-stil='holz']) .nav-sep + .nav::after {
+    display: none;
+  }
+}
+
+/* The forum link: the wavy line only under the pointer, one kind of line less in the menu. */
+:where(:root[data-stil='holz']) .nav-forum {
+  text-decoration-color: transparent;
+}
+
+:where(:root[data-stil='holz']) .nav-forum:hover,
+:where(:root[data-stil='holz']) .nav-forum:focus-visible {
+  text-decoration-color: currentColor;
+}
+
+/*
+ * The arcade caps of tiles and sections take turns in two colours only,
+ * ochre and a light purple, so a page of tiles does not shout in five.
+ * Red and green are kept for a state: something missing, all done.
+ */
+:root:where([data-stil='holz']) {
+  --cap-a: var(--arcade-yellow);
+  --cap-b: #c99cc5;
+}
+
+:where(:root[data-stil='holz']) :is(.feature, .settings-section, .help-topic-card, .ws-tool):nth-child(odd) :is(.feature-icon, .settings-section-icon, .help-topic-icon, .ws-tool-icon) {
+  --arcade: var(--cap-a);
+}
+
+:where(:root[data-stil='holz']) :is(.feature, .settings-section, .help-topic-card, .ws-tool):nth-child(even) :is(.feature-icon, .settings-section-icon, .help-topic-icon, .ws-tool-icon),
+:where(:root[data-stil='holz']) :is(.web-import-icon, .special-detail-icon, .help-topic-icon.big) {
+  --arcade: var(--cap-b);
+}
+
+:where(:root[data-stil='holz']) .qr-intro-icon {
+  --arcade: var(--cap-a);
+}
+
+:where(:root[data-stil='holz']) .ws-sounds-state .ws-tool-icon.success {
+  --arcade: var(--arcade-green);
+}
+
+:where(:root[data-stil='holz']) .ws-sounds-state .ws-tool-icon.warning {
+  --arcade: var(--arcade-red);
+}
+
+/* ------------------------------------------------------------------ 0.4.1: arcade caps in the menu */
+
+/*
+ * Kept from 0.4: every menu entry sits on a round button cap in the colours
+ * of a box front (Frank liked the red one behind the open page in 0.3 and
+ * missed it): an ink edge, a light lip on top, a shade at the bottom, a cap
+ * not quite round. The symbol on it is bold ink (src/ui/icons/caps.tsx). The
+ * open page keeps the purple tab of 0.3 with its drawn edge (above, .nav a).
+ */
+:where(:root[data-stil='holz']) .arcade-cap {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 52% 48% 50% 47% / 49% 53% 47% 51%;
+  background: var(--cap-color, var(--arcade-red));
+  color: #1f1a16;
+  box-shadow:
+    inset 0 0 0 2px #1f1a16,
+    inset 0 3px 0 rgb(255 255 255 / 0.42),
+    inset 0 -3px 0 rgb(31 26 22 / 0.22);
+}
+
+:where(:root[data-stil='holz']) .arcade-cap.cap-gelb {
+  --cap-color: var(--arcade-yellow);
+}
+
+:where(:root[data-stil='holz']) .arcade-cap.cap-gruen {
+  --cap-color: var(--arcade-green);
+}
+
+:where(:root[data-stil='holz']) .arcade-cap.cap-blau {
+  --cap-color: var(--arcade-blue);
+}
+
+/* A white cap is a little warm, like the plastic; in dark mode it stays a light button. */
+:where(:root[data-stil='holz']) .arcade-cap.cap-weiss {
+  --cap-color: #f4efe4;
+}
+
+:where(:root[data-stil='holz']) .nav a {
+  gap: 10px;
+  padding-left: var(--space-2);
+}
+
+:where(:root[data-stil='holz']) .phone-tabs .arcade-cap {
+  margin-top: 1px;
+}
+
+/* ------------------------------------------------------------------ 0.4.1: menu caps lit only on the open page and under the pointer */
+
+/*
+ * As in 0.3, the button caps of the menu are unlit, paper with an ink edge,
+ * and light up in their own colour only for the open page and while the
+ * pointer (or the keyboard) is on them. Only the background (and in dark
+ * mode the ink of the symbol) changes: no transform, no transition, no class.
+ */
+:where(:root[data-stil='holz']) :is(.nav a, .phone-tab, .phone-more) > .arcade-cap {
+  background: var(--surface);
+}
+
+:where(:root[data-stil='holz']) :is(.nav a, .phone-tab, .phone-more):is(:hover, :focus-visible, [aria-current='page']) > .arcade-cap {
+  background: var(--cap-color, var(--arcade-red));
+}
+
+/* Dark mode: an unlit cap is dark paper, so its edge and symbol take the light ink. */
+:root[data-theme='dark']:where([data-stil='holz']) :is(.nav a, .phone-tab, .phone-more) > .arcade-cap {
+  color: var(--ink);
+  box-shadow:
+    inset 0 0 0 2px var(--ink),
+    inset 0 3px 0 rgb(255 255 255 / 0.08),
+    inset 0 -3px 0 rgb(0 0 0 / 0.25);
+}
+
+:root[data-theme='dark']:where([data-stil='holz']) :is(.nav a, .phone-tab, .phone-more):is(:hover, :focus-visible, [aria-current='page']) > .arcade-cap {
+  color: #1f1a16;
+  box-shadow:
+    inset 0 0 0 2px #1f1a16,
+    inset 0 3px 0 rgb(255 255 255 / 0.42),
+    inset 0 -3px 0 rgb(31 26 22 / 0.22);
+}
+
+/* ------------------------------------------------------------------ 0.4.1: the controls of Hand.tsx, dressed as in 0.3 */
+
+/*
+ * Hand.tsx came with 0.4: words to circle in a sentence, a box drawn with a
+ * pen, a note in the margin with an arrow. What they do for the keyboard and
+ * screen readers stays; they look like the controls of 0.3 again: the words
+ * are a segmented control, the box an ordinary checkbox, the margin note a
+ * plain small sentence.
+ */
+:where(:root[data-stil='holz']) .circle-choice {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  padding: 4px;
+  vertical-align: middle;
+  border-radius: var(--radius);
+  background: var(--bg-sunken);
+  box-shadow: inset 0 0 0 1.5px var(--border-strong);
+}
+
+:where(:root[data-stil='holz']) .circle-choice > button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 30px;
+  padding: 0 var(--space-3);
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-soft);
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+:where(:root[data-stil='holz']) .circle-choice > button:hover:not(:disabled) {
+  color: var(--text);
+}
+
+:where(:root[data-stil='holz']) .circle-choice > button[aria-checked='true'] {
+  background: var(--surface-raised);
+  color: var(--text);
+  font-weight: 700;
+  box-shadow: inset 0 0 0 2px var(--ink);
+}
+
+:where(:root[data-stil='holz']) .circle-choice > button:disabled {
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+/* "oder" and the commas belong to the sentence of 0.4; the control needs none. */
+:where(:root[data-stil='holz']) .circle-or {
+  display: none;
+}
+
+:where(:root[data-stil='holz']) .pen-check {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  cursor: pointer;
+}
+
+:where(:root[data-stil='holz']) .pen-check > input {
+  flex: none;
+  margin-top: 2px;
+}
+
+:where(:root[data-stil='holz']) .pen-check.disabled {
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+:where(:root[data-stil='holz']) .margin-note {
+  max-width: 40rem;
+}
+
+:where(:root[data-stil='holz']) .margin-note > p {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: var(--text-sm);
+}
+
+:where(:root[data-stil='holz']) .margin-note-arrow {
+  display: none;
+}
+
+/* "So spielt die Karte: Album, … · Ändern" on the folder page, and the choice that opens under it. */
+:where(:root[data-stil='holz']) .folder-mode-line {
+  margin: 0;
+}
+
+:where(:root[data-stil='holz']) .folder-mode-picker {
+  padding: var(--space-3) 0 var(--space-2);
+}
+
+/*
+ * "Was ist drin?": six choices. Where they do not fit in one row, they stand
+ * in even rows of three or of two, never five and "Sonstiges" alone (tablet,
+ * narrow windows). The widths are where a row stops fitting, measured with
+ * the app font.
+ */
+html:root:where([data-stil='holz']) .folder-kind {
+  container-type: inline-size;
+}
+
+@container (max-width: 615px) {
+  html:root:where([data-stil='holz']) .folder-kind > .segmented {
+    display: inline-grid;
+    grid-template-columns: repeat(3, auto);
+  }
+}
+
+@container (max-width: 342px) {
+  html:root:where([data-stil='holz']) .folder-kind > .segmented {
+    grid-template-columns: repeat(2, auto);
+  }
+}
+
+/* The main button greyed out is no pale purple: a pencil outline of the button, the word in pencil. */
+:root:where([data-stil='holz']) .btn.primary:disabled {
+  --frame-style: dashed;
+  --frame-color: var(--pencil);
+  background: transparent;
+  color: var(--text-muted);
+  box-shadow: none;
+  opacity: 1;
+}

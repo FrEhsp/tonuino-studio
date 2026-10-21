@@ -1,0 +1,279 @@
+/* ------------------------------------------------------------------ "Cover suchen" for many folders */
+
+.bulk-facts {
+  margin: 0;
+  padding-left: 1.2em;
+  display: grid;
+  gap: var(--space-1);
+  color: var(--text-soft);
+}
+
+.bulk-progress {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.bulk-rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.bulk-row {
+  display: grid;
+  grid-template-columns: auto 88px minmax(0, 1fr);
+  align-items: start;
+  gap: var(--space-3) var(--space-4);
+  padding: var(--space-4);
+  background: var(--surface);
+}
+
+.bulk-row + .bulk-row {
+  border-top: 1px solid var(--border);
+}
+
+.bulk-row input[type='checkbox'] {
+  width: 18px;
+  height: 18px;
+  margin-top: 35px;
+  cursor: pointer;
+}
+
+.bulk-row input[type='checkbox']:disabled {
+  cursor: default;
+}
+
+.bulk-picture {
+  width: 88px;
+  height: 88px;
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--bg-sunken);
+  box-shadow: var(--shadow-sm);
+  display: grid;
+  place-items: center;
+}
+
+.bulk-picture img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.bulk-picture .gen-cover {
+  width: 100%;
+  height: 100%;
+}
+
+.bulk-main {
+  min-width: 0;
+  display: grid;
+  gap: var(--space-1);
+}
+
+.bulk-title {
+  font-weight: 650;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+
+.bulk-detail {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.bulk-state {
+  font-size: var(--text-sm);
+  overflow-wrap: anywhere;
+}
+
+.bulk-hit {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.bulk-error {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--danger-text);
+}
+
+.bulk-alts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-1);
+}
+
+.bulk-alt {
+  width: 52px;
+  height: 52px;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--bg-sunken);
+  cursor: pointer;
+  box-shadow: var(--shadow-xs);
+  transition: transform 0.15s var(--ease), border-color 0.15s var(--ease);
+}
+
+.bulk-alt img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.bulk-alt:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.bulk-alt:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.bulk-alt[aria-checked='true'] {
+  border-color: var(--primary);
+}
+
+.bulk-alt:disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+
+.bulk-actions {
+  gap: var(--space-1) var(--space-2);
+  margin-top: var(--space-1);
+}
+
+.bulk-actions .btn {
+  margin-left: calc(-1 * var(--space-2));
+}
+
+.bulk-actions .btn + .btn {
+  margin-left: 0;
+}
+
+.bulk-row.saved .bulk-picture {
+  box-shadow: 0 0 0 2px var(--success);
+}
+
+.bulk-actions .btn {
+  flex: none;
+}
+
+/* Phones: the picture shrinks; hits and buttons go below it and use the whole width. */
+@media (max-width: 560px) {
+  .bulk-row {
+    grid-template-columns: auto 64px minmax(0, 1fr);
+    gap: var(--space-1) var(--space-3);
+    padding: var(--space-3);
+  }
+
+  .bulk-main {
+    display: contents;
+  }
+
+  .bulk-row input[type='checkbox'],
+  .bulk-picture {
+    grid-row: 1 / span 2;
+    align-self: center;
+  }
+
+  .bulk-row input[type='checkbox'] {
+    margin-top: 0;
+  }
+
+  .bulk-picture {
+    width: 64px;
+    height: 64px;
+  }
+
+  .bulk-title,
+  .bulk-detail {
+    grid-column: 3;
+  }
+
+  .bulk-title {
+    align-self: end;
+  }
+
+  .bulk-title.solo {
+    grid-row: 1 / span 2;
+    align-self: center;
+  }
+
+  .bulk-detail {
+    align-self: start;
+  }
+
+  .bulk-state,
+  .bulk-error,
+  .bulk-alts,
+  .bulk-actions {
+    grid-column: 1 / -1;
+  }
+
+  .bulk-state {
+    margin-top: var(--space-2);
+  }
+
+  .bulk-alt {
+    width: 48px;
+    height: 48px;
+  }
+
+  .bulk-actions .btn {
+    margin-left: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bulk-alt {
+    transition: none;
+  }
+}
+
+/* Meine Box: a quiet line above the shelf. */
+.shelf-note {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  color: var(--text-soft);
+  font-size: var(--text-sm);
+}
+
+.shelf-note > svg {
+  color: var(--text-muted);
+  flex: none;
+}
+
+.shelf-note .link-button {
+  align-self: center;
+}
+
+/* Sticker page, step 1: the line above "Bilder hinzufügen". */
+.sticker-cover-note {
+  padding: var(--space-3) var(--space-5) 0;
+  border-top: 1px solid var(--border);
+}
+
+/* On a phone the sentence wraps beside its icon, not under it. */
+.sticker-cover-note > span {
+  flex: 1 1 12rem;
+  min-width: 0;
+}
+
+.sticker-cover-note + .card-footer {
+  border-top: 0;
+}

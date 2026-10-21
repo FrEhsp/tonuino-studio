@@ -1,0 +1,2612 @@
+{
+ "format": 1,
+ "updatedAt": "2026-10-15",
+ "blocked": [],
+ "entries": [
+  {
+   "id": "kakadu-kinderhoerspiel",
+   "type": "podcast",
+   "status": "active",
+   "title": "Kakadu – Das Kinderhörspiel",
+   "publisher": "Deutschlandfunk Kultur",
+   "pageUrl": "https://www.kakadu.de/",
+   "blurb": "Hörspiele aus dem Kinderprogramm von Deutschlandfunk Kultur, meist 20 bis 55 Minuten.",
+   "feedUrl": "https://www.kakadu.de/kinderhoerspiel-118.xml",
+   "mediaHosts": [
+    "podcast-mp3.dradio.de"
+   ],
+   "maxItems": 50,
+   "category": "hoerspiel",
+   "titlePrefixes": [
+    "Kinderhörspiel und Geschichten - ",
+    "Kinderhörspiel - ",
+    "Kakadu - "
+   ],
+   "titlePattern": "^(?:Kinderhörspiel(?: und Geschichten)?|Kakadu(?: Spezial)?)(?:\\s*-?\\s*Ursendung)?\\s*[-–:]\\s*(?:Ursendung\\s*[-–:]\\s*)?",
+   "ages": {
+    "min": 7,
+    "max": 12,
+    "source": "publisher",
+    "text": "Unsere Geschichten eignen sich meist für Hörer ab 7 Jahren."
+   },
+   "language": "de",
+   "rights": {
+    "kind": "podcast",
+    "holder": "Deutschlandradio",
+    "termsUrl": "https://www.kakadu.de/nutzungsbedingungen-106.html"
+   },
+   "delivery": "browser",
+   "editPolicy": "unchanged",
+   "note": "Du lädst die Folgen auf der Seite von Deutschlandfunk Kultur selbst herunter. Die Dateien kommen unverändert auf die Karte.",
+   "review": {
+    "at": "2026-10-13",
+    "next": "2027-04-13"
+   }
+  },
+  {
+   "type": "link",
+   "status": "active",
+   "category": "wissen",
+   "language": "de",
+   "delivery": "browser",
+   "editPolicy": "unchanged",
+   "review": {
+    "at": "2026-10-13",
+    "next": "2027-04-13"
+   },
+   "items": [],
+   "id": "kakadu-kinderpodcast",
+   "title": "Kakadu – Der Kinderpodcast",
+   "publisher": "Deutschlandfunk Kultur",
+   "pageUrl": "https://www.ardsounds.de/sendung/kakadu-der-kinderpodcast-deutschlandfunk-kultur/urn:ard:show:30c22e3f2fc00769/",
+   "blurb": "Wissen für Kinder von Deutschlandfunk Kultur: Tiere, Natur, Technik und große Fragen, meist 13 bis 26 Minuten.",
+   "ages": {
+    "min": 6,
+    "max": 12,
+    "source": "editor"
+   },
+   "rights": {
+    "kind": "private-use",
+    "holder": "Deutschlandradio",
+    "termsUrl": "https://www.kakadu.de/nutzungsbedingungen-106.html"
+   },
+   "note": "Du lädst die Folgen auf der Seite von ARD Sounds selbst herunter. Die Dateien kommen unverändert auf die Karte.",
+   "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:fb1d006f6eacdcf4?w=1280&ch=befc77926763882a",
+   "coverFrom": "Bild der Sendung bei ARD Sounds (Deutschlandradio)",
+   "series": {
+    "reader": "ardsounds",
+    "urls": [
+     "https://www.ardsounds.de/sendung/kakadu-der-kinderpodcast-deutschlandfunk-kultur/urn:ard:show:30c22e3f2fc00769/"
+    ],
+    "agesFromSeries": true
+   }
+  },
+  {
+   "type": "link",
+   "status": "active",
+   "category": "wissen",
+   "language": "de",
+   "delivery": "browser",
+   "editPolicy": "unchanged",
+   "review": {
+    "at": "2026-10-13",
+    "next": "2027-04-13"
+   },
+   "items": [],
+   "id": "br-checkpod",
+   "title": "CheckPod – Der Podcast mit Checker Tobi",
+   "publisher": "Bayerischer Rundfunk",
+   "pageUrl": "https://www.ardsounds.de/sendung/checkpod-der-podcast-mit-checker-tobi/urn:ard:show:2af809299201a921/",
+   "blurb": "Checker Tobi checkt Themen wie Klima, Nerven oder Demokratie, zum Hören, je etwa 25 Minuten.",
+   "ages": {
+    "min": 6,
+    "max": 12,
+    "source": "editor"
+   },
+   "rights": {
+    "kind": "private-use",
+    "holder": "ARD Sounds",
+    "termsUrl": "https://www.ardsounds.de/nutzungsbedingungen/"
+   },
+   "note": "Du lädst die Folgen auf der Seite von ARD Sounds selbst herunter. Die Dateien kommen unverändert auf die Karte.",
+   "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:e251b72cd0da27cb?w=1280&ch=ca53f149095ab98b",
+   "coverFrom": "Bild der Sendung bei ARD Sounds (BR)",
+   "series": {
+    "reader": "ardsounds",
+    "urls": [
+     "https://www.ardsounds.de/sendung/checkpod-der-podcast-mit-checker-tobi/urn:ard:show:2af809299201a921/"
+    ],
+    "agesFromSeries": true
+   }
+  },
+  {
+   "type": "link",
+   "status": "active",
+   "category": "wissen",
+   "language": "de",
+   "delivery": "browser",
+   "editPolicy": "unchanged",
+   "review": {
+    "at": "2026-10-13",
+    "next": "2027-04-13"
+   },
+   "items": [],
+   "id": "br-anna-wilde-tiere",
+   "title": "Anna und die wilden Tiere – der Podcast",
+   "publisher": "Bayerischer Rundfunk",
+   "pageUrl": "https://www.ardsounds.de/sendung/anna-und-die-wilden-tiere-der-podcast/urn:ard:show:8530c5d73f93f021/",
+   "blurb": "Tierwissen aus der Fernsehsendung zum Hören: Anna stellt Pelikane, Webervögel, Capybaras und viele andere Tiere vor.",
+   "ages": {
+    "min": 5,
+    "max": 11,
+    "source": "editor"
+   },
+   "rights": {
+    "kind": "private-use",
+    "holder": "ARD Sounds",
+    "termsUrl": "https://www.ardsounds.de/nutzungsbedingungen/"
+   },
+   "note": "Du lädst die Folgen auf der Seite von ARD Sounds selbst herunter. Die Dateien kommen unverändert auf die Karte.",
+   "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:b708d90da21503e8?w=1280&ch=265dc33153c36f3e",
+   "coverFrom": "Bild der Sendung bei ARD Sounds (BR)",
+   "series": {
+    "reader": "ardsounds",
+    "urls": [
+     "https://www.ardsounds.de/sendung/anna-und-die-wilden-tiere-der-podcast/urn:ard:show:8530c5d73f93f021/"
+    ],
+    "agesFromSeries": true
+   }
+  },
+  {
+   "id": "srf-kids-hoerspiele",
+   "type": "podcast",
+   "status": "review",
+   "title": "SRF Kids Hörspiele",
+   "publisher": "Schweizer Radio und Fernsehen (SRF)",
+   "pageUrl": "https://www.srf.ch/kids/eltern/srf-kids-hoerspiele-kinderhoerspiele-einfach-gratis-herunterladen",
+   "blurb": "Hörspiele auf Schweizerdeutsch: Krimi, Abenteuer und Geschichten vom Pausenhof.",
+   "feedUrl": "https://www.srf.ch/feed/podcast/sd/88072903-e34f-4f51-a9b9-052562d049c2.xml",
+   "mediaHosts": [
+    "download-media.srf.ch"
+   ],
+   "maxItems": 25,
+   "category": "hoerspiel",
+   "ages": {
+    "min": 8,
+    "max": 12,
+    "source": "publisher",
+    "text": "Tolle Hörspiele für Kinder ab 8 bis 12 Jahren auf Schweizerdeutsch."
+   },
+   "language": "gsw",
+   "rights": {
+    "kind": "podcast",
+    "holder": "SRG SSR",
+    "termsUrl": "https://www.srgssr.ch/de/nutzungsbedingungen"
+   },
+   "delivery": "browser",
+   "editPolicy": "unchanged",
+   "note": "Auf Schweizerdeutsch. SRF erlaubt, die Hörspiele für eine Hörspiel-Box herunterzuladen. Die Dateien kommen unverändert auf die Karte: keine Lautstärke-Anpassung, kein Teilen."
+  },
+  {
+   "id": "srf-schlummerland",
+   "type": "podcast",
+   "status": "check",
+   "title": "SRF Kids Schlummerland",
+   "publisher": "Schweizer Radio und Fernsehen (SRF)",
+   "pageUrl": "https://www.srf.ch/kids",
+   "feedUrl": "https://www.srf.ch/feed/podcast/sd/7431331f-01c4-4c53-8754-1cacb3bb5f9a.xml",
+   "mediaHosts": [
+    "download-media.srf.ch"
+   ],
+   "category": "hoerbuch",
+   "ages": {
+    "min": 4,
+    "max": 7,
+    "source": "editor"
+   },
+   "language": "gsw",
+   "rights": {
+    "kind": "podcast",
+    "holder": "SRG SSR",
+    "termsUrl": "https://www.srgssr.ch/de/nutzungsbedingungen"
+   },
+   "delivery": "browser",
+   "editPolicy": "unchanged",
+   "note": "Auf Schweizerdeutsch. Die Dateien kommen unverändert auf die Karte."
+  },
+  {
+   "id": "ndr-mikado-hoerspiele",
+   "type": "podcast",
+   "status": "check",
+   "title": "Mikado – Hörspiele, Geschichten und Märchen für Kinder",
+   "publisher": "NDR Kultur",
+   "pageUrl": "https://www.ndr.de/",
+   "feedUrl": "https://www.ndr.de/nachrichten/info/podcast4670.xml",
+   "mediaHosts": [
+    "ndr-podcast.ard-mcdn.de"
+   ],
+   "category": "hoerspiel",
+   "categoryRules": [
+    {
+     "pattern": "^(Kinderhörspiel|Orchesterhörspiel)",
+     "category": "hoerspiel"
+    },
+    {
+     "pattern": "^(Lesung|Märchen)",
+     "category": "hoerbuch"
+    },
+    {
+     "pattern": "^Kinderkonzert",
+     "category": "lied"
+    }
+   ],
+   "titlePrefixes": [
+    "Kinderhörspiel: ",
+    "Orchesterhörspiel: ",
+    "Lesung für Kinder: ",
+    "Kinderkonzert: ",
+    "Märchen: "
+   ],
+   "ages": {
+    "min": 6,
+    "max": 12,
+    "source": "editor"
+   },
+   "language": "de",
+   "rights": {
+    "kind": "podcast",
+    "holder": "NDR"
+   },
+   "delivery": "direct",
+   "editPolicy": "normal",
+   "note": "Podcast: nur für den privaten Gebrauch in der Familie."
+  },
+  {
+   "id": "wdr-maushoerspiel-kurz",
+   "type": "link",
+   "status": "active",
+   "title": "MausHörspiel kurz",
+   "publisher": "WDR – Die Maus",
+   "pageUrl": "https://www.ardsounds.de/sendung/maushoerspiel-kurz/urn:ard:show:321c2c393a041ddc/",
+   "category": "hoerspiel",
+   "ages": {
+    "min": 4,
+    "max": 8,
+    "source": "editor"
+   },
+   "language": "de",
+   "rights": {
+    "kind": "private-use",
+    "holder": "WDR",
+    "termsUrl": "https://www.ardsounds.de/nutzungsbedingungen/"
+   },
+   "delivery": "browser",
+   "editPolicy": "unchanged",
+   "note": "Du kannst jede Geschichte hier anhören. Speichern geht auf der Seite von ARD Sounds. Die ARD stellt jede Folge nur eine Zeit lang bereit.",
+   "blurb": "Kurze Hörspiele des WDR für die Maus, je fünf bis sieben Minuten.",
+   "featured": {
+    "rank": 9,
+    "why": "Kurze Hörspiele aus der Maus, schön für zwischendurch."
+   },
+   "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:a602796f56259a99?w=448&ch=6bf4e697738fb966",
+   "coverFrom": "Bild der Sendung bei ARD Sounds (WDR)",
+   "items": [
+    {
+     "title": "Willi, der Kater, der immer größer wurde",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:14f81dea3b4e6d91/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 4,
+      "max": 8
+     },
+     "durationSec": 420,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:9c867f30c84be9fd?w=448&ch=f5ad6b7692611ca1",
+     "about": "Willi ist ein kleiner Kater, der bei einem Ehepaar einzieht, aber unaufhörlich weiterwächst.",
+     "until": "2026-12-29",
+     "embed": "https://www.ardsounds.de/embed/episode/16657073/"
+    },
+    {
+     "title": "Flattervogelfest",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:6f7b42f7345910c9/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 4,
+      "max": 8
+     },
+     "durationSec": 420,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:2e8879583c21e951?w=448&ch=67753b8c1efd9d4a",
+     "about": "Max Wurm und Fledermaus Flapps sind beste Freunde.",
+     "until": "2031-05-30",
+     "embed": "https://www.ardsounds.de/embed/episode/16498603/"
+    },
+    {
+     "title": "Das Buchstabenmonster",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:2c9c225a28a969d6/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 4,
+      "max": 8
+     },
+     "durationSec": 360,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:c696f10c59768b5d?w=448&ch=c8c0d29a6be97cae",
+     "about": "Das Buchstabenmonster hat Riesenhunger!",
+     "until": "2027-03-01",
+     "embed": "https://www.ardsounds.de/embed/episode/11180461/"
+    }
+   ],
+   "series": {
+    "reader": "ardsounds",
+    "urls": [
+     "https://www.ardsounds.de/sendung/maushoerspiel-kurz/urn:ard:show:321c2c393a041ddc/"
+    ]
+   },
+   "single": true,
+   "review": {
+    "at": "2026-10-15",
+    "next": "2027-04-15"
+   }
+  },
+  {
+   "id": "br-pumuckl",
+   "type": "podcast",
+   "status": "check",
+   "title": "Pumuckl – Der Hörspiel-Klassiker",
+   "publisher": "Bayerischer Rundfunk",
+   "pageUrl": "https://www.br.de/",
+   "feedUrl": "https://feeds.br.de/pumuckl/feed.xml",
+   "mediaHosts": [
+    "media.neuland.br.de"
+   ],
+   "category": "hoerspiel",
+   "ages": {
+    "min": 5,
+    "source": "publisher",
+    "text": "Hörspiel vom Meister Eder und seinem Kobold ab 5 Jahren"
+   },
+   "language": "de",
+   "rights": {
+    "kind": "podcast",
+    "holder": "Bayerischer Rundfunk"
+   },
+   "delivery": "browser",
+   "editPolicy": "normal",
+   "note": "Podcast: nur für den privaten Gebrauch in der Familie."
+  },
+  {
+   "id": "mdr-figarino",
+   "type": "podcast",
+   "status": "check",
+   "title": "Figarinos Fahrradladen",
+   "publisher": "MDR Tweens",
+   "pageUrl": "https://www.mdr.de/tweens/",
+   "feedUrl": "https://www.mdr.de/tweens/podcast/figarino/fahrradladen-mdr-100.xml",
+   "mediaHosts": [
+    "ondemand.unified.mdr.de"
+   ],
+   "category": "hoerspiel",
+   "ages": {
+    "min": 8,
+    "max": 12,
+    "source": "publisher",
+    "text": "Geeignet für Kinder ab 8 Jahre"
+   },
+   "language": "de",
+   "rights": {
+    "kind": "podcast",
+    "holder": "MDR"
+   },
+   "delivery": "direct",
+   "editPolicy": "normal",
+   "note": "Podcast: nur für den privaten Gebrauch in der Familie."
+  },
+  {
+   "id": "radio-klops",
+   "type": "podcast",
+   "status": "review",
+   "title": "Radio Klops",
+   "publisher": "Domenik Schuster",
+   "pageUrl": "https://radioklops.podigee.io/",
+   "blurb": "Hörspielpodcast mit der Schildkröte Klops, Folgen von 23 bis 38 Minuten.",
+   "feedUrl": "https://radioklops.podigee.io/feed/mp3",
+   "mediaHosts": [
+    "audio.podigee-cdn.net"
+   ],
+   "category": "hoerspiel",
+   "ages": {
+    "min": 4,
+    "max": 8,
+    "source": "publisher",
+    "text": "Ab 4 Jahren geeignet."
+   },
+   "language": "de",
+   "rights": {
+    "kind": "podcast",
+    "holder": "Domenik Schuster"
+   },
+   "delivery": "direct",
+   "editPolicy": "normal",
+   "holdNew": true,
+   "note": "Podcast: nur für den privaten Gebrauch in der Familie."
+  },
+  {
+   "id": "rbb-ohrenbaer",
+   "type": "link",
+   "status": "active",
+   "title": "Ohrenbär",
+   "publisher": "rbb",
+   "pageUrl": "https://www.ardsounds.de/sendung/ohrenbaer/urn:ard:show:7d4e6af8e64fee8e/",
+   "category": "hoerbuch",
+   "ages": {
+    "min": 4,
+    "max": 8,
+    "source": "publisher",
+    "text": "Hörgeschichten für Kinder zwischen 4 und 8 Jahren"
+   },
+   "language": "de",
+   "rights": {
+    "kind": "private-use",
+    "holder": "rbb",
+    "termsUrl": "https://www.ardsounds.de/nutzungsbedingungen/"
+   },
+   "delivery": "browser",
+   "editPolicy": "unchanged",
+   "note": "Du kannst jede Geschichte hier anhören. Speichern geht auf der Seite von ARD Sounds. Die ARD stellt jede Folge nur eine Zeit lang bereit.",
+   "blurb": "Hörgeschichten des rbb für Kinder zwischen 4 und 8 Jahren. Hier stehen die Geschichten, die ARD Sounds komplett in einer Folge anbietet.",
+   "featured": {
+    "rank": 6,
+    "why": "Hörgeschichten vom rbb, hier jede komplett in einer Folge statt in vielen Teilen."
+   },
+   "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:c6bcf067547cf5a6?w=448&ch=46f0d43f20af69bd",
+   "coverFrom": "Bild der Sendung bei ARD Sounds (rbb)",
+   "items": [
+    {
+     "title": "Geistchen und Eule im Nachtwald",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:874ba5ad063a7004/",
+     "category": "hoerbuch",
+     "ages": {
+      "min": 4,
+      "max": 8
+     },
+     "durationSec": 2040,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:d958cde05d172dfb?w=448&ch=67de05e07b84d4d2",
+     "about": "Eule muss sich sehr wundern: Ein schimmerndes, schönes Wesen sitzt im Nachtwald!",
+     "until": "2027-10-03",
+     "embed": "https://www.ardsounds.de/embed/episode/11188139/"
+    },
+    {
+     "title": "Lina, Kater Hegel und die Demokratie",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:dc4016e6f12d554b/",
+     "category": "hoerbuch",
+     "ages": {
+      "min": 6,
+      "max": 8
+     },
+     "durationSec": 3600,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:8d228a3cb56b258a?w=448&ch=c1b400db7402662e",
+     "about": "Wenn Lina etwas bewegt, trifft sie Kater Hegel im alten Wohnwagen.",
+     "until": "2027-09-26",
+     "embed": "https://www.ardsounds.de/embed/episode/11163523/"
+    }
+   ],
+   "series": {
+    "reader": "ardsounds",
+    "urls": [
+     "https://www.ardsounds.de/sendung/ohrenbaer/urn:ard:show:7d4e6af8e64fee8e/"
+    ],
+    "noNew": true
+   },
+   "single": true,
+   "review": {
+    "at": "2026-10-15",
+    "next": "2027-04-15"
+   }
+  },
+  {
+   "id": "global-storybooks-de",
+   "type": "gitlab-gsb",
+   "status": "review",
+   "title": "Global Storybooks – Geschichten zum Vorlesen",
+   "publisher": "Global Storybooks / African Storybook",
+   "pageUrl": "https://gitlab.com/global-asp/gsn-audio",
+   "blurb": "Kurze Bilderbuchgeschichten aus Afrika, auf Deutsch gelesen von Jula Eberth.",
+   "minSeconds": 20,
+   "project": 6909116,
+   "ref": "a2f9f1d20b3225d8bfa654e5b37fb68cc6b19656",
+   "path": "de",
+   "stories": [
+    {
+     "id": "0001",
+     "shortcode": "tall",
+     "licence": "https://creativecommons.org/licenses/by/3.0/"
+    },
+    {
+     "id": "0002",
+     "shortcode": "animals",
+     "licence": "https://creativecommons.org/licenses/by-nc/3.0/"
+    },
+    {
+     "id": "0003",
+     "shortcode": "clothes",
+     "licence": "https://creativecommons.org/licenses/by-nc/3.0/"
+    },
+    {
+     "id": "0004",
+     "shortcode": "goat",
+     "licence": "https://creativecommons.org/licenses/by/3.0/"
+    },
+    {
+     "id": "0006",
+     "shortcode": "anansi",
+     "licence": "https://creativecommons.org/licenses/by/3.0/"
+    },
+    {
+     "id": "0008",
+     "shortcode": "what",
+     "licence": "https://creativecommons.org/licenses/by/3.0/"
+    },
+    {
+     "id": "0009",
+     "shortcode": "where",
+     "licence": "https://creativecommons.org/licenses/by-nc/3.0/"
+    },
+    {
+     "id": "0027",
+     "shortcode": "decision",
+     "licence": "https://creativecommons.org/licenses/by/4.0/"
+    },
+    {
+     "id": "0030",
+     "shortcode": "feelings",
+     "licence": "https://creativecommons.org/licenses/by-nc/3.0/"
+    },
+    {
+     "id": "0052",
+     "shortcode": "simbegwire",
+     "licence": "https://creativecommons.org/licenses/by/3.0/"
+    },
+    {
+     "id": "0066",
+     "shortcode": "nozibele",
+     "licence": "https://creativecommons.org/licenses/by/3.0/"
+    },
+    {
+     "id": "0067",
+     "shortcode": "cooking",
+     "licence": "https://creativecommons.org/licenses/by-nc/3.0/"
+    },
+    {
+     "id": "0072",
+     "shortcode": "honeyguide",
+     "licence": "https://creativecommons.org/licenses/by/3.0/"
+    },
+    {
+     "id": "0087",
+     "shortcode": "read",
+     "licence": "https://creativecommons.org/licenses/by/3.0/"
+    },
+    {
+     "id": "0089",
+     "shortcode": "khalai",
+     "licence": "https://creativecommons.org/licenses/by/4.0/"
+    },
+    {
+     "id": "0095",
+     "shortcode": "zama",
+     "licence": "https://creativecommons.org/licenses/by/3.0/"
+    },
+    {
+     "id": "0110",
+     "shortcode": "wangari",
+     "licence": "https://creativecommons.org/licenses/by/4.0/"
+    },
+    {
+     "id": "0111",
+     "shortcode": "hippos",
+     "licence": "https://creativecommons.org/licenses/by/3.0/"
+    },
+    {
+     "id": "0112",
+     "shortcode": "body",
+     "licence": "https://creativecommons.org/licenses/by-nc/3.0/"
+    },
+    {
+     "id": "0120",
+     "shortcode": "hair",
+     "licence": "https://creativecommons.org/licenses/by-nc/3.0/"
+    },
+    {
+     "id": "0129",
+     "shortcode": "lazy",
+     "licence": "https://creativecommons.org/licenses/by-nc/3.0/"
+    },
+    {
+     "id": "0141",
+     "shortcode": "chicken",
+     "licence": "https://creativecommons.org/licenses/by/3.0/"
+    },
+    {
+     "id": "0156",
+     "shortcode": "hungry",
+     "licence": "https://creativecommons.org/licenses/by/3.0/"
+    },
+    {
+     "id": "0158",
+     "shortcode": "hen",
+     "licence": "https://creativecommons.org/licenses/by/3.0/"
+    },
+    {
+     "id": "0201",
+     "shortcode": "donkey",
+     "licence": "https://creativecommons.org/licenses/by/4.0/"
+    },
+    {
+     "id": "0210",
+     "shortcode": "tingi",
+     "licence": "https://creativecommons.org/licenses/by/3.0/"
+    },
+    {
+     "id": "0231",
+     "shortcode": "weather",
+     "licence": "https://creativecommons.org/licenses/by-nc/3.0/"
+    },
+    {
+     "id": "0234",
+     "shortcode": "andiswa",
+     "licence": "https://creativecommons.org/licenses/by-nc/3.0/"
+    },
+    {
+     "id": "0243",
+     "shortcode": "holidays",
+     "licence": "https://creativecommons.org/licenses/by/4.0/"
+    },
+    {
+     "id": "0262",
+     "shortcode": "magozwe",
+     "licence": "https://creativecommons.org/licenses/by/4.0/",
+     "review": "Titel deutet auf ein ernstes Thema (Straßenkind): anhören"
+    },
+    {
+     "id": "0271",
+     "shortcode": "two",
+     "licence": "https://creativecommons.org/licenses/by-nc/3.0/"
+    },
+    {
+     "id": "0291",
+     "shortcode": "vusi",
+     "licence": "https://creativecommons.org/licenses/by/3.0/"
+    },
+    {
+     "id": "0294",
+     "shortcode": "grandma",
+     "licence": "https://creativecommons.org/licenses/by/3.0/"
+    },
+    {
+     "id": "0296",
+     "shortcode": "tom",
+     "licence": "https://creativecommons.org/licenses/by/4.0/"
+    },
+    {
+     "id": "0302",
+     "shortcode": "fire",
+     "licence": "https://creativecommons.org/licenses/by/3.0/"
+    },
+    {
+     "id": "0315",
+     "shortcode": "sakima",
+     "licence": "https://creativecommons.org/licenses/by/4.0/"
+    },
+    {
+     "id": "0324",
+     "shortcode": "city",
+     "licence": "https://creativecommons.org/licenses/by/4.0/"
+    },
+    {
+     "id": "0327",
+     "shortcode": "counting",
+     "licence": "https://creativecommons.org/licenses/by/3.0/"
+    },
+    {
+     "id": "0337",
+     "shortcode": "wax",
+     "licence": "https://creativecommons.org/licenses/by/3.0/",
+     "review": "Titel deutet auf ein trauriges Ende: anhören"
+    },
+    {
+     "id": "0342",
+     "shortcode": "punishment",
+     "licence": "https://creativecommons.org/licenses/by/3.0/",
+     "review": "Titel „Punishment“ (Strafe): anhören"
+    }
+   ],
+   "category": "hoerbuch",
+   "ages": {
+    "min": 3,
+    "max": 7,
+    "source": "editor"
+   },
+   "language": "de",
+   "rights": {
+    "kind": "cc",
+    "id": "by",
+    "version": "3.0",
+    "url": "https://creativecommons.org/licenses/by/3.0/"
+   },
+   "delivery": "direct",
+   "editPolicy": "normal"
+  },
+  {
+   "id": "ohrka",
+   "type": "link",
+   "status": "active",
+   "title": "OHRKA – Hörabenteuer für Kinder",
+   "publisher": "OHRKA e.V.",
+   "pageUrl": "https://www.ohrka.de/",
+   "blurb": "Kostenlose, werbefreie Hörbücher und Hörspiele des gemeinnützigen Vereins OHRKA, gelesen von bekannten Schauspielerinnen und Schauspielern.",
+   "items": [
+    {
+     "title": "Alice im Wunderland, gelesen von Katharina Thalbach",
+     "pageUrl": "https://www.ohrka.de/hoeren/tierisch-spannend/alice-im-wunderland",
+     "category": "hoerbuch",
+     "ages": {
+      "min": 8,
+      "max": 12
+     },
+     "durationSec": 11409,
+     "fileName": "Alice_im_Wunderland_komplett.mp3",
+     "cover": "https://www.ohrka.de/fileadmin/bilder/pl_wunderland.png",
+     "creators": [
+      {
+       "name": "Katharina Thalbach",
+       "role": "reader"
+      }
+     ],
+     "about": "Hörbuch von OHRKA aus der Rubrik „Tierisch spannend“, für Kinder ab 8 Jahren.",
+     "fileUrl": "https://www.ohrka.de/fileadmin/audio/Alice/Alice_im_Wunderland_komplett.mp3"
+    },
+    {
+     "title": "Das Dschungelbuch, gelesen von Anke Engelke",
+     "pageUrl": "https://www.ohrka.de/hoeren/tierisch-spannend/das-dschungelbuch",
+     "category": "hoerbuch",
+     "ages": {
+      "min": 8,
+      "max": 12
+     },
+     "durationSec": 8068,
+     "fileName": "Das_Dschungelbuch_-_Teil1-3.mp3",
+     "cover": "https://www.ohrka.de/fileadmin/bilder/pl_dschungelbuch.png",
+     "creators": [
+      {
+       "name": "Anke Engelke",
+       "role": "reader"
+      }
+     ],
+     "about": "Hörbuch von OHRKA aus der Rubrik „Tierisch spannend“, für Kinder ab 8 Jahren."
+    },
+    {
+     "title": "Robinson Crusoe, gelesen von David Nathan",
+     "pageUrl": "https://www.ohrka.de/hoeren/tierisch-spannend/robinson-crusoe",
+     "category": "hoerbuch",
+     "ages": {
+      "min": 8,
+      "max": 12
+     },
+     "durationSec": 11377,
+     "fileName": "Robinson_Crusoe_-_Teil_1-3.mp3",
+     "cover": "https://www.ohrka.de/fileadmin/bilder/pl_crusoe.png",
+     "creators": [
+      {
+       "name": "David Nathan",
+       "role": "reader"
+      }
+     ],
+     "about": "Hörbuch von OHRKA aus der Rubrik „Tierisch spannend“, für Kinder ab 8 Jahren."
+    },
+    {
+     "title": "Black Beauty, gelesen von Petra Schmidt-Schaller",
+     "pageUrl": "https://www.ohrka.de/hoeren/tierisch-spannend/black-beauty",
+     "category": "hoerbuch",
+     "ages": {
+      "min": 8,
+      "max": 12
+     },
+     "durationSec": 9741,
+     "fileName": "Black_Beauty-cut.mp3",
+     "cover": "https://www.ohrka.de/fileadmin/bilder/pl_stern.png",
+     "creators": [
+      {
+       "name": "Petra Schmidt-Schaller",
+       "role": "reader"
+      }
+     ],
+     "about": "Hörbuch von OHRKA aus der Rubrik „Tierisch spannend“, für Kinder ab 8 Jahren."
+    },
+    {
+     "title": "Reise zum Mittelpunkt der Erde, gelesen von Stefan Kaminski",
+     "pageUrl": "https://www.ohrka.de/hoeren/tierisch-spannend/die-reise-zum-mittelpunkt-der-erde",
+     "category": "hoerbuch",
+     "ages": {
+      "min": 8,
+      "max": 12
+     },
+     "durationSec": 13169,
+     "fileName": "Reise_zum_Mittelpunkt_der_Erde_komplett_Teil_1-3.mp3",
+     "cover": "https://www.ohrka.de/fileadmin/bilder/pl_erde.png",
+     "creators": [
+      {
+       "name": "Stefan Kaminski",
+       "role": "reader"
+      }
+     ],
+     "about": "Hörbuch von OHRKA aus der Rubrik „Tierisch spannend“, für Kinder ab 8 Jahren."
+    },
+    {
+     "title": "Die Schatzinsel",
+     "pageUrl": "https://www.ohrka.de/hoeren/tierisch-spannend/die-schatzinsel",
+     "category": "hoerbuch",
+     "ages": {
+      "min": 8,
+      "max": 12
+     },
+     "durationSec": 20534,
+     "fileName": "Schatzinsel_CD1-5.mp3",
+     "cover": "https://www.ohrka.de/fileadmin/bilder/pl_schatzinsel.png",
+     "about": "Hörbuch von OHRKA aus der Rubrik „Tierisch spannend“, für Kinder ab 8 Jahren."
+    },
+    {
+     "title": "Der Zauberer von Oz",
+     "pageUrl": "https://www.ohrka.de/hoeren/tierisch-spannend/der-zauberer-von-oz",
+     "category": "hoerbuch",
+     "ages": {
+      "min": 8,
+      "max": 12
+     },
+     "durationSec": 10090,
+     "fileName": "Der_Zauberer_von_Oz-cut.mp3",
+     "cover": "https://www.ohrka.de/fileadmin/bilder/pl_verzaubert_insel_01.png",
+     "about": "Hörbuch von OHRKA aus der Rubrik „Tierisch spannend“, für Kinder ab 8 Jahren.",
+     "fileUrl": "https://www.ohrka.de/fileadmin/audio/eBooks/Der_Zauberer_von_Oz-cut.mp3"
+    },
+    {
+     "title": "Huckleberry Finn",
+     "pageUrl": "https://www.ohrka.de/hoeren/tierisch-spannend/huckleberry-finn",
+     "category": "hoerbuch",
+     "ages": {
+      "min": 8,
+      "max": 12
+     },
+     "durationSec": 10178,
+     "fileName": "Huckleberry_Finn-cut.mp3",
+     "cover": "https://www.ohrka.de/fileadmin/bilder/pl_streit.png",
+     "about": "Hörbuch von OHRKA aus der Rubrik „Tierisch spannend“, für Kinder ab 8 Jahren."
+    },
+    {
+     "title": "Oskars Abenteuer, gelesen von Oliver Rohrbeck",
+     "pageUrl": "https://www.ohrka.de/hoeren/abenteuerlich-lustig/oskars-abenteuer",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 5,
+      "max": 10
+     },
+     "durationSec": 4078,
+     "fileName": "Oskars-Abenteuer-Teil1-Absatz1-5.mp3",
+     "cover": "https://www.ohrka.de/fileadmin/bilder/pl_zwille.png",
+     "creators": [
+      {
+       "name": "Oliver Rohrbeck",
+       "role": "reader"
+      }
+     ],
+     "about": "Hörspiel von OHRKA aus der Rubrik „Abenteuerlich lustig“, für Kinder ab 5 Jahren."
+    },
+    {
+     "title": "Alarm im Uhrenland",
+     "pageUrl": "https://www.ohrka.de/hoeren/abenteuerlich-lustig/alarm-im-uhrenland",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 5,
+      "max": 10
+     },
+     "durationSec": 3805,
+     "fileName": "Uhrenland_komplett.mp3",
+     "cover": "https://www.ohrka.de/fileadmin/bilder/pl_uhrenland.png",
+     "about": "Hörspiel von OHRKA aus der Rubrik „Abenteuerlich lustig“, für Kinder ab 5 Jahren."
+    },
+    {
+     "title": "14 besonders bekannte Märchen, gelesen von Katharina Thalbach, Oliver Rohrbeck und anderen",
+     "pageUrl": "https://www.ohrka.de/hoeren/maerchen-fuer-alle/bekannte-maerchen",
+     "category": "hoerbuch",
+     "ages": {
+      "min": 5,
+      "max": 10
+     },
+     "durationSec": 10515,
+     "fileName": "Bekannte_Maerchen.mp3",
+     "cover": "https://www.ohrka.de/fileadmin/bilder/pl_verzaubert_insel.png",
+     "about": "14 Märchen von den Bremer Stadtmusikanten bis zum hässlichen jungen Entlein, gelesen von sechs Sprecherinnen und Sprechern, für Kinder ab 5 Jahren."
+    }
+   ],
+   "category": "hoerbuch",
+   "ages": {
+    "min": 3,
+    "max": 12,
+    "source": "publisher",
+    "text": "ab 3 Jahre für Kindergartenkinder, ab 5 Jahre, ab 8 Jahre, aber auch ab 12 Jahre"
+   },
+   "language": "de",
+   "rights": {
+    "kind": "private-use",
+    "holder": "OHRKA e.V.",
+    "termsUrl": "https://www.ohrka.de/impressum"
+   },
+   "delivery": "browser",
+   "editPolicy": "normal",
+   "note": "OHRKA erlaubt das Herunterladen für den privaten Gebrauch und für Bildungszwecke. Weitergeben nur mit Erlaubnis von OHRKA.",
+   "review": {
+    "at": "2026-10-09",
+    "next": "2027-04-09"
+   },
+   "cover": "https://www.ohrka.de/fileadmin/bilder/pl_verzaubert_insel.png",
+   "coverFrom": "Bild von ohrka.de (OHRKA e.V.)",
+   "single": true,
+   "series": {
+    "reader": "ohrka",
+    "urls": [
+     "https://www.ohrka.de/hoeren/tierisch-spannend",
+     "https://www.ohrka.de/hoeren/abenteuerlich-lustig",
+     "https://www.ohrka.de/hoeren/maerchen-fuer-alle"
+    ],
+    "pageAges": {
+     "https://www.ohrka.de/hoeren/tierisch-spannend": {
+      "min": 8,
+      "max": 12,
+      "text": "Für alle Kinder ab 8"
+     }
+    }
+   }
+  },
+  {
+   "id": "ard-hoerspielklassiker",
+   "type": "link",
+   "status": "active",
+   "title": "Hörspielklassiker für Kinder",
+   "publisher": "ARD",
+   "pageUrl": "https://www.ardsounds.de/sendung/hoerspielklassiker-fuer-kinder/urn:ard:show:a98eaa600a311568/",
+   "blurb": "Bekannte Kinderbücher als Hörspiele aus den Archiven der ARD, von Die Schatzinsel und Kalle Blomquist bis Peter Pan, gespielt mit vielen Stimmen und Musik.",
+   "items": [
+    {
+     "title": "Die Schatzinsel (1/3)",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:02e2c3207e8a1ab4/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 7,
+      "max": 12
+     },
+     "durationSec": 3180,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:0d88e0606cb1fdbc?w=448&ch=069892e33ee1a2ba",
+     "about": "Hörspiel des NDR von 1962 nach dem Abenteuerroman von Robert Louis Stevenson, für Kinder ab 7 Jahren.",
+     "until": "2031-04-30",
+     "embed": "https://www.ardsounds.de/embed/episode/16329591/"
+    },
+    {
+     "title": "Die Schatzinsel (2/3)",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:de1b0b6a806d8c34/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 7,
+      "max": 12
+     },
+     "durationSec": 3180,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:eda51fe45173f236?w=448&ch=047f083ce927a763",
+     "about": "Hörspiel des NDR von 1962 nach dem Abenteuerroman von Robert Louis Stevenson, für Kinder ab 7 Jahren.",
+     "until": "2031-05-07",
+     "embed": "https://www.ardsounds.de/embed/episode/16368527/"
+    },
+    {
+     "title": "Die Schatzinsel (3/3)",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:3ec752bd743603c1/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 7,
+      "max": 12
+     },
+     "durationSec": 3000,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:005eb2322387b556?w=448&ch=dfe7275942207743",
+     "about": "Hörspiel des NDR von 1962 nach dem Abenteuerroman von Robert Louis Stevenson, für Kinder ab 7 Jahren.",
+     "until": "2031-05-14",
+     "embed": "https://www.ardsounds.de/embed/episode/16406765/"
+    },
+    {
+     "title": "Astrid Lindgren: Meisterdetektiv Kalle Blomquist (1/2)",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:0f812aac1d810af8/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 7,
+      "max": 12
+     },
+     "durationSec": 3180,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:d5b572259e192dd0?w=448&ch=86c43f268147283f",
+     "about": "Hörspiel des NDR von 1954 nach dem Buch von Astrid Lindgren, für Kinder ab 7 Jahren.",
+     "until": "2028-01-16",
+     "embed": "https://www.ardsounds.de/embed/episode/15727847/"
+    },
+    {
+     "title": "Astrid Lindgren: Meisterdetektiv Kalle Blomquist (2/2)",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:197e1ca675f5384f/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 7,
+      "max": 12
+     },
+     "durationSec": 3240,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:334d8dd73639c94f?w=448&ch=35649c83f0a89e20",
+     "about": "Hörspiel des NDR von 1954 nach dem Buch von Astrid Lindgren, für Kinder ab 7 Jahren.",
+     "until": "2028-01-23",
+     "embed": "https://www.ardsounds.de/embed/episode/15727851/"
+    },
+    {
+     "title": "Der Sängerkrieg der Heidehasen",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:e745201907584394/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 6,
+      "max": 10
+     },
+     "durationSec": 2580,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:32ed409c99696241?w=448&ch=e3e12d0c9fbade14",
+     "about": "Hörspiel des BR von 1952 von James Krüss, mit Musik von Rolf Wilhelm, für Kinder ab 6 Jahren.",
+     "until": "2028-04-23",
+     "embed": "https://www.ardsounds.de/embed/episode/16255881/"
+    },
+    {
+     "title": "Paul Maar: In einem tiefen dunklen Wald (1/2)",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:6b867088764f74da/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 5,
+      "max": 10
+     },
+     "durationSec": 1740,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:3db777c52b7a37a1?w=448&ch=47a346372e6a23a9",
+     "about": "Hörspiel von SWR, BR und WDR aus dem Jahr 2000 nach Paul Maar, unter anderem mit Rufus Beck, für Kinder ab 5 Jahren.",
+     "until": "2028-01-30",
+     "embed": "https://www.ardsounds.de/embed/episode/15782715/"
+    },
+    {
+     "title": "Paul Maar: In einem tiefen dunklen Wald (2/2)",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:00823aac8575d8ea/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 5,
+      "max": 10
+     },
+     "durationSec": 1800,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:3af1ce1679425e63?w=448&ch=b09406df57ff8a4d",
+     "about": "Hörspiel von SWR, BR und WDR aus dem Jahr 2000 nach Paul Maar, unter anderem mit Rufus Beck, für Kinder ab 5 Jahren.",
+     "until": "2028-02-06",
+     "embed": "https://www.ardsounds.de/embed/episode/15782727/"
+    },
+    {
+     "title": "Gebrüder Grimm: Das tapfere Schneiderlein",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:89440933299fd55d/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 5,
+      "max": 10
+     },
+     "durationSec": 2880,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:f4c750a514d9db40?w=448&ch=74e7fcad7a1fd0b6",
+     "about": "Hörspiel vom Rundfunk der DDR aus dem Jahr 1967 nach dem Märchen der Brüder Grimm, für Kinder ab 5 Jahren.",
+     "until": "2027-06-11",
+     "embed": "https://www.ardsounds.de/embed/episode/16521309/"
+    },
+    {
+     "title": "Konrad oder Das Kind aus der Konservenbüchse",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:65d9cb1574d2e388/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 8,
+      "max": 12
+     },
+     "durationSec": 3060,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:c3184093f9de5453?w=448&ch=bad250cb4e020a92",
+     "about": "Hörspiel des WDR von 2009 nach dem Buch von Christine Nöstlinger, für Kinder ab 8 Jahren.",
+     "until": "2028-06-26",
+     "embed": "https://www.ardsounds.de/embed/episode/16593349/"
+    },
+    {
+     "title": "Timm Thaler oder Das verkaufte Lachen (1/3)",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:a9595821682948c9/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 8,
+      "max": 12
+     },
+     "durationSec": 1800,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:b56bc378b83a2062?w=448&ch=ce88aed66bfc7fb1",
+     "about": "Hörspiel von Radio Bremen aus dem Jahr 1964, für Kinder ab 8 Jahren.",
+     "until": "2028-05-21",
+     "embed": "https://www.ardsounds.de/embed/episode/16443269/"
+    },
+    {
+     "title": "Timm Thaler oder Das verkaufte Lachen (2/3)",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:a1ad23c43ff2462c/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 8,
+      "max": 12
+     },
+     "durationSec": 1740,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:65c72e4117dc4fc1?w=448&ch=fadd0fc805231679",
+     "about": "Hörspiel von Radio Bremen aus dem Jahr 1964, für Kinder ab 8 Jahren.",
+     "until": "2028-05-28",
+     "embed": "https://www.ardsounds.de/embed/episode/16443281/"
+    },
+    {
+     "title": "Timm Thaler oder Das verkaufte Lachen (3/3)",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:c66394da8e353d69/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 8,
+      "max": 12
+     },
+     "durationSec": 1800,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:c3c335fcfedc1acb?w=448&ch=91ea503f3c02e3d9",
+     "about": "Hörspiel von Radio Bremen aus dem Jahr 1964, für Kinder ab 8 Jahren.",
+     "until": "2028-06-04",
+     "embed": "https://www.ardsounds.de/embed/episode/16443285/"
+    },
+    {
+     "title": "Peter Pan (1/2)",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:b170ae7aaac1f97d/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 8,
+      "max": 12
+     },
+     "durationSec": 2580,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:3e594e7afe555d40?w=448&ch=d78aca1f2075a154",
+     "about": "Hörspiel des WDR von 2018, unter anderem mit Andreas Fröhlich, für Kinder ab 8 Jahren.",
+     "until": "2027-12-26",
+     "embed": "https://www.ardsounds.de/embed/episode/15640041/"
+    },
+    {
+     "title": "Peter Pan (2/2)",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:e4efc502443b44ac/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 8,
+      "max": 12
+     },
+     "durationSec": 2520,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:b09ed1e1d421be45?w=448&ch=70943a05e7f079c6",
+     "about": "Hörspiel des WDR von 2018, unter anderem mit Andreas Fröhlich, für Kinder ab 8 Jahren.",
+     "until": "2028-01-02",
+     "embed": "https://www.ardsounds.de/embed/episode/15623909/"
+    },
+    {
+     "title": "Alice im Wunderland",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:8764f49b1b64aa46/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 8,
+      "max": 12
+     },
+     "durationSec": 3300,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:60dc0f0738f9852f?w=448&ch=4b693e479b926ce6",
+     "about": "Orchesterhörspiel des NDR von 2010, unter anderem mit Ulrich Noethen und Stefan Kaminski, für Kinder ab 8 Jahren.",
+     "until": "2031-01-08",
+     "embed": "https://www.ardsounds.de/embed/episode/15623871/"
+    },
+    {
+     "title": "Die Gespensterjäger auf eisiger Spur (1/2)",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:7816f60136e32558/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 8,
+      "max": 12
+     },
+     "durationSec": 2640,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:759e1e597dedd772?w=448&ch=85137e09d7b427a4",
+     "about": "Hörspiel des NDR von 2009 nach Cornelia Funke, für Kinder ab 8 Jahren.",
+     "until": "2028-02-27",
+     "embed": "https://www.ardsounds.de/embed/episode/15979587/"
+    },
+    {
+     "title": "Die Gespensterjäger auf eisiger Spur (2/2)",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:ef81620d26956791/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 8,
+      "max": 12
+     },
+     "durationSec": 2520,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:a940ae6c59a3b6ab?w=448&ch=2a2deca907f2cf39",
+     "about": "Hörspiel des NDR von 2009 nach Cornelia Funke, für Kinder ab 8 Jahren.",
+     "until": "2028-03-05",
+     "embed": "https://www.ardsounds.de/embed/episode/15979591/"
+    },
+    {
+     "title": "Astrid Lindgren: Die Brüder Löwenherz (1/2)",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:e59ea2a6a58a6b2c/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 7,
+      "max": 12
+     },
+     "durationSec": 3180,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:fe94c5ce08f870c2?w=448&ch=829289449790b479",
+     "about": "Hörspiel des WDR von 2011 nach Astrid Lindgren, unter anderem mit Tom Schilling, für Kinder ab 7 Jahren.",
+     "until": "2028-02-13",
+     "embed": "https://www.ardsounds.de/embed/episode/15782685/"
+    },
+    {
+     "title": "Astrid Lindgren: Die Brüder Löwenherz (2/2)",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:87062d4632e576ce/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 7,
+      "max": 12
+     },
+     "durationSec": 3180,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:d61256f8c8004fa2?w=448&ch=4ec2c7c4ce361856",
+     "about": "Hörspiel des WDR von 2011 nach Astrid Lindgren, unter anderem mit Tom Schilling, für Kinder ab 7 Jahren.",
+     "until": "2028-02-20",
+     "embed": "https://www.ardsounds.de/embed/episode/15782699/"
+    },
+    {
+     "title": "Charles Dickens: A Christmas Carol",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:5a95a4cdd19c58a8/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 7,
+      "max": 12
+     },
+     "durationSec": 3300,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:eb667d36cbbdf3f2?w=448&ch=c7323212b568ad7c",
+     "about": "Orchesterhörspiel des NDR von 2012 nach Charles Dickens, unter anderem mit Jens Wawrczeck, für Kinder ab 7 Jahren.",
+     "until": "2030-12-18",
+     "embed": "https://www.ardsounds.de/embed/episode/15623797/"
+    }
+   ],
+   "category": "hoerspiel",
+   "ages": {
+    "min": 5,
+    "max": 12,
+    "source": "publisher",
+    "text": "Für Kinder ab 5 Jahren."
+   },
+   "language": "de",
+   "rights": {
+    "kind": "private-use",
+    "holder": "ARD Sounds",
+    "termsUrl": "https://www.ardsounds.de/nutzungsbedingungen/"
+   },
+   "delivery": "browser",
+   "editPolicy": "unchanged",
+   "note": "Du lädst die Folgen auf der Seite von ARD Sounds selbst herunter. Die ARD stellt jede Folge nur eine Zeit lang bereit, die meisten bis 2028.",
+   "featured": {
+    "rank": 10,
+    "why": "Hier hörst du Die Schatzinsel, Kalle Blomquist, Peter Pan und mehr als echte Hörspiele mit vielen Stimmen und Musik."
+   },
+   "review": {
+    "at": "2026-10-09",
+    "next": "2027-04-09"
+   },
+   "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:e3cd683bc2f3d6a6?w=448&ch=bef8e4ee180eca83",
+   "coverFrom": "Bild der Sendung bei ARD Sounds (Radio Bremen, Grafik: Eike Wiekhoff)",
+   "single": true,
+   "series": {
+    "reader": "ardsounds",
+    "urls": [
+     "https://www.ardsounds.de/sendung/hoerspielklassiker-fuer-kinder/urn:ard:show:a98eaa600a311568/"
+    ]
+   }
+  },
+  {
+   "id": "hr-mucks-wuestenfuchs",
+   "type": "link",
+   "status": "active",
+   "title": "Mucks Wüstenfuchs – Mini-Hörspiele zum Mitraten",
+   "publisher": "hr",
+   "dropCounter": true,
+   "pageUrl": "https://www.ardsounds.de/sendung/mucks-wuestenfuchs-die-welt-in-deinem-ohr-mini-hoerspiele-fuer-minis-zum-mitraten-oder-fuer-kinder-ab-2-jahren/urn:ard:show:eefe4a416460c452/",
+   "blurb": "Ein kleiner Wüstenfuchs mit großen Ohren besucht den Bauernhof, die Baustelle oder die Kita und lauscht, wie es dort klingt. Kurze Hörspiele für die Kleinsten, zum Mitraten.",
+   "items": [
+    {
+     "title": "Mucks Wüstenfuchs: Auf dem Bauernhof (1/10)",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:1a8b02f6dbb2a008/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 2,
+      "max": 5
+     },
+     "durationSec": 540,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:087deadd41746543?w=448&ch=1c8d1b05699a4e3e",
+     "until": "2031-06-02",
+     "embed": "https://www.ardsounds.de/embed/episode/16478391/"
+    },
+    {
+     "title": "Mucks Wüstenfuchs: Auf der Baustelle (2/10)",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:5c4ad6486e19fce0/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 2,
+      "max": 5
+     },
+     "durationSec": 480,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:d997eeb72cfa7fbe?w=448&ch=55732f5f57e15130",
+     "until": "2031-06-02",
+     "embed": "https://www.ardsounds.de/embed/episode/16478379/"
+    },
+    {
+     "title": "Mucks Wüstenfuchs: Bei den Tieren im Wald (3/10)",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:25038350b955547b/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 2,
+      "max": 5
+     },
+     "durationSec": 480,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:2c0e1ed00a3afb91?w=448&ch=987ddf45f92c2074",
+     "until": "2031-06-02",
+     "embed": "https://www.ardsounds.de/embed/episode/16478409/"
+    },
+    {
+     "title": "Mucks Wüstenfuchs: In der Stadt (4/10)",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:ce858f7c86eabb97/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 2,
+      "max": 5
+     },
+     "durationSec": 600,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:452d2ab6a050b8e7?w=448&ch=93b91404eca342ee",
+     "until": "2031-06-02",
+     "embed": "https://www.ardsounds.de/embed/episode/16478429/"
+    },
+    {
+     "title": "Mucks Wüstenfuchs: Am Strand (5/10)",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:3213d1965e1f001a/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 2,
+      "max": 5
+     },
+     "durationSec": 540,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:8c7f140b4bda8f4f?w=448&ch=83829cdb19a7829e",
+     "until": "2031-06-02",
+     "embed": "https://www.ardsounds.de/embed/episode/16478531/"
+    },
+    {
+     "title": "Mucks Wüstenfuchs: Im Flughafen (6/10)",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:ec722937ec0cb400/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 2,
+      "max": 5
+     },
+     "durationSec": 540,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:955456894b079816?w=448&ch=4410885437a51e56",
+     "until": "2031-06-02",
+     "embed": "https://www.ardsounds.de/embed/episode/16478541/"
+    },
+    {
+     "title": "Mucks Wüstenfuchs: Unterwegs in der Nacht (7/10)",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:a52da5f445671832/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 2,
+      "max": 5
+     },
+     "durationSec": 540,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:83020c508cdaec5c?w=448&ch=0ba51fe457dc2e8d",
+     "until": "2031-06-02",
+     "embed": "https://www.ardsounds.de/embed/episode/16478549/"
+    },
+    {
+     "title": "Mucks Wüstenfuchs: In der Kita (8/10)",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:52abf2f54e214127/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 2,
+      "max": 5
+     },
+     "durationSec": 540,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:8826d7c7a5e4a63b?w=448&ch=2f65e69a8db885c5",
+     "until": "2031-06-02",
+     "embed": "https://www.ardsounds.de/embed/episode/16478555/"
+    },
+    {
+     "title": "Mucks Wüstenfuchs: Im Herbstwald (9/10)",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:446d7a0b919bd39f/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 2,
+      "max": 5
+     },
+     "durationSec": 480,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:f9042f400c788042?w=448&ch=c4812dbdb681c52b",
+     "until": "2031-06-02",
+     "embed": "https://www.ardsounds.de/embed/episode/16478559/"
+    },
+    {
+     "title": "Mucks Wüstenfuchs: Zuhause bei einem Kind (10/10)",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:f12ce7a0028f9299/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 2,
+      "max": 5
+     },
+     "durationSec": 660,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:62dca3a990607689?w=448&ch=150d4a1cf81a1af8",
+     "until": "2031-06-02",
+     "embed": "https://www.ardsounds.de/embed/episode/16478567/"
+    }
+   ],
+   "category": "hoerspiel",
+   "ages": {
+    "min": 2,
+    "max": 5,
+    "source": "publisher",
+    "text": "Für Kinder ab 2 Jahren"
+   },
+   "language": "de",
+   "rights": {
+    "kind": "private-use",
+    "holder": "ARD Sounds",
+    "termsUrl": "https://www.ardsounds.de/nutzungsbedingungen/"
+   },
+   "delivery": "browser",
+   "editPolicy": "unchanged",
+   "note": "Du lädst die Folgen auf der Seite von ARD Sounds selbst herunter. Sie sind dort bis Juni 2031 abrufbar.",
+   "featured": {
+    "rank": 11,
+    "why": "Für die Kleinsten ab 2 Jahren: Mit Mucks hörst du, wie es auf dem Bauernhof, am Strand oder in der Kita klingt."
+   },
+   "review": {
+    "at": "2026-10-09",
+    "next": "2027-04-09"
+   },
+   "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:f0d436543eefd1ca?w=448&ch=5335ba055770f1ba",
+   "coverFrom": "Bild der Sendung bei ARD Sounds (hr)",
+   "series": {
+    "reader": "ardsounds",
+    "urls": [
+     "https://www.ardsounds.de/sendung/mucks-wuestenfuchs-die-welt-in-deinem-ohr-mini-hoerspiele-fuer-minis-zum-mitraten-oder-fuer-kinder-ab-2-jahren/urn:ard:show:eefe4a416460c452/"
+    ]
+   },
+   "single": true
+  },
+  {
+   "id": "br-pumuckl-folgen",
+   "type": "link",
+   "status": "active",
+   "title": "Meister Eder und sein Pumuckl – Die alten Hörspiele",
+   "publisher": "BR",
+   "pageUrl": "https://www.ardsounds.de/sendung/pumuckl-der-hoerspiel-klassiker/urn:ard:show:5a926979ff198838/",
+   "blurb": "Die alten Hörspiele von Ellis Kaut aus dem Archiv des Bayerischen Rundfunks, mit Hans Clarin als Pumuckl und Alfred Pongratz als Meister Eder.",
+   "items": [
+    {
+     "title": "Pumuckl und das Schlossgespenst",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:b8613fcba660f1e5/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 5,
+      "max": 10
+     },
+     "durationSec": 1800,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:7146583f40abaf12?w=448&ch=1a2d3a2e01959b9d",
+     "until": "2027-10-02",
+     "embed": "https://www.ardsounds.de/embed/episode/11290777/"
+    },
+    {
+     "title": "Meister Eder bekommt Besuch",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:1c230996c7b74f1d/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 5,
+      "max": 10
+     },
+     "durationSec": 1440,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:7146583f40abaf12?w=448&ch=1a2d3a2e01959b9d",
+     "until": "2027-09-11",
+     "embed": "https://www.ardsounds.de/embed/episode/11185929/"
+    },
+    {
+     "title": "Pumuckl hütet Fische",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:bc6cef9e5716a876/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 5,
+      "max": 10
+     },
+     "durationSec": 1800,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:7146583f40abaf12?w=448&ch=1a2d3a2e01959b9d",
+     "until": "2027-07-31",
+     "embed": "https://www.ardsounds.de/embed/episode/16793879/"
+    },
+    {
+     "title": "Pumuckl und das Segelboot",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:4aaf28027c643a82/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 5,
+      "max": 10
+     },
+     "durationSec": 1800,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:7146583f40abaf12?w=448&ch=1a2d3a2e01959b9d",
+     "until": "2027-07-03",
+     "embed": "https://www.ardsounds.de/embed/episode/16662509/"
+    },
+    {
+     "title": "Die Bank vor der Werkstatt",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:5ce79ae3ae847e52/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 5,
+      "max": 10
+     },
+     "durationSec": 1800,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:7146583f40abaf12?w=448&ch=1a2d3a2e01959b9d",
+     "until": "2027-06-05",
+     "embed": "https://www.ardsounds.de/embed/episode/16521423/"
+    },
+    {
+     "title": "Pumuckl im Zoo",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:0c6d4462ae4e67c5/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 5,
+      "max": 10
+     },
+     "durationSec": 1800,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:7146583f40abaf12?w=448&ch=1a2d3a2e01959b9d",
+     "until": "2027-05-04",
+     "embed": "https://www.ardsounds.de/embed/episode/16339157/"
+    }
+   ],
+   "category": "hoerspiel",
+   "ages": {
+    "min": 5,
+    "max": 10,
+    "source": "publisher",
+    "text": "Ab 5 Jahren"
+   },
+   "language": "de",
+   "rights": {
+    "kind": "private-use",
+    "holder": "ARD Sounds",
+    "termsUrl": "https://www.ardsounds.de/nutzungsbedingungen/"
+   },
+   "delivery": "browser",
+   "editPolicy": "unchanged",
+   "note": "Du lädst die Folgen auf der Seite von ARD Sounds selbst herunter. Der BR stellt jede Folge dort ein Jahr lang bereit.",
+   "featured": {
+    "rank": 12,
+    "why": "Der freche Kobold mit Hans Clarins Stimme: die alten Pumuckl-Hörspiele des BR, so wie sie früher im Radio liefen."
+   },
+   "review": {
+    "at": "2026-10-09",
+    "next": "2027-04-09"
+   },
+   "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:d261632ba182ee4e?w=448&ch=8fd34c33b7d3a3d4",
+   "coverFrom": "Bild der Sendung bei ARD Sounds (© 2025 Bayerischer Rundfunk)",
+   "series": {
+    "reader": "ardsounds",
+    "urls": [
+     "https://www.ardsounds.de/sendung/pumuckl-der-hoerspiel-klassiker/urn:ard:show:5a926979ff198838/"
+    ]
+   },
+   "single": true
+  },
+  {
+   "id": "br-betthupferl",
+   "type": "podcast",
+   "status": "check",
+   "title": "Betthupferl – Gute-Nacht-Geschichten",
+   "publisher": "Bayerischer Rundfunk",
+   "pageUrl": "https://www.br.de/",
+   "feedUrl": "https://feeds.br.de/betthupferl/feed.xml",
+   "mediaHosts": [
+    "media.neuland.br.de"
+   ],
+   "maxItems": 100,
+   "category": "hoerbuch",
+   "ages": {
+    "min": 4,
+    "max": 8,
+    "source": "editor"
+   },
+   "language": "de",
+   "rights": {
+    "kind": "podcast",
+    "holder": "Bayerischer Rundfunk"
+   },
+   "delivery": "browser",
+   "editPolicy": "normal",
+   "note": "Podcast: nur für den privaten Gebrauch in der Familie."
+  },
+  {
+   "id": "commons-gesprochene-wikisource",
+   "type": "commons",
+   "status": "check",
+   "title": "Gesprochene Wikisource – Märchen",
+   "publisher": "Wikisource / Wikimedia Commons",
+   "pageUrl": "https://de.wikisource.org/wiki/Wikisource:Gesprochene_Wikisource",
+   "files": [],
+   "category": "hoerbuch",
+   "ages": {
+    "min": 5,
+    "max": 10,
+    "source": "editor"
+   },
+   "language": "de",
+   "rights": {
+    "kind": "cc",
+    "id": "by-sa",
+    "version": "3.0",
+    "url": "https://creativecommons.org/licenses/by-sa/3.0/"
+   },
+   "delivery": "direct",
+   "editPolicy": "normal"
+  },
+  {
+   "id": "jamendo-139374-eckhardt",
+   "type": "archive-album",
+   "status": "review",
+   "title": "Einmal ganz anders … Kleine ganz groß!",
+   "publisher": "Stefan Eckhardt",
+   "pageUrl": "https://archive.org/details/jamendo-139374",
+   "blurb": "Hänsel und Gretel und Weißt du, wie viel Sternlein stehen, gesungen und als Karaoke.",
+   "archiveId": "jamendo-139374",
+   "category": "lied",
+   "ages": {
+    "min": 3,
+    "max": 8,
+    "source": "editor"
+   },
+   "language": "de",
+   "rights": {
+    "kind": "cc",
+    "id": "by-sa",
+    "version": "2.0",
+    "port": "de",
+    "url": "http://creativecommons.org/licenses/by-sa/2.0/de/"
+   },
+   "delivery": "direct",
+   "editPolicy": "normal"
+  },
+  {
+   "id": "jamendo-116839-bommel-abc",
+   "type": "archive-album",
+   "status": "review",
+   "title": "ABC-Song",
+   "publisher": "Bommel und die Bömmelchens",
+   "pageUrl": "https://archive.org/details/jamendo-116839",
+   "archiveId": "jamendo-116839",
+   "category": "lied",
+   "ages": {
+    "min": 3,
+    "max": 7,
+    "source": "editor"
+   },
+   "language": "de",
+   "rights": {
+    "kind": "cc",
+    "id": "by-nc-sa",
+    "version": "2.0",
+    "port": "de",
+    "url": "http://creativecommons.org/licenses/by-nc-sa/2.0/de/"
+   },
+   "delivery": "direct",
+   "editPolicy": "normal"
+  },
+  {
+   "id": "commons-kinderlieder",
+   "type": "commons",
+   "status": "check",
+   "title": "Kinderlieder von Wikimedia Commons",
+   "publisher": "Wikimedia Commons",
+   "pageUrl": "https://commons.wikimedia.org/",
+   "files": [],
+   "category": "lied",
+   "ages": {
+    "min": 2,
+    "max": 8,
+    "source": "editor"
+   },
+   "language": "de",
+   "rights": {
+    "kind": "public-domain",
+    "basis": "commons"
+   },
+   "delivery": "direct",
+   "editPolicy": "normal"
+  },
+  {
+   "id": "jamendo-154351-lisa",
+   "type": "archive-album",
+   "status": "off",
+   "title": "7 jährige Lisa singt Weihnachtslieder",
+   "publisher": "Jamendo (Spiegel)",
+   "pageUrl": "https://archive.org/details/jamendo-154351",
+   "archiveId": "jamendo-154351",
+   "category": "lied",
+   "ages": {
+    "min": 3,
+    "max": 10,
+    "source": "editor"
+   },
+   "language": "de",
+   "rights": {
+    "kind": "cc",
+    "id": "by-sa",
+    "version": "3.0",
+    "url": "http://creativecommons.org/licenses/by-sa/3.0/"
+   },
+   "delivery": "direct",
+   "editPolicy": "normal"
+  },
+  {
+   "id": "swr-hoerspielshow",
+   "type": "podcast",
+   "status": "off",
+   "title": "Tigerenten Club – Die Hör-Spiel-Show",
+   "publisher": "SWR",
+   "pageUrl": "https://www.kindernetz.de/",
+   "feedUrl": "https://www.kindernetz.de/~podcast/sendungen/hoerspielshow/podcast-hoerspielshow-100.xml",
+   "mediaHosts": [
+    "swr-dl.ard-mcdn.de"
+   ],
+   "category": "hoerspiel",
+   "ages": {
+    "min": 6,
+    "source": "editor"
+   },
+   "language": "de",
+   "rights": {
+    "kind": "podcast",
+    "holder": "SWR"
+   },
+   "delivery": "browser",
+   "editPolicy": "normal"
+  },
+  {
+   "id": "wdr-mumins",
+   "type": "link",
+   "status": "active",
+   "review": {
+    "at": "2026-10-06",
+    "next": "2027-01-07"
+   },
+   "featured": {
+    "rank": 2,
+    "why": "Die Mumins von Tove Jansson hörst du hier als Hörspielserie des WDR, mit vielen Stimmen und eigener Musik."
+   },
+   "title": "Die Mumins – Hörspiel-Serie nach dem Kinderbuch-Klassiker",
+   "publisher": "WDR",
+   "pageUrl": "https://www.ardsounds.de/sendung/die-mumins-hoerspiel-serie-nach-dem-kinderbuch-klassiker-oder-wdr/urn:ard:show:602bc8ff7c584bcd/",
+   "blurb": "Tove Janssons Mumins als Hörspielserie des WDR mit vielen Stimmen und eigener Musik, für Kinder ab 7 Jahren.",
+   "category": "hoerspiel",
+   "ages": {
+    "min": 7,
+    "source": "publisher",
+    "text": "Für alle neuen und alten Fans ab 7 Jahren"
+   },
+   "language": "de",
+   "rights": {
+    "kind": "private-use",
+    "holder": "WDR",
+    "termsUrl": "https://www.ardsounds.de/nutzungsbedingungen/"
+   },
+   "delivery": "browser",
+   "editPolicy": "unchanged",
+   "note": "Du lädst die Folgen auf der Seite von ARD Sounds selbst herunter und ziehst sie dann in die App. Die ARD stellt jede Folge nur eine Zeit lang bereit.",
+   "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:295214d25a8e6e2e?w=448&ch=820543fbeb7cf26f",
+   "coverFrom": "Bild der Sendung bei ARD Sounds (WDR/Moomin Characters)",
+   "items": [
+    {
+     "title": "Mumins lange Reise (1/2): Wo ist Muminpapa?",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:c78e4c9b0d7d2c72/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 7
+     },
+     "durationSec": 1440,
+     "until": "2027-01-07",
+     "embed": "https://www.ardsounds.de/embed/episode/13135283/"
+    },
+    {
+     "title": "Mumins lange Reise (2/2): Das Mumintal",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:f94ea6acb5661a8a/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 7
+     },
+     "durationSec": 2040,
+     "until": "2027-01-07",
+     "embed": "https://www.ardsounds.de/embed/episode/13135245/"
+    },
+    {
+     "title": "Komet im Mumintal (1/4): Beunruhigendes Gerücht",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:4a7b0bb5d0795910/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 7
+     },
+     "durationSec": 1560,
+     "until": "2027-01-07",
+     "embed": "https://www.ardsounds.de/embed/episode/13135243/"
+    },
+    {
+     "title": "Komet im Mumintal (2/4): Auf in die Berge",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:9a17d21b01af4e21/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 7
+     },
+     "durationSec": 1440,
+     "until": "2027-01-07",
+     "embed": "https://www.ardsounds.de/embed/episode/13135237/"
+    },
+    {
+     "title": "Komet im Mumintal (3/4): Rückkehr ins Mumintal",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:0dc0c7ad21eacd85/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 7
+     },
+     "durationSec": 1860,
+     "until": "2027-01-07",
+     "embed": "https://www.ardsounds.de/embed/episode/13135235/"
+    },
+    {
+     "title": "Komet im Mumintal (4/4): Meer ohne Wasser",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:b02c1214732d3aa8/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 7
+     },
+     "durationSec": 2160,
+     "until": "2027-01-07",
+     "embed": "https://www.ardsounds.de/embed/episode/13135231/"
+    },
+    {
+     "title": "Der Hut des Zauberers (1/5): Seltsame Wölkchen",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:1bfc165819d59aeb/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 7
+     },
+     "durationSec": 1620,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:6d3c07c8b45de076?w=448&ch=5c885d1be0f73efb",
+     "until": "2027-03-13",
+     "embed": "https://www.ardsounds.de/embed/episode/13706341/"
+    },
+    {
+     "title": "Der Hut des Zauberers (2/5): Gewitterstimmung",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:94f2ca7e9bf9a5a4/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 7
+     },
+     "durationSec": 1800,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:6d3c07c8b45de076?w=448&ch=5c885d1be0f73efb",
+     "until": "2027-03-13",
+     "embed": "https://www.ardsounds.de/embed/episode/13706473/"
+    },
+    {
+     "title": "Der Hut des Zauberers (3/5): Urwald im Muminhaus",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:b7b6c6b270372b72/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 7
+     },
+     "durationSec": 1380,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:6d3c07c8b45de076?w=448&ch=5c885d1be0f73efb",
+     "until": "2027-03-13",
+     "embed": "https://www.ardsounds.de/embed/episode/13706479/"
+    },
+    {
+     "title": "Der Hut des Zauberers (4/5): Der Rubin der Morra",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:0e2d2969f62c636c/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 7
+     },
+     "durationSec": 1500,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:6d3c07c8b45de076?w=448&ch=5c885d1be0f73efb",
+     "until": "2027-03-13",
+     "embed": "https://www.ardsounds.de/embed/episode/13706481/"
+    },
+    {
+     "title": "Der Hut des Zauberers (5/5): Der Zauberer",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:7ef7ad9fec4b6031/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 7
+     },
+     "durationSec": 1380,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:6d3c07c8b45de076?w=448&ch=5c885d1be0f73efb",
+     "until": "2027-03-13",
+     "embed": "https://www.ardsounds.de/embed/episode/13706483/"
+    }
+   ],
+   "series": {
+    "reader": "ardsounds",
+    "urls": [
+     "https://www.ardsounds.de/sendung/die-mumins-hoerspiel-serie-nach-dem-kinderbuch-klassiker-oder-wdr/urn:ard:show:602bc8ff7c584bcd/"
+    ],
+    "agesFromSeries": true
+   },
+   "single": true
+  },
+  {
+   "id": "wdr-maushoerspiel-lang",
+   "type": "link",
+   "status": "active",
+   "review": {
+    "at": "2026-10-06",
+    "next": "2027-04-06"
+   },
+   "featured": {
+    "rank": 4,
+    "why": "Hier findest du lange Hörspiele nach aktuellen Kinderbüchern, sorgfältig produziert vom WDR für die Maus."
+   },
+   "title": "MausHörspiel lang",
+   "publisher": "WDR – Die Maus",
+   "pageUrl": "https://www.ardsounds.de/sendung/maushoerspiel-lang/urn:ard:show:d9c448e1908e53f6/",
+   "blurb": "Lange Hörspiele des WDR für die Maus nach aktuellen Kinderbüchern, je Folge etwa eine Dreiviertelstunde, für Kinder ab 6 Jahren.",
+   "category": "hoerspiel",
+   "ages": {
+    "min": 6,
+    "max": 12,
+    "source": "editor"
+   },
+   "language": "de",
+   "rights": {
+    "kind": "private-use",
+    "holder": "WDR",
+    "termsUrl": "https://www.ardsounds.de/nutzungsbedingungen/"
+   },
+   "delivery": "browser",
+   "editPolicy": "unchanged",
+   "note": "Du lädst die Folgen auf der Seite von ARD Sounds selbst herunter und ziehst sie dann in die App. Die ARD stellt jede Folge nur eine Zeit lang bereit.",
+   "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:739fb0c6b28462c0?w=448&ch=43ccd825edc7601c",
+   "coverFrom": "Bild der Sendung bei ARD Sounds (WDR/Schmitt-Menzel)",
+   "items": [
+    {
+     "title": "Anton taucht ab",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:669a02ff5ebd10c5/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 8,
+      "max": 12
+     },
+     "durationSec": 3000,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:4c55858ae3dc0cca?w=448&ch=b6467d4cf1030d5f",
+     "until": "2027-07-11",
+     "embed": "https://www.ardsounds.de/embed/episode/16661047/"
+    },
+    {
+     "title": "Hedvig! Das erste Schuljahr",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:b87c191439f8cfc8/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 7,
+      "max": 12
+     },
+     "durationSec": 3060,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:4119d8d00d2bbfce?w=448&ch=8e108be3ba05c6a7",
+     "until": "2027-07-04",
+     "embed": "https://www.ardsounds.de/embed/episode/16661065/"
+    },
+    {
+     "title": "Die magische Pfeilspitze (1/2)",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:52d6624c37a8250c/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 7,
+      "max": 12
+     },
+     "durationSec": 2700,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:5be2f4cf187966a8?w=448&ch=a34dea9a145fb6a9",
+     "until": "2027-06-20",
+     "embed": "https://www.ardsounds.de/embed/episode/16544733/"
+    },
+    {
+     "title": "Die magische Pfeilspitze (2/2)",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:7e4a43e49a5ffda9/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 7,
+      "max": 12
+     },
+     "durationSec": 2700,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:5be2f4cf187966a8?w=448&ch=a34dea9a145fb6a9",
+     "until": "2027-06-20",
+     "embed": "https://www.ardsounds.de/embed/episode/16544741/"
+    },
+    {
+     "title": "Steffis Insel",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:ffc02de05a2666cd/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 8,
+      "max": 12
+     },
+     "durationSec": 3120,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:c05d067a5f166831?w=448&ch=b1ce96b1faabf6ad",
+     "until": "2031-06-13",
+     "embed": "https://www.ardsounds.de/embed/episode/16515133/"
+    },
+    {
+     "title": "Krähenkinder",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:066fd7b005b376b0/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 8,
+      "max": 12
+     },
+     "durationSec": 3120,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:2ad3d9bfc4c4b359?w=448&ch=e14742c6d9e7f5ef",
+     "until": "2032-05-30",
+     "embed": "https://www.ardsounds.de/embed/episode/16496235/"
+    },
+    {
+     "title": "Die Unsinkbaren Drei - Ermittlungsdetektiv Gräte",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:048c87c246ac9cbc/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 6,
+      "max": 12
+     },
+     "durationSec": 2940,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:b2f0902f282808c3?w=448&ch=cf7e62f8a338d0c4",
+     "until": "2027-05-09",
+     "embed": "https://www.ardsounds.de/embed/episode/16422655/"
+    },
+    {
+     "title": "Die Langohr-Bande",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:52104692cc3b8abc/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 7,
+      "max": 12
+     },
+     "durationSec": 3060,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:fd854c3bfef60c89?w=448&ch=909015ceeedfb4cd",
+     "until": "2032-05-11",
+     "embed": "https://www.ardsounds.de/embed/episode/16402417/"
+    }
+   ],
+   "series": {
+    "reader": "ardsounds",
+    "urls": [
+     "https://www.ardsounds.de/sendung/maushoerspiel-lang/urn:ard:show:d9c448e1908e53f6/"
+    ]
+   },
+   "single": true
+  },
+  {
+   "id": "ndr-pfefferkoerner",
+   "type": "link",
+   "status": "active",
+   "review": {
+    "at": "2026-10-06",
+    "next": "2027-04-06"
+   },
+   "featured": {
+    "rank": 3,
+    "why": "Mit der Detektivbande aus dem Fernsehen löst du spannende Fälle, als Hörspiel professionell vom NDR produziert."
+   },
+   "title": "Die Pfefferkörner – Die Fälle als Hörspiel",
+   "publisher": "NDR",
+   "pageUrl": "https://www.ardsounds.de/sendung/die-pfefferkoerner-die-faelle-als-hoerspiel/urn:ard:show:a80ac8b5dd8f130c/",
+   "blurb": "Die Detektivbande aus der Fernsehserie löst ihre Fälle als Hörspiel des NDR, für Kinder ab 8 Jahren.",
+   "category": "hoerspiel",
+   "ages": {
+    "min": 8,
+    "max": 13,
+    "source": "editor"
+   },
+   "language": "de",
+   "rights": {
+    "kind": "private-use",
+    "holder": "NDR",
+    "termsUrl": "https://www.ardsounds.de/nutzungsbedingungen/"
+   },
+   "delivery": "browser",
+   "editPolicy": "unchanged",
+   "note": "Du lädst die Folgen auf der Seite von ARD Sounds selbst herunter und ziehst sie dann in die App. Die ARD stellt jede Folge nur eine Zeit lang bereit.",
+   "dropCounter": true,
+   "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:29fe77b199441297?w=448&ch=8ad1bea8e95d7975",
+   "coverFrom": "Bild der Sendung bei ARD Sounds (NDR/Boris Laewen)",
+   "items": [
+    {
+     "title": "Die verschwundene Münze (1/26)",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:4930fc6b571c36e4/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 8,
+      "max": 13
+     },
+     "durationSec": 1740,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:c417a00c2844cf91?w=448&ch=b0fc3927191b3ff6",
+     "until": "2029-12-08",
+     "embed": "https://www.ardsounds.de/embed/episode/13966817/"
+    },
+    {
+     "title": "Die Kakao-Krake (2/26)",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:8e21de57ad226d51/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 8,
+      "max": 13
+     },
+     "durationSec": 2040,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:1d8edb67289834ee?w=448&ch=24f37311d7cf9f3d",
+     "until": "2029-12-08",
+     "embed": "https://www.ardsounds.de/embed/episode/13961175/"
+    },
+    {
+     "title": "Geheime Wahrheiten (3/26)",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:88d4f272e68263ef/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 8,
+      "max": 13
+     },
+     "durationSec": 2040,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:5e3d3e02df441295?w=448&ch=41d0279a655a2e20",
+     "until": "2029-12-15",
+     "embed": "https://www.ardsounds.de/embed/episode/13995387/"
+    },
+    {
+     "title": "Verzockt (5/26)",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:0d3531a5b5560ec9/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 8,
+      "max": 13
+     },
+     "durationSec": 1500,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:df3d1685c34edda4?w=448&ch=64815e5da9aa534f",
+     "until": "2029-12-15",
+     "embed": "https://www.ardsounds.de/embed/episode/13988257/"
+    },
+    {
+     "title": "Nachbars Garten (6/26)",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:4fc5d04e1cbc385a/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 8,
+      "max": 13
+     },
+     "durationSec": 1260,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:8cf3ccba0baf70f6?w=448&ch=2550d695c3194280",
+     "until": "2029-12-15",
+     "embed": "https://www.ardsounds.de/embed/episode/13988261/"
+    },
+    {
+     "title": "Best Friends Forever (7/26)",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:c1e79437e8c08f30/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 8,
+      "max": 13
+     },
+     "durationSec": 1320,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:359b85496b5dea40?w=448&ch=73c05a32324d4831",
+     "until": "2029-12-15",
+     "embed": "https://www.ardsounds.de/embed/episode/13988263/"
+    },
+    {
+     "title": "Die Öl-Mafia (9/26)",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:440657e0bb14e216/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 8,
+      "max": 13
+     },
+     "durationSec": 1320,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:1ccac4318b795fb7?w=448&ch=891a6097b312cb86",
+     "until": "2029-12-15",
+     "embed": "https://www.ardsounds.de/embed/episode/13988273/"
+    },
+    {
+     "title": "Spätfolgen (10/26)",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:7ae891f36585237e/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 8,
+      "max": 13
+     },
+     "durationSec": 1260,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:93edb5a200691725?w=448&ch=2e43d06021113604",
+     "until": "2029-12-15",
+     "embed": "https://www.ardsounds.de/embed/episode/13995165/"
+    },
+    {
+     "title": "Die einzige Chance (11/26)",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:1ab23ef8fa07ba51/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 8,
+      "max": 13
+     },
+     "durationSec": 1500,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:b2a5ab843e369c82?w=448&ch=62ab5a85d58fd80f",
+     "until": "2029-12-15",
+     "embed": "https://www.ardsounds.de/embed/episode/13988279/"
+    },
+    {
+     "title": "Blackout (12/26)",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:5842df1353ed8cc2/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 8,
+      "max": 13
+     },
+     "durationSec": 1980,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:06241e0004f3f599?w=448&ch=ae187fa54c248f65",
+     "until": "2029-12-15",
+     "embed": "https://www.ardsounds.de/embed/episode/13988287/"
+    }
+   ],
+   "series": {
+    "reader": "ardsounds",
+    "urls": [
+     "https://www.ardsounds.de/sendung/die-pfefferkoerner-die-faelle-als-hoerspiel/urn:ard:show:a80ac8b5dd8f130c/"
+    ]
+   },
+   "single": true
+  },
+  {
+   "id": "rbb-unser-sandmaennchen",
+   "type": "link",
+   "status": "active",
+   "review": {
+    "at": "2026-10-06",
+    "next": "2027-04-06"
+   },
+   "featured": {
+    "rank": 7,
+    "why": "Kurze Geschichten mit Pittiplatsch und dem Sandmännchen, die du den Kleinsten vor dem Schlafen vorspielen kannst."
+   },
+   "title": "Unser Sandmännchen – Geschichten und Lieder",
+   "publisher": "rbb / Antenne Brandenburg",
+   "pageUrl": "https://www.ardsounds.de/sendung/unser-sandmaennchen/urn:ard:show:0e3f60ed4ba198df/",
+   "blurb": "Kurze Geschichten mit Pittiplatsch, Kalli und dem Sandmännchen zum Vorspielen vor dem Schlafen, für Kinder ab 3 Jahren.",
+   "category": "hoerspiel",
+   "ages": {
+    "min": 3,
+    "max": 7,
+    "source": "editor"
+   },
+   "language": "de",
+   "rights": {
+    "kind": "private-use",
+    "holder": "rbb",
+    "termsUrl": "https://www.ardsounds.de/nutzungsbedingungen/"
+   },
+   "delivery": "browser",
+   "editPolicy": "unchanged",
+   "note": "Du lädst die Folgen auf der Seite von ARD Sounds selbst herunter und ziehst sie dann in die App. Die ARD stellt jede Folge nur eine Zeit lang bereit.",
+   "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:62ea0bd8779dbaec?w=448&ch=6d166ad7f7919bf9",
+   "coverFrom": "Bild der Sendung bei ARD Sounds (rbb)",
+   "items": [
+    {
+     "title": "Raketenflieger Timmi: Der Sportplanet",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:7f1911d21176db72/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 3,
+      "max": 7
+     },
+     "durationSec": 360,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:3017794889dea792?w=448&ch=35e5158ac1dcb596",
+     "until": "2027-04-07",
+     "embed": "https://www.ardsounds.de/embed/episode/11297677/"
+    },
+    {
+     "title": "Märchen: Der einsame Hausschuh",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:e60e776c55c29901/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 3,
+      "max": 7
+     },
+     "durationSec": 420,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:750deadb07568c64?w=448&ch=7f48a5c464dfe288",
+     "until": "2027-05-05",
+     "embed": "https://www.ardsounds.de/embed/episode/11261047/"
+    }
+   ],
+   "series": {
+    "reader": "ardsounds",
+    "urls": [
+     "https://www.ardsounds.de/sendung/unser-sandmaennchen/urn:ard:show:0e3f60ed4ba198df/"
+    ]
+   },
+   "single": true
+  },
+  {
+   "type": "link",
+   "status": "active",
+   "id": "wdr-kleiner-prinz",
+   "title": "Der kleine Prinz und seine Freunde – Das Hörspiel",
+   "publisher": "WDR",
+   "pageUrl": "https://www.ardsounds.de/sendung/der-kleine-prinz-und-seine-freunde-das-hoerspiel/urn:ard:show:3467336f0f0710de/",
+   "blurb": "Charlotte und Elias reisen mit dem kleinen Prinzen zu fremden Planeten. Kurze Hörspiele des WDR, je gut zehn Minuten, für Kinder ab 5 Jahren.",
+   "category": "hoerspiel",
+   "ages": {
+    "min": 5,
+    "max": 8,
+    "source": "publisher",
+    "text": "Für Kinder ab 5 Jahren"
+   },
+   "rights": {
+    "kind": "private-use",
+    "holder": "WDR",
+    "termsUrl": "https://www.ardsounds.de/nutzungsbedingungen/"
+   },
+   "note": "Du kannst jede Folge hier anhören. Speichern geht auf der Seite von ARD Sounds. Die ARD stellt jede Folge nur eine Zeit lang bereit.",
+   "featured": {
+    "rank": 5,
+    "why": "Charlotte und Elias besuchen mit dem kleinen Prinzen fremde Planeten, kurz genug für abends."
+   },
+   "review": {
+    "at": "2026-10-15",
+    "next": "2027-04-15"
+   },
+   "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:373e469bf90d9b1b?w=448&ch=9cd22f161cd8448e",
+   "coverFrom": "Bild der Sendung bei ARD Sounds (WDR)",
+   "items": [
+    {
+     "title": "Trau dich!",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:8f23741f86ece1b8/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 5,
+      "max": 8
+     },
+     "durationSec": 780,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:121f7358fe346a22?w=448&ch=d1ca23f23b3ce1fb",
+     "about": "Charlotte, Elias und der kleine Prinz lernen den kleinen Mond kennen.",
+     "until": "2030-09-16",
+     "embed": "https://www.ardsounds.de/embed/episode/15187329/"
+    },
+    {
+     "title": "Anders sein",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:f9be7b242a7b51e0/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 5,
+      "max": 8
+     },
+     "durationSec": 720,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:788c6b5b01813368?w=448&ch=66e20c76b830fb9b",
+     "about": "Charlotte, Elias und der kleine Prinz lernen den eckigen Planeten kennen.",
+     "until": "2030-09-16",
+     "embed": "https://www.ardsounds.de/embed/episode/15187311/"
+    },
+    {
+     "title": "Der königliche Tanz",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:64536a369a7f8a8a/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 5,
+      "max": 8
+     },
+     "durationSec": 780,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:992462431bbb04c2?w=448&ch=bba0c5f87d9ba09d",
+     "about": "Beim kleinen Prinzen lernen Elias und Charlotte den König von Allem kennen, der verlangt, dass die Freunde gemeinsam tanzen.",
+     "until": "2030-09-16",
+     "embed": "https://www.ardsounds.de/embed/episode/15187361/"
+    },
+    {
+     "title": "Pfeifstern",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:1f73165e9bf46421/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 5,
+      "max": 8
+     },
+     "durationSec": 780,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:53d95f92f68fdf4f?w=448&ch=6e796aad41323bbe",
+     "about": "Elias möchte gerne besser pfeifen können.",
+     "until": "2030-09-23",
+     "embed": "https://www.ardsounds.de/embed/episode/15220855/"
+    },
+    {
+     "title": "Nebuland",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:5d01b1ec550bdd02/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 5,
+      "max": 8
+     },
+     "durationSec": 780,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:0938f5f16096fe11?w=448&ch=c72b73d20183aa0b",
+     "about": "Charlotte lernt Oktosingwale kennen.",
+     "until": "2030-09-23",
+     "embed": "https://www.ardsounds.de/embed/episode/15220865/"
+    }
+   ],
+   "series": {
+    "reader": "ardsounds",
+    "urls": [
+     "https://www.ardsounds.de/sendung/der-kleine-prinz-und-seine-freunde-das-hoerspiel/urn:ard:show:3467336f0f0710de/"
+    ],
+    "agesFromSeries": true
+   },
+   "language": "de",
+   "delivery": "browser",
+   "editPolicy": "unchanged",
+   "single": true
+  },
+  {
+   "type": "link",
+   "status": "active",
+   "id": "rbb-dr-brumm",
+   "title": "Dr. Brumm",
+   "publisher": "rbb",
+   "pageUrl": "https://www.ardsounds.de/sendung/dr-brumm/urn:ard:show:06ea3767781bdc3a/",
+   "blurb": "Kleine Geschichten vom Bären Dr. Brumm, jede vier bis fünf Minuten lang. Für die Kleinsten zum Vorspielen.",
+   "category": "hoerspiel",
+   "ages": {
+    "min": 3,
+    "max": 6,
+    "source": "editor"
+   },
+   "rights": {
+    "kind": "private-use",
+    "holder": "rbb",
+    "termsUrl": "https://www.ardsounds.de/nutzungsbedingungen/"
+   },
+   "note": "Du kannst jede Geschichte hier anhören. Speichern geht auf der Seite von ARD Sounds.",
+   "featured": {
+    "rank": 8,
+    "why": "Kurze Geschichten vom Bären Dr. Brumm, gerade richtig für die Kleinsten."
+   },
+   "review": {
+    "at": "2026-10-15",
+    "next": "2027-04-15"
+   },
+   "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:da219692417122e3?w=448&ch=99a1d7d22439d5b2",
+   "coverFrom": "Bild der Sendung bei ARD Sounds (rbb)",
+   "items": [
+    {
+     "title": "Dr. Brumm lädt ein",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:d1fd8c75e4af3a74/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 3,
+      "max": 6
+     },
+     "durationSec": 240,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:da219692417122e3?w=448&ch=99a1d7d22439d5b2",
+     "about": "Dr. Brumm macht das, was er immer macht, wenn er seinen Freunden eine Freude bereiten will: Er lädt sie zum Essen ein.",
+     "embed": "https://www.ardsounds.de/embed/episode/11236885/"
+    },
+    {
+     "title": "Dr. Brumm geht tanzen",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:fe7418af9e45248d/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 3,
+      "max": 6
+     },
+     "durationSec": 240,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:5bbf419effb3dd3f?w=448&ch=9c3b10e37a77ef94",
+     "about": "Dr. Brumm macht das, was er immer macht, wenn er eine Einladung bekommt: Er freut sich darüber.",
+     "embed": "https://www.ardsounds.de/embed/episode/11225173/"
+    },
+    {
+     "title": "Dr. Brumm macht Musik",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:b698c4c1b5a3f41b/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 3,
+      "max": 6
+     },
+     "durationSec": 240,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:f43437cfd5041594?w=448&ch=ce23afe8ae9c939f",
+     "about": "Dr. Brumm macht, was er schon lange nicht mehr gemacht hat: Er räumt den Dachboden auf.",
+     "embed": "https://www.ardsounds.de/embed/episode/16694029/"
+    },
+    {
+     "title": "Dr. Brumm backt Pfannkuchen",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:581e169149fd5ad1/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 3,
+      "max": 6
+     },
+     "durationSec": 240,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:c5b250112d96ce6f?w=448&ch=857d77d46538d36e",
+     "about": "Dr. Brumm macht, was er immer macht, wenn er großen Hunger hat: Etwas besonders Leckeres zu essen.",
+     "embed": "https://www.ardsounds.de/embed/episode/16694025/"
+    },
+    {
+     "title": "Dr. Brumm verjagt die Krähen",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:9acf5fa24d4d940d/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 3,
+      "max": 6
+     },
+     "durationSec": 300,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:25282f3802428110?w=448&ch=a40ba3783b171a35",
+     "about": "Dr. Brumm macht, was er jedes Frühjahr macht: Gemüse aussähen.",
+     "embed": "https://www.ardsounds.de/embed/episode/16694009/"
+    }
+   ],
+   "series": {
+    "reader": "ardsounds",
+    "urls": [
+     "https://www.ardsounds.de/sendung/dr-brumm/urn:ard:show:06ea3767781bdc3a/"
+    ]
+   },
+   "language": "de",
+   "delivery": "browser",
+   "editPolicy": "unchanged",
+   "single": true
+  },
+  {
+   "id": "br-geschichten-fuer-kinder",
+   "type": "podcast",
+   "status": "off",
+   "title": "Geschichten für Kinder",
+   "publisher": "Bayerischer Rundfunk",
+   "pageUrl": "https://www.ardsounds.de/sendung/geschichten-fuer-kinder/urn:ard:show:c6039abe316d4045/",
+   "feedUrl": "https://feeds.br.de/geschichten-fuer-kinder/feed.xml",
+   "mediaHosts": [
+    "media.neuland.br.de"
+   ],
+   "category": "hoerspiel",
+   "ages": {
+    "min": 5,
+    "max": 10,
+    "source": "editor"
+   },
+   "language": "de",
+   "rights": {
+    "kind": "podcast",
+    "holder": "Bayerischer Rundfunk",
+    "termsUrl": "https://www.ardsounds.de/nutzungsbedingungen/"
+   },
+   "delivery": "browser",
+   "editPolicy": "unchanged",
+   "note": "Du lädst die Folgen auf der Seite von ARD Sounds selbst herunter und ziehst sie dann in die App. Die ARD stellt jede Folge nur eine Zeit lang bereit."
+  },
+  {
+   "id": "br-das-geheimnis",
+   "type": "podcast",
+   "status": "check",
+   "title": "Das Geheimnis – Musikalische Rätsel und Krimis zum Mitraten",
+   "publisher": "BR-Klassik",
+   "pageUrl": "https://podcasts.apple.com/de/podcast/das-geheimnis-musikalische-r%C3%A4tsel-und-krimis-zum-mitraten/id279613777",
+   "feedUrl": "https://feeds.br.de/do-re-mikro-die-musiksendung-fuer-kinder/feed.xml",
+   "mediaHosts": [
+    "media.neuland.br.de"
+   ],
+   "category": "hoerspiel",
+   "ages": {
+    "min": 8,
+    "source": "publisher",
+    "text": "Rätselkrimis für Kinder ab 8 Jahren"
+   },
+   "language": "de",
+   "rights": {
+    "kind": "podcast",
+    "holder": "Bayerischer Rundfunk",
+    "termsUrl": "https://www.ardsounds.de/nutzungsbedingungen/"
+   },
+   "delivery": "browser",
+   "editPolicy": "unchanged",
+   "note": "Du lädst die Folgen auf der Seite von ARD Sounds selbst herunter und ziehst sie dann in die App. Die ARD stellt jede Folge nur eine Zeit lang bereit."
+  }
+ ]
+}

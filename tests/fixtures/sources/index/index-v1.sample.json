@@ -1,0 +1,2132 @@
+{
+ "format": 1,
+ "generatedAt": "2026-10-05T04:00:00.000Z",
+ "staleAfter": "2026-10-19T04:00:00.000Z",
+ "entries": [
+  {
+   "id": "kakadu-kinderhoerspiel",
+   "type": "podcast",
+   "title": "Kakadu – Das Kinderhörspiel",
+   "publisher": "Deutschlandfunk Kultur",
+   "blurb": "Hörspiele aus dem Kinderprogramm von Deutschlandfunk Kultur, meist 20 bis 55 Minuten.",
+   "categories": [
+    "hoerspiel"
+   ],
+   "ages": {
+    "min": 7,
+    "max": 12,
+    "source": "publisher",
+    "text": "Unsere Geschichten eignen sich meist für Hörer ab 7 Jahren."
+   },
+   "language": "de",
+   "rights": {
+    "kind": "podcast",
+    "holder": "Deutschlandradio",
+    "termsUrl": "https://www.kakadu.de/nutzungsbedingungen-106.html"
+   },
+   "delivery": "browser",
+   "editPolicy": "unchanged",
+   "pageUrl": "https://www.kakadu.de/",
+   "note": "Du lädst die Folgen auf der Seite von Deutschlandfunk Kultur selbst herunter. Die Dateien kommen unverändert auf die Karte.",
+   "items": [
+    {
+     "key": "kakadu-kinderhoerspiel/83531235-b48a-551a-9400-33f0e43e9f77",
+     "title": "Das Mammut in der Grube",
+     "originalTitle": "Kinderhörspiel - Das Mammut in der Grube",
+     "category": "hoerspiel",
+     "published": "2026-10-04T06:05:39.000Z",
+     "durationSec": 3179,
+     "size": 50913468,
+     "pageUrl": "https://www.kakadu.de/kinderhoerspiel-das-mammut-in-der-grube-102.html",
+     "files": [
+      {
+       "url": "https://podcast-mp3.dradio.de/podcast/2026/10/04/kinderhoerspiel_mammut_in_der_grube_drk_20261004_0805_1bd0ec95.mp3?refId=kinderhoerspiel-118",
+       "name": "kinderhoerspiel_mammut_in_der_grube_drk_20261004_0805_1bd0ec95.mp3",
+       "size": 50913468,
+       "durationSec": 3179,
+       "title": "Das Mammut in der Grube"
+      }
+     ],
+     "about": "Anstatt des erwarteten Säbelzahntigers landet ein Mammut in der Grube. Kian versucht, ihm zu helfen, und stürzt dabei selbst in das Erdloch."
+    },
+    {
+     "key": "kakadu-kinderhoerspiel/ebe9219c-4621-5a3a-b850-c9fa799d8fa3",
+     "title": "Australien, ich komme!",
+     "originalTitle": "Kinderhörspiel - Australien, ich komme!",
+     "category": "hoerspiel",
+     "published": "2026-10-03T06:05:47.000Z",
+     "durationSec": 3222,
+     "size": 51601846,
+     "pageUrl": "https://www.kakadu.de/kinderhoerspiel-australien-ich-komme-100.html",
+     "files": [
+      {
+       "url": "https://podcast-mp3.dradio.de/podcast/2026/10/03/kinderhoerspiel_australien_ich_komme_drk_20261003_0805_28ccb837.mp3?refId=kinderhoerspiel-118",
+       "name": "kinderhoerspiel_australien_ich_komme_drk_20261003_0805_28ccb837.mp3",
+       "size": 51601846,
+       "durationSec": 3222,
+       "title": "Australien, ich komme!"
+      }
+     ],
+     "about": "Ein Wombat reist um die halbe Welt, um einen Stein zum heiligen Berg zurückzubringen."
+    },
+    {
+     "key": "kakadu-kinderhoerspiel/50d5c7f8-7351-5811-92d8-494cdcd8b102",
+     "title": "Ein Fellknäuel namens Heimweh",
+     "originalTitle": "Kinderhörspiel und Geschichten - Ein Fellknäuel namens Heimweh",
+     "category": "hoerspiel",
+     "published": "2026-09-27T06:05:47.000Z",
+     "durationSec": 1344,
+     "size": 21556015,
+     "pageUrl": "https://www.kakadu.de/kakadu-geschichte-ein-fellknaeuel-namens-heimweh-100.html",
+     "files": [
+      {
+       "url": "https://podcast-mp3.dradio.de/podcast/2026/09/27/kinderhoerspiel_und_geschichten_ein_fellknaeuel_namens_drk_20260927_0805_37c2136d.mp3?refId=kinderhoerspiel-118",
+       "name": "kinderhoerspiel_und_geschichten_ein_fellknaeuel_namens_drk_20260927_0805_37c2136d.mp3",
+       "size": 21556015,
+       "durationSec": 1344,
+       "title": "Ein Fellknäuel namens Heimweh"
+      }
+     ],
+     "about": "Lillys Mama hat ihr gesagt, das Mittel dagegen wäre, mit ihrem Heimweh zu reden. Aber was, wenn das Heimweh ihr antwortet?"
+    }
+   ],
+   "checkedAt": "2026-10-05T04:00:00.000Z",
+   "reviewedAt": "2026-10-13",
+   "about": "Im Kinderhörspiel von Deutschlandfunk Kultur werden Geschichten lebendig. In unseren Hörspielstudios zaubern wir die unterschiedlichsten Welten herbei: einen Elfenwald, die Tiefsee oder eine Mäusehöhle.",
+   "cover": "https://bilder.deutschlandfunk.de/FI/LE/_9/ac/FILE_9ac926df16c242d33aa4876fd8be2676/kakadu-kinderhoerspiel-104-1920x1920.jpg",
+   "coverFrom": "Bild aus dem Podcast von Deutschlandfunk Kultur"
+  },
+  {
+   "id": "srf-kids-hoerspiele",
+   "type": "podcast",
+   "title": "SRF Kids Hörspiele",
+   "publisher": "Schweizer Radio und Fernsehen (SRF)",
+   "blurb": "Hörspiele auf Schweizerdeutsch: Krimi, Abenteuer und Geschichten vom Pausenhof.",
+   "categories": [
+    "hoerspiel"
+   ],
+   "ages": {
+    "min": 8,
+    "max": 12,
+    "source": "publisher",
+    "text": "Tolle Hörspiele für Kinder ab 8 bis 12 Jahren auf Schweizerdeutsch."
+   },
+   "language": "gsw",
+   "rights": {
+    "kind": "podcast",
+    "holder": "SRG SSR",
+    "termsUrl": "https://www.srgssr.ch/de/nutzungsbedingungen"
+   },
+   "delivery": "browser",
+   "editPolicy": "unchanged",
+   "pageUrl": "https://www.srf.ch/kids/eltern/srf-kids-hoerspiele-kinderhoerspiele-einfach-gratis-herunterladen",
+   "note": "Auf Schweizerdeutsch. SRF erlaubt, die Hörspiele für eine Hörspiel-Box herunterzuladen. Die Dateien kommen unverändert auf die Karte: keine Lautstärke-Anpassung, kein Teilen.",
+   "items": [
+    {
+     "key": "srf-kids-hoerspiele/19e9cd98-1074-351c-9c37-966472f653d4",
+     "title": "Ricci, Achtung Lehrerbesuch! – ein turbulentes Hörspiel",
+     "category": "hoerspiel",
+     "published": "2026-09-30T09:00:00.000Z",
+     "durationSec": 2653,
+     "size": 42519112,
+     "pageUrl": "https://www.srf.ch/audio/srf-kids-hoerspiele-geschichten-fuer-kinder",
+     "files": [
+      {
+       "url": "https://download-media.srf.ch/world/audio/Zambo_Hoerspiele_fuer_Kinder_radio/2026/09/Zambo_Hoerspiele_fuer_Kinder_radio_AUDI20260930_NR_0041_880d544fbb48490bbfd6f48fe585f558.mp3",
+       "name": "Zambo_Hoerspiele_fuer_Kinder_radio_AUDI20260930_NR_0041_880d544fbb48490bbfd6f48fe585f558.mp3",
+       "size": 42519112,
+       "durationSec": 2653,
+       "title": "Ricci, Achtung Lehrerbesuch! – ein turbulentes Hörspiel"
+      }
+     ]
+    },
+    {
+     "key": "srf-kids-hoerspiele/2f1b14a6-ad52-3cb1-ad7e-cba44d33ef3d",
+     "title": "Oma, die Miethaie und ich – Hörspiel über einen mysteriösen Brief",
+     "category": "hoerspiel",
+     "published": "2026-09-16T09:00:00.000Z",
+     "durationSec": 4151,
+     "size": 66408045,
+     "pageUrl": "https://www.srf.ch/audio/srf-kids-hoerspiele-geschichten-fuer-kinder",
+     "files": [
+      {
+       "url": "https://download-media.srf.ch/world/audio/Zambo_Hoerspiele_fuer_Kinder_radio/2026/09/Zambo_Hoerspiele_fuer_Kinder_radio_AUDI20260916_NR_0034_d7065afe8e3a4314b0849614623522e8.mp3",
+       "name": "Zambo_Hoerspiele_fuer_Kinder_radio_AUDI20260916_NR_0034_d7065afe8e3a4314b0849614623522e8.mp3",
+       "size": 66408045,
+       "durationSec": 4151,
+       "title": "Oma, die Miethaie und ich – Hörspiel über einen mysteriösen Brief"
+      }
+     ]
+    },
+    {
+     "key": "srf-kids-hoerspiele/59fda018-182d-308c-9bbd-e530a6a2ee28",
+     "title": "Klementine schreibt einen bösen Brief – ein witziges Hörspiel",
+     "category": "hoerspiel",
+     "published": "2026-09-02T09:00:00.000Z",
+     "durationSec": 4232,
+     "size": 67782484,
+     "pageUrl": "https://www.srf.ch/audio/srf-kids-hoerspiele-geschichten-fuer-kinder",
+     "files": [
+      {
+       "url": "https://download-media.srf.ch/world/audio/Zambo_Hoerspiele_fuer_Kinder_radio/2026/08/Zambo_Hoerspiele_fuer_Kinder_radio_AUDI20260902_NR_0042_327b06cbbd2341369f170e34abca51d1.mp3",
+       "name": "Zambo_Hoerspiele_fuer_Kinder_radio_AUDI20260902_NR_0042_327b06cbbd2341369f170e34abca51d1.mp3",
+       "size": 67782484,
+       "durationSec": 4232,
+       "title": "Klementine schreibt einen bösen Brief – ein witziges Hörspiel"
+      }
+     ]
+    }
+   ],
+   "checkedAt": "2026-10-05T04:00:00.000Z",
+   "about": "Tolle Hörspiele für Kinder ab 8 bis 12 Jahren auf Schweizerdeutsch. Ob Krimi, Abenteuer oder lustige Geschichten vom Pausenhof – für jeden Geschmack ist etwas dabei!",
+   "cover": "https://download-media.srf.ch/world/image/audio/2023/04/987a01e371154a5d8f5e0afda6736d01.png",
+   "coverFrom": "Bild aus dem Podcast von Schweizer Radio und Fernsehen (SRF)"
+  },
+  {
+   "id": "radio-klops",
+   "type": "podcast",
+   "title": "Radio Klops",
+   "publisher": "Domenik Schuster",
+   "blurb": "Hörspielpodcast mit der Schildkröte Klops, Folgen von 23 bis 38 Minuten.",
+   "categories": [
+    "hoerspiel"
+   ],
+   "ages": {
+    "min": 4,
+    "max": 8,
+    "source": "publisher",
+    "text": "Ab 4 Jahren geeignet."
+   },
+   "language": "de",
+   "rights": {
+    "kind": "podcast",
+    "holder": "Domenik Schuster"
+   },
+   "delivery": "direct",
+   "editPolicy": "normal",
+   "pageUrl": "https://radioklops.podigee.io/",
+   "note": "Podcast: nur für den privaten Gebrauch in der Familie.",
+   "items": [
+    {
+     "key": "radio-klops/placeholder-guid-7",
+     "title": "Folge 7: Der Sonnencreme-Roboter",
+     "category": "hoerspiel",
+     "published": "2026-09-15T03:00:00.000Z",
+     "durationSec": 1973,
+     "size": 31480561,
+     "files": [
+      {
+       "url": "https://audio.podigee-cdn.net/2594295-m-f5e8aa3cf404651e6bb01af84e67e73f.mp3?source=feed",
+       "name": "2594295-m-f5e8aa3cf404651e6bb01af84e67e73f.mp3",
+       "size": 31480561,
+       "durationSec": 1973,
+       "title": "Folge 7: Der Sonnencreme-Roboter"
+      }
+     ],
+     "sparse": true
+    },
+    {
+     "key": "radio-klops/placeholder-guid-6",
+     "title": "Folge 6: Der Trillerpfeifen-Roboter",
+     "category": "hoerspiel",
+     "published": "2026-08-18T03:00:00.000Z",
+     "durationSec": 2014,
+     "size": 31832895,
+     "files": [
+      {
+       "url": "https://audio.podigee-cdn.net/2477797-m-db90238e0efcfdb9c2546452674116f7.mp3?source=feed",
+       "name": "2477797-m-db90238e0efcfdb9c2546452674116f7.mp3",
+       "size": 31832895,
+       "durationSec": 2014,
+       "title": "Folge 6: Der Trillerpfeifen-Roboter"
+      }
+     ],
+     "sparse": true
+    },
+    {
+     "key": "radio-klops/placeholder-guid-5",
+     "title": "Folge 5: Der Doppel-Schimpfroboter",
+     "category": "hoerspiel",
+     "published": "2026-07-21T02:59:00.000Z",
+     "durationSec": 2276,
+     "size": 35737628,
+     "files": [
+      {
+       "url": "https://audio.podigee-cdn.net/2551784-m-4c93811aa2c660ed181210c385e8b9fa.mp3?source=feed",
+       "name": "2551784-m-4c93811aa2c660ed181210c385e8b9fa.mp3",
+       "size": 35737628,
+       "durationSec": 2276,
+       "title": "Folge 5: Der Doppel-Schimpfroboter"
+      }
+     ],
+     "sparse": true
+    },
+    {
+     "key": "radio-klops/placeholder-guid-4",
+     "title": "Folge 4: Der Tröste-Roboter",
+     "category": "hoerspiel",
+     "published": "2026-06-16T02:00:00.000Z",
+     "durationSec": 1415,
+     "size": 23405605,
+     "files": [
+      {
+       "url": "https://audio.podigee-cdn.net/2477800-m-0262e82a3a468b67334bfc5e88586532.mp3?source=feed",
+       "name": "2477800-m-0262e82a3a468b67334bfc5e88586532.mp3",
+       "size": 23405605,
+       "durationSec": 1415,
+       "title": "Folge 4: Der Tröste-Roboter"
+      }
+     ],
+     "sparse": true
+    },
+    {
+     "key": "radio-klops/placeholder-guid-3",
+     "title": "Folge 3: Der Knall-Ernst-Roboter",
+     "category": "hoerspiel",
+     "published": "2026-05-19T03:00:00.000Z",
+     "durationSec": 1389,
+     "size": 23088665,
+     "files": [
+      {
+       "url": "https://audio.podigee-cdn.net/2488737-m-666284c64325d9dbb5ecdbb747178c46.mp3?source=feed",
+       "name": "2488737-m-666284c64325d9dbb5ecdbb747178c46.mp3",
+       "size": 23088665,
+       "durationSec": 1389,
+       "title": "Folge 3: Der Knall-Ernst-Roboter"
+      }
+     ],
+     "sparse": true
+    },
+    {
+     "key": "radio-klops/placeholder-guid-2",
+     "title": "Folge 2: Der Zahnbürsten-Wegrenn-Hindernislauf",
+     "category": "hoerspiel",
+     "published": "2026-05-04T11:49:10.000Z",
+     "durationSec": 1648,
+     "size": 26688670,
+     "files": [
+      {
+       "url": "https://audio.podigee-cdn.net/2477791-m-1a3f3b475eb0c8415bf63afe1422f4f0.mp3?source=feed",
+       "name": "2477791-m-1a3f3b475eb0c8415bf63afe1422f4f0.mp3",
+       "size": 26688670,
+       "durationSec": 1648,
+       "title": "Folge 2: Der Zahnbürsten-Wegrenn-Hindernislauf"
+      }
+     ],
+     "sparse": true
+    },
+    {
+     "key": "radio-klops/placeholder-guid-1",
+     "title": "Folge 1: Die Socken-Saug-Maschine",
+     "category": "hoerspiel",
+     "published": "2026-05-04T11:11:08.000Z",
+     "durationSec": 1632,
+     "size": 26433425,
+     "files": [
+      {
+       "url": "https://audio.podigee-cdn.net/2477755-m-2ee46a1b27b5a13672bf49cbe95d94b4.mp3?source=feed",
+       "name": "2477755-m-2ee46a1b27b5a13672bf49cbe95d94b4.mp3",
+       "size": 26433425,
+       "durationSec": 1632,
+       "title": "Folge 1: Die Socken-Saug-Maschine"
+      }
+     ],
+     "sparse": true
+    }
+   ],
+   "checkedAt": "2026-10-05T04:00:00.000Z",
+   "about": "Die Schildkröte Klops sendet aus dem Kinderzimmer eine lustige und warmherzige Hörreihe, die Kinder stärkt – und ihnen zeigt: Auch andere Eltern verwandeln sich ab und zu in Schimpfroboter."
+  },
+  {
+   "id": "global-storybooks-de",
+   "type": "gitlab-gsb",
+   "title": "Global Storybooks – Geschichten zum Vorlesen",
+   "publisher": "Global Storybooks / African Storybook",
+   "blurb": "Kurze Bilderbuchgeschichten aus Afrika, auf Deutsch gelesen von Jula Eberth.",
+   "categories": [
+    "hoerbuch"
+   ],
+   "ages": {
+    "min": 3,
+    "max": 7,
+    "source": "editor"
+   },
+   "language": "de",
+   "rights": {
+    "kind": "cc",
+    "id": "by",
+    "version": "3.0",
+    "url": "https://creativecommons.org/licenses/by/3.0/"
+   },
+   "delivery": "direct",
+   "editPolicy": "normal",
+   "pageUrl": "https://gitlab.com/global-asp/gsn-audio",
+   "items": [
+    {
+     "key": "global-storybooks-de/0001",
+     "title": "Ein sehr großer Mann",
+     "category": "hoerbuch",
+     "published": "2017",
+     "durationSec": 49,
+     "size": 452051,
+     "pageUrl": "https://gitlab.com/global-asp/gsn-audio",
+     "creators": [
+      {
+       "name": "Cornelius Gulere",
+       "role": "author"
+      },
+      {
+       "name": "Lisa Birkner",
+       "role": "translator"
+      },
+      {
+       "name": "Jula Eberth",
+       "role": "reader"
+      }
+     ],
+     "rights": {
+      "kind": "cc",
+      "id": "by",
+      "version": "3.0",
+      "url": "https://creativecommons.org/licenses/by/3.0/"
+     },
+     "files": [
+      {
+       "url": "https://gitlab.com/api/v4/projects/6909116/repository/files/de%2F0001%2Fde-0001_tall.mp3/raw?ref=a2f9f1d20b3225d8bfa654e5b37fb68cc6b19656",
+       "name": "de-0001_tall.mp3",
+       "size": 452051,
+       "durationSec": 49,
+       "title": "Ein sehr großer Mann"
+      }
+     ]
+    },
+    {
+     "key": "global-storybooks-de/0002",
+     "title": "Sieh Dir die Tiere an!",
+     "category": "hoerbuch",
+     "published": "2017",
+     "durationSec": 28,
+     "size": 251062,
+     "pageUrl": "https://gitlab.com/global-asp/gsn-audio",
+     "creators": [
+      {
+       "name": "Jenny Katz",
+       "role": "author"
+      },
+      {
+       "name": "Lisa Birkner",
+       "role": "translator"
+      },
+      {
+       "name": "Jula Eberth",
+       "role": "reader"
+      }
+     ],
+     "rights": {
+      "kind": "cc",
+      "id": "by-nc",
+      "version": "3.0",
+      "url": "https://creativecommons.org/licenses/by-nc/3.0/"
+     },
+     "files": [
+      {
+       "url": "https://gitlab.com/api/v4/projects/6909116/repository/files/de%2F0002%2Fde-0002_animals.mp3/raw?ref=a2f9f1d20b3225d8bfa654e5b37fb68cc6b19656",
+       "name": "de-0002_animals.mp3",
+       "size": 251062,
+       "durationSec": 28,
+       "title": "Sieh Dir die Tiere an!"
+      }
+     ]
+    },
+    {
+     "key": "global-storybooks-de/0003",
+     "title": "Schulkleidung",
+     "category": "hoerbuch",
+     "published": "2017",
+     "size": 221870,
+     "pageUrl": "https://gitlab.com/global-asp/gsn-audio",
+     "creators": [
+      {
+       "name": "Clare Verbeek",
+       "role": "author"
+      },
+      {
+       "name": "Thembani Dladla",
+       "role": "author"
+      },
+      {
+       "name": "Zanele Buthelezi",
+       "role": "author"
+      },
+      {
+       "name": "Victor Pedrero",
+       "role": "translator"
+      },
+      {
+       "name": "Jula Eberth",
+       "role": "reader"
+      }
+     ],
+     "rights": {
+      "kind": "cc",
+      "id": "by-nc",
+      "version": "3.0",
+      "url": "https://creativecommons.org/licenses/by-nc/3.0/"
+     },
+     "files": [
+      {
+       "url": "https://gitlab.com/api/v4/projects/6909116/repository/files/de%2F0003%2Fde-0003_clothes.mp3/raw?ref=a2f9f1d20b3225d8bfa654e5b37fb68cc6b19656",
+       "name": "de-0003_clothes.mp3",
+       "size": 221870,
+       "title": "Schulkleidung"
+      }
+     ]
+    },
+    {
+     "key": "global-storybooks-de/0004",
+     "title": "Ziege, Hund und Kuh",
+     "category": "hoerbuch",
+     "published": "2017",
+     "size": 699025,
+     "pageUrl": "https://gitlab.com/global-asp/gsn-audio",
+     "creators": [
+      {
+       "name": "Fabian Wakholi",
+       "role": "author"
+      },
+      {
+       "name": "Anna Westpfahl",
+       "role": "translator"
+      },
+      {
+       "name": "Jula Eberth",
+       "role": "reader"
+      }
+     ],
+     "rights": {
+      "kind": "cc",
+      "id": "by",
+      "version": "3.0",
+      "url": "https://creativecommons.org/licenses/by/3.0/"
+     },
+     "files": [
+      {
+       "url": "https://gitlab.com/api/v4/projects/6909116/repository/files/de%2F0004%2Fde-0004_goat.mp3/raw?ref=a2f9f1d20b3225d8bfa654e5b37fb68cc6b19656",
+       "name": "de-0004_goat.mp3",
+       "size": 699025,
+       "title": "Ziege, Hund und Kuh"
+      }
+     ]
+    },
+    {
+     "key": "global-storybooks-de/0006",
+     "title": "Anansi und die Weisheit",
+     "category": "hoerbuch",
+     "published": "2017",
+     "size": 1209188,
+     "pageUrl": "https://gitlab.com/global-asp/gsn-audio",
+     "creators": [
+      {
+       "name": "Anna Westpfahl",
+       "role": "translator"
+      },
+      {
+       "name": "Jula Eberth",
+       "role": "reader"
+      }
+     ],
+     "tradition": "Volksmärchen aus Ghana",
+     "rights": {
+      "kind": "cc",
+      "id": "by",
+      "version": "3.0",
+      "url": "https://creativecommons.org/licenses/by/3.0/"
+     },
+     "files": [
+      {
+       "url": "https://gitlab.com/api/v4/projects/6909116/repository/files/de%2F0006%2Fde-0006_anansi.mp3/raw?ref=a2f9f1d20b3225d8bfa654e5b37fb68cc6b19656",
+       "name": "de-0006_anansi.mp3",
+       "size": 1209188,
+       "title": "Anansi und die Weisheit"
+      }
+     ]
+    },
+    {
+     "key": "global-storybooks-de/0008",
+     "title": "Was tust du?",
+     "category": "hoerbuch",
+     "published": "2017",
+     "size": 147913,
+     "pageUrl": "https://gitlab.com/global-asp/gsn-audio",
+     "creators": [
+      {
+       "name": "Nina Orange",
+       "role": "author"
+      },
+      {
+       "name": "Espen Stranger-Johannessen",
+       "role": "translator"
+      },
+      {
+       "name": "Jula Eberth",
+       "role": "reader"
+      }
+     ],
+     "rights": {
+      "kind": "cc",
+      "id": "by",
+      "version": "3.0",
+      "url": "https://creativecommons.org/licenses/by/3.0/"
+     },
+     "files": [
+      {
+       "url": "https://gitlab.com/api/v4/projects/6909116/repository/files/de%2F0008%2Fde-0008_what.mp3/raw?ref=a2f9f1d20b3225d8bfa654e5b37fb68cc6b19656",
+       "name": "de-0008_what.mp3",
+       "size": 147913,
+       "title": "Was tust du?"
+      }
+     ]
+    },
+    {
+     "key": "global-storybooks-de/0009",
+     "title": "Wo ist meine Katze?",
+     "category": "hoerbuch",
+     "published": "2017",
+     "size": 215373,
+     "pageUrl": "https://gitlab.com/global-asp/gsn-audio",
+     "creators": [
+      {
+       "name": "Clare Verbeek",
+       "role": "author"
+      },
+      {
+       "name": "Thembani Dladla",
+       "role": "author"
+      },
+      {
+       "name": "Zanele Buthelezi",
+       "role": "author"
+      },
+      {
+       "name": "Lisa Birkner",
+       "role": "translator"
+      },
+      {
+       "name": "Jula Eberth",
+       "role": "reader"
+      }
+     ],
+     "rights": {
+      "kind": "cc",
+      "id": "by-nc",
+      "version": "3.0",
+      "url": "https://creativecommons.org/licenses/by-nc/3.0/"
+     },
+     "files": [
+      {
+       "url": "https://gitlab.com/api/v4/projects/6909116/repository/files/de%2F0009%2Fde-0009_where.mp3/raw?ref=a2f9f1d20b3225d8bfa654e5b37fb68cc6b19656",
+       "name": "de-0009_where.mp3",
+       "size": 215373,
+       "title": "Wo ist meine Katze?"
+      }
+     ]
+    },
+    {
+     "key": "global-storybooks-de/0027",
+     "title": "Entscheidung",
+     "category": "hoerbuch",
+     "published": "2017",
+     "size": 909710,
+     "pageUrl": "https://gitlab.com/global-asp/gsn-audio",
+     "creators": [
+      {
+       "name": "Ursula Nafula",
+       "role": "author"
+      },
+      {
+       "name": "Anna Westpfahl",
+       "role": "translator"
+      },
+      {
+       "name": "Jula Eberth",
+       "role": "reader"
+      }
+     ],
+     "rights": {
+      "kind": "cc",
+      "id": "by",
+      "version": "4.0",
+      "url": "https://creativecommons.org/licenses/by/4.0/"
+     },
+     "files": [
+      {
+       "url": "https://gitlab.com/api/v4/projects/6909116/repository/files/de%2F0027%2Fde-0027_decision.mp3/raw?ref=a2f9f1d20b3225d8bfa654e5b37fb68cc6b19656",
+       "name": "de-0027_decision.mp3",
+       "size": 909710,
+       "title": "Entscheidung"
+      }
+     ]
+    },
+    {
+     "key": "global-storybooks-de/0030",
+     "title": "Gefühle",
+     "category": "hoerbuch",
+     "published": "2017",
+     "size": 238007,
+     "pageUrl": "https://gitlab.com/global-asp/gsn-audio",
+     "creators": [
+      {
+       "name": "Clare Verbeek",
+       "role": "author"
+      },
+      {
+       "name": "Thembani Dladla",
+       "role": "author"
+      },
+      {
+       "name": "Zanele Buthelezi",
+       "role": "author"
+      },
+      {
+       "name": "Anna Westpfahl",
+       "role": "translator"
+      },
+      {
+       "name": "Jula Eberth",
+       "role": "reader"
+      }
+     ],
+     "rights": {
+      "kind": "cc",
+      "id": "by-nc",
+      "version": "3.0",
+      "url": "https://creativecommons.org/licenses/by-nc/3.0/"
+     },
+     "files": [
+      {
+       "url": "https://gitlab.com/api/v4/projects/6909116/repository/files/de%2F0030%2Fde-0030_feelings.mp3/raw?ref=a2f9f1d20b3225d8bfa654e5b37fb68cc6b19656",
+       "name": "de-0030_feelings.mp3",
+       "size": 238007,
+       "title": "Gefühle"
+      }
+     ]
+    },
+    {
+     "key": "global-storybooks-de/0052",
+     "title": "Simbegwire",
+     "category": "hoerbuch",
+     "published": "2017",
+     "size": 3695502,
+     "pageUrl": "https://gitlab.com/global-asp/gsn-audio",
+     "creators": [
+      {
+       "name": "Rukia Nantale",
+       "role": "author"
+      },
+      {
+       "name": "Anna Westpfahl",
+       "role": "translator"
+      },
+      {
+       "name": "Jula Eberth",
+       "role": "reader"
+      }
+     ],
+     "rights": {
+      "kind": "cc",
+      "id": "by",
+      "version": "3.0",
+      "url": "https://creativecommons.org/licenses/by/3.0/"
+     },
+     "files": [
+      {
+       "url": "https://gitlab.com/api/v4/projects/6909116/repository/files/de%2F0052%2Fde-0052_simbegwire.mp3/raw?ref=a2f9f1d20b3225d8bfa654e5b37fb68cc6b19656",
+       "name": "de-0052_simbegwire.mp3",
+       "size": 3695502,
+       "title": "Simbegwire"
+      }
+     ]
+    },
+    {
+     "key": "global-storybooks-de/0066",
+     "title": "Nozibele und die drei Haare",
+     "category": "hoerbuch",
+     "published": "2017",
+     "size": 1747405,
+     "pageUrl": "https://gitlab.com/global-asp/gsn-audio",
+     "creators": [
+      {
+       "name": "Tessa Welch",
+       "role": "author"
+      },
+      {
+       "name": "Anna Westpfahl",
+       "role": "translator"
+      },
+      {
+       "name": "Jula Eberth",
+       "role": "reader"
+      }
+     ],
+     "rights": {
+      "kind": "cc",
+      "id": "by",
+      "version": "3.0",
+      "url": "https://creativecommons.org/licenses/by/3.0/"
+     },
+     "files": [
+      {
+       "url": "https://gitlab.com/api/v4/projects/6909116/repository/files/de%2F0066%2Fde-0066_nozibele.mp3/raw?ref=a2f9f1d20b3225d8bfa654e5b37fb68cc6b19656",
+       "name": "de-0066_nozibele.mp3",
+       "size": 1747405,
+       "title": "Nozibele und die drei Haare"
+      }
+     ]
+    },
+    {
+     "key": "global-storybooks-de/0067",
+     "title": "Kochen",
+     "category": "hoerbuch",
+     "published": "2017",
+     "size": 224896,
+     "pageUrl": "https://gitlab.com/global-asp/gsn-audio",
+     "creators": [
+      {
+       "name": "Clare Verbeek",
+       "role": "author"
+      },
+      {
+       "name": "Thembani Dladla",
+       "role": "author"
+      },
+      {
+       "name": "Zanele Buthelezi",
+       "role": "author"
+      },
+      {
+       "name": "Lisa Birkner",
+       "role": "translator"
+      },
+      {
+       "name": "Jula Eberth",
+       "role": "reader"
+      }
+     ],
+     "rights": {
+      "kind": "cc",
+      "id": "by-nc",
+      "version": "3.0",
+      "url": "https://creativecommons.org/licenses/by-nc/3.0/"
+     },
+     "files": [
+      {
+       "url": "https://gitlab.com/api/v4/projects/6909116/repository/files/de%2F0067%2Fde-0067_cooking.mp3/raw?ref=a2f9f1d20b3225d8bfa654e5b37fb68cc6b19656",
+       "name": "de-0067_cooking.mp3",
+       "size": 224896,
+       "title": "Kochen"
+      }
+     ]
+    },
+    {
+     "key": "global-storybooks-de/0072",
+     "title": "Die Rache des Honiganzeigers",
+     "category": "hoerbuch",
+     "published": "2017",
+     "size": 2906615,
+     "pageUrl": "https://gitlab.com/global-asp/gsn-audio",
+     "creators": [
+      {
+       "name": "Anna Westpfahl",
+       "role": "translator"
+      },
+      {
+       "name": "Jula Eberth",
+       "role": "reader"
+      }
+     ],
+     "tradition": "Volksmärchen der Zulu",
+     "rights": {
+      "kind": "cc",
+      "id": "by",
+      "version": "3.0",
+      "url": "https://creativecommons.org/licenses/by/3.0/"
+     },
+     "files": [
+      {
+       "url": "https://gitlab.com/api/v4/projects/6909116/repository/files/de%2F0072%2Fde-0072_honeyguide.mp3/raw?ref=a2f9f1d20b3225d8bfa654e5b37fb68cc6b19656",
+       "name": "de-0072_honeyguide.mp3",
+       "size": 2906615,
+       "title": "Die Rache des Honiganzeigers"
+      }
+     ]
+    },
+    {
+     "key": "global-storybooks-de/0087",
+     "title": "Ich lese gerne!",
+     "category": "hoerbuch",
+     "published": "2017",
+     "size": 206751,
+     "pageUrl": "https://gitlab.com/global-asp/gsn-audio",
+     "creators": [
+      {
+       "name": "Letta Machoga",
+       "role": "author"
+      },
+      {
+       "name": "Lisa Birkner",
+       "role": "translator"
+      },
+      {
+       "name": "Jula Eberth",
+       "role": "reader"
+      }
+     ],
+     "rights": {
+      "kind": "cc",
+      "id": "by",
+      "version": "3.0",
+      "url": "https://creativecommons.org/licenses/by/3.0/"
+     },
+     "files": [
+      {
+       "url": "https://gitlab.com/api/v4/projects/6909116/repository/files/de%2F0087%2Fde-0087_read.mp3/raw?ref=a2f9f1d20b3225d8bfa654e5b37fb68cc6b19656",
+       "name": "de-0087_read.mp3",
+       "size": 206751,
+       "title": "Ich lese gerne!"
+      }
+     ]
+    },
+    {
+     "key": "global-storybooks-de/0089",
+     "title": "Khalai spricht mit Pflanzen",
+     "category": "hoerbuch",
+     "published": "2017",
+     "size": 703547,
+     "pageUrl": "https://gitlab.com/global-asp/gsn-audio",
+     "creators": [
+      {
+       "name": "Ursula Nafula",
+       "role": "author"
+      },
+      {
+       "name": "Anna Westpfahl",
+       "role": "translator"
+      },
+      {
+       "name": "Jula Eberth",
+       "role": "reader"
+      }
+     ],
+     "rights": {
+      "kind": "cc",
+      "id": "by",
+      "version": "4.0",
+      "url": "https://creativecommons.org/licenses/by/4.0/"
+     },
+     "files": [
+      {
+       "url": "https://gitlab.com/api/v4/projects/6909116/repository/files/de%2F0089%2Fde-0089_khalai.mp3/raw?ref=a2f9f1d20b3225d8bfa654e5b37fb68cc6b19656",
+       "name": "de-0089_khalai.mp3",
+       "size": 703547,
+       "title": "Khalai spricht mit Pflanzen"
+      }
+     ]
+    },
+    {
+     "key": "global-storybooks-de/0095",
+     "title": "Zama ist toll!",
+     "category": "hoerbuch",
+     "published": "2017",
+     "size": 600387,
+     "pageUrl": "https://gitlab.com/global-asp/gsn-audio",
+     "creators": [
+      {
+       "name": "Michael Oguttu",
+       "role": "author"
+      },
+      {
+       "name": "Lisa Birkner",
+       "role": "translator"
+      },
+      {
+       "name": "Jula Eberth",
+       "role": "reader"
+      }
+     ],
+     "rights": {
+      "kind": "cc",
+      "id": "by",
+      "version": "3.0",
+      "url": "https://creativecommons.org/licenses/by/3.0/"
+     },
+     "files": [
+      {
+       "url": "https://gitlab.com/api/v4/projects/6909116/repository/files/de%2F0095%2Fde-0095_zama.mp3/raw?ref=a2f9f1d20b3225d8bfa654e5b37fb68cc6b19656",
+       "name": "de-0095_zama.mp3",
+       "size": 600387,
+       "title": "Zama ist toll!"
+      }
+     ]
+    },
+    {
+     "key": "global-storybooks-de/0110",
+     "title": "Ein winziges Saatkorn: Die Geschichte von Wangari Maathai",
+     "category": "hoerbuch",
+     "published": "2017",
+     "size": 1871425,
+     "pageUrl": "https://gitlab.com/global-asp/gsn-audio",
+     "creators": [
+      {
+       "name": "Nicola Rijsdijk",
+       "role": "author"
+      },
+      {
+       "name": "Anna Westpfahl",
+       "role": "translator"
+      },
+      {
+       "name": "Jula Eberth",
+       "role": "reader"
+      }
+     ],
+     "rights": {
+      "kind": "cc",
+      "id": "by",
+      "version": "4.0",
+      "url": "https://creativecommons.org/licenses/by/4.0/"
+     },
+     "files": [
+      {
+       "url": "https://gitlab.com/api/v4/projects/6909116/repository/files/de%2F0110%2Fde-0110_wangari.mp3/raw?ref=a2f9f1d20b3225d8bfa654e5b37fb68cc6b19656",
+       "name": "de-0110_wangari.mp3",
+       "size": 1871425,
+       "title": "Ein winziges Saatkorn: Die Geschichte von Wangari Maathai"
+      }
+     ]
+    },
+    {
+     "key": "global-storybooks-de/0111",
+     "title": "Warum Flußpferde keine Haare haben",
+     "category": "hoerbuch",
+     "published": "2017",
+     "size": 942374,
+     "pageUrl": "https://gitlab.com/global-asp/gsn-audio",
+     "creators": [
+      {
+       "name": "Basilio Gimo",
+       "role": "author"
+      },
+      {
+       "name": "David Ker",
+       "role": "author"
+      },
+      {
+       "name": "Anna Westpfahl",
+       "role": "translator"
+      },
+      {
+       "name": "Jula Eberth",
+       "role": "reader"
+      }
+     ],
+     "rights": {
+      "kind": "cc",
+      "id": "by",
+      "version": "3.0",
+      "url": "https://creativecommons.org/licenses/by/3.0/"
+     },
+     "files": [
+      {
+       "url": "https://gitlab.com/api/v4/projects/6909116/repository/files/de%2F0111%2Fde-0111_hippos.mp3/raw?ref=a2f9f1d20b3225d8bfa654e5b37fb68cc6b19656",
+       "name": "de-0111_hippos.mp3",
+       "size": 942374,
+       "title": "Warum Flußpferde keine Haare haben"
+      }
+     ]
+    },
+    {
+     "key": "global-storybooks-de/0112",
+     "title": "Mein Körper",
+     "category": "hoerbuch",
+     "published": "2017",
+     "size": 200704,
+     "pageUrl": "https://gitlab.com/global-asp/gsn-audio",
+     "creators": [
+      {
+       "name": "Clare Verbeek",
+       "role": "author"
+      },
+      {
+       "name": "Thembani Dladla",
+       "role": "author"
+      },
+      {
+       "name": "Zanele Buthelezi",
+       "role": "author"
+      },
+      {
+       "name": "Lisa Birkner",
+       "role": "translator"
+      },
+      {
+       "name": "Jula Eberth",
+       "role": "reader"
+      }
+     ],
+     "rights": {
+      "kind": "cc",
+      "id": "by-nc",
+      "version": "3.0",
+      "url": "https://creativecommons.org/licenses/by-nc/3.0/"
+     },
+     "files": [
+      {
+       "url": "https://gitlab.com/api/v4/projects/6909116/repository/files/de%2F0112%2Fde-0112_body.mp3/raw?ref=a2f9f1d20b3225d8bfa654e5b37fb68cc6b19656",
+       "name": "de-0112_body.mp3",
+       "size": 200704,
+       "title": "Mein Körper"
+      }
+     ]
+    },
+    {
+     "key": "global-storybooks-de/0120",
+     "title": "Haare",
+     "category": "hoerbuch",
+     "published": "2017",
+     "size": 255010,
+     "pageUrl": "https://gitlab.com/global-asp/gsn-audio",
+     "creators": [
+      {
+       "name": "Clare Verbeek",
+       "role": "author"
+      },
+      {
+       "name": "Thembani Dladla",
+       "role": "author"
+      },
+      {
+       "name": "Zanele Buthelezi",
+       "role": "author"
+      },
+      {
+       "name": "Anna Westpfahl",
+       "role": "translator"
+      },
+      {
+       "name": "Jula Eberth",
+       "role": "reader"
+      }
+     ],
+     "rights": {
+      "kind": "cc",
+      "id": "by-nc",
+      "version": "3.0",
+      "url": "https://creativecommons.org/licenses/by-nc/3.0/"
+     },
+     "files": [
+      {
+       "url": "https://gitlab.com/api/v4/projects/6909116/repository/files/de%2F0120%2Fde-0120_hair.mp3/raw?ref=a2f9f1d20b3225d8bfa654e5b37fb68cc6b19656",
+       "name": "de-0120_hair.mp3",
+       "size": 255010,
+       "title": "Haare"
+      }
+     ]
+    },
+    {
+     "key": "global-storybooks-de/0129",
+     "title": "Mein fauler kleiner Bruder",
+     "category": "hoerbuch",
+     "published": "2017",
+     "size": 212398,
+     "pageUrl": "https://gitlab.com/global-asp/gsn-audio",
+     "creators": [
+      {
+       "name": "Clare Verbeek",
+       "role": "author"
+      },
+      {
+       "name": "Thembani Dladla",
+       "role": "author"
+      },
+      {
+       "name": "Zanele Buthelezi",
+       "role": "author"
+      },
+      {
+       "name": "Lisa Birkner",
+       "role": "translator"
+      },
+      {
+       "name": "Jula Eberth",
+       "role": "reader"
+      }
+     ],
+     "rights": {
+      "kind": "cc",
+      "id": "by-nc",
+      "version": "3.0",
+      "url": "https://creativecommons.org/licenses/by-nc/3.0/"
+     },
+     "files": [
+      {
+       "url": "https://gitlab.com/api/v4/projects/6909116/repository/files/de%2F0129%2Fde-0129_lazy.mp3/raw?ref=a2f9f1d20b3225d8bfa654e5b37fb68cc6b19656",
+       "name": "de-0129_lazy.mp3",
+       "size": 212398,
+       "title": "Mein fauler kleiner Bruder"
+      }
+     ]
+    },
+    {
+     "key": "global-storybooks-de/0141",
+     "title": "Das Huhn und der Tausendfüßler",
+     "category": "hoerbuch",
+     "published": "2017",
+     "size": 1403329,
+     "pageUrl": "https://gitlab.com/global-asp/gsn-audio",
+     "creators": [
+      {
+       "name": "Winny Asara",
+       "role": "author"
+      },
+      {
+       "name": "Lisa Birkner",
+       "role": "translator"
+      },
+      {
+       "name": "Jula Eberth",
+       "role": "reader"
+      }
+     ],
+     "rights": {
+      "kind": "cc",
+      "id": "by",
+      "version": "3.0",
+      "url": "https://creativecommons.org/licenses/by/3.0/"
+     },
+     "files": [
+      {
+       "url": "https://gitlab.com/api/v4/projects/6909116/repository/files/de%2F0141%2Fde-0141_chicken.mp3/raw?ref=a2f9f1d20b3225d8bfa654e5b37fb68cc6b19656",
+       "name": "de-0141_chicken.mp3",
+       "size": 1403329,
+       "title": "Das Huhn und der Tausendfüßler"
+      }
+     ]
+    },
+    {
+     "key": "global-storybooks-de/0156",
+     "title": "Das hungrige Krokodil",
+     "category": "hoerbuch",
+     "published": "2017",
+     "size": 214940,
+     "pageUrl": "https://gitlab.com/global-asp/gsn-audio",
+     "creators": [
+      {
+       "name": "Christian G.",
+       "role": "author"
+      },
+      {
+       "name": "Lisa Birkner",
+       "role": "translator"
+      },
+      {
+       "name": "Jula Eberth",
+       "role": "reader"
+      }
+     ],
+     "rights": {
+      "kind": "cc",
+      "id": "by",
+      "version": "3.0",
+      "url": "https://creativecommons.org/licenses/by/3.0/"
+     },
+     "files": [
+      {
+       "url": "https://gitlab.com/api/v4/projects/6909116/repository/files/de%2F0156%2Fde-0156_hungry.mp3/raw?ref=a2f9f1d20b3225d8bfa654e5b37fb68cc6b19656",
+       "name": "de-0156_hungry.mp3",
+       "size": 214940,
+       "title": "Das hungrige Krokodil"
+      }
+     ]
+    },
+    {
+     "key": "global-storybooks-de/0158",
+     "title": "Henne und Adler",
+     "category": "hoerbuch",
+     "published": "2017",
+     "size": 1542672,
+     "pageUrl": "https://gitlab.com/global-asp/gsn-audio",
+     "creators": [
+      {
+       "name": "Ann Nduku",
+       "role": "author"
+      },
+      {
+       "name": "Anna Westpfahl",
+       "role": "translator"
+      },
+      {
+       "name": "Jula Eberth",
+       "role": "reader"
+      }
+     ],
+     "rights": {
+      "kind": "cc",
+      "id": "by",
+      "version": "3.0",
+      "url": "https://creativecommons.org/licenses/by/3.0/"
+     },
+     "files": [
+      {
+       "url": "https://gitlab.com/api/v4/projects/6909116/repository/files/de%2F0158%2Fde-0158_hen.mp3/raw?ref=a2f9f1d20b3225d8bfa654e5b37fb68cc6b19656",
+       "name": "de-0158_hen.mp3",
+       "size": 1542672,
+       "title": "Henne und Adler"
+      }
+     ]
+    },
+    {
+     "key": "global-storybooks-de/0201",
+     "title": "Eselskind",
+     "category": "hoerbuch",
+     "published": "2017",
+     "size": 1963750,
+     "pageUrl": "https://gitlab.com/global-asp/gsn-audio",
+     "creators": [
+      {
+       "name": "Lindiwe Matshikiza",
+       "role": "author"
+      },
+      {
+       "name": "Anna Westpfahl",
+       "role": "translator"
+      },
+      {
+       "name": "Jula Eberth",
+       "role": "reader"
+      }
+     ],
+     "rights": {
+      "kind": "cc",
+      "id": "by",
+      "version": "4.0",
+      "url": "https://creativecommons.org/licenses/by/4.0/"
+     },
+     "files": [
+      {
+       "url": "https://gitlab.com/api/v4/projects/6909116/repository/files/de%2F0201%2Fde-0201_donkey.mp3/raw?ref=a2f9f1d20b3225d8bfa654e5b37fb68cc6b19656",
+       "name": "de-0201_donkey.mp3",
+       "size": 1963750,
+       "title": "Eselskind"
+      }
+     ]
+    },
+    {
+     "key": "global-storybooks-de/0210",
+     "title": "Tingi und die Kühe",
+     "category": "hoerbuch",
+     "published": "2017",
+     "size": 389743,
+     "pageUrl": "https://gitlab.com/global-asp/gsn-audio",
+     "creators": [
+      {
+       "name": "Ingrid Schechter",
+       "role": "author"
+      },
+      {
+       "name": "Anna Westpfahl",
+       "role": "translator"
+      },
+      {
+       "name": "Jula Eberth",
+       "role": "reader"
+      }
+     ],
+     "rights": {
+      "kind": "cc",
+      "id": "by",
+      "version": "3.0",
+      "url": "https://creativecommons.org/licenses/by/3.0/"
+     },
+     "files": [
+      {
+       "url": "https://gitlab.com/api/v4/projects/6909116/repository/files/de%2F0210%2Fde-0210_tingi.mp3/raw?ref=a2f9f1d20b3225d8bfa654e5b37fb68cc6b19656",
+       "name": "de-0210_tingi.mp3",
+       "size": 389743,
+       "title": "Tingi und die Kühe"
+      }
+     ]
+    },
+    {
+     "key": "global-storybooks-de/0231",
+     "title": "Wetterbuch",
+     "category": "hoerbuch",
+     "published": "2017",
+     "size": 159784,
+     "pageUrl": "https://gitlab.com/global-asp/gsn-audio",
+     "creators": [
+      {
+       "name": "Clare Verbeek",
+       "role": "author"
+      },
+      {
+       "name": "Thembani Dladla",
+       "role": "author"
+      },
+      {
+       "name": "Zanele Buthelezi",
+       "role": "author"
+      },
+      {
+       "name": "Anna Westpfahl",
+       "role": "translator"
+      },
+      {
+       "name": "Jula Eberth",
+       "role": "reader"
+      }
+     ],
+     "rights": {
+      "kind": "cc",
+      "id": "by-nc",
+      "version": "3.0",
+      "url": "https://creativecommons.org/licenses/by-nc/3.0/"
+     },
+     "files": [
+      {
+       "url": "https://gitlab.com/api/v4/projects/6909116/repository/files/de%2F0231%2Fde-0231_weather.mp3/raw?ref=a2f9f1d20b3225d8bfa654e5b37fb68cc6b19656",
+       "name": "de-0231_weather.mp3",
+       "size": 159784,
+       "title": "Wetterbuch"
+      }
+     ]
+    },
+    {
+     "key": "global-storybooks-de/0234",
+     "title": "Andiswa Fußballstar",
+     "category": "hoerbuch",
+     "published": "2017",
+     "size": 749338,
+     "pageUrl": "https://gitlab.com/global-asp/gsn-audio",
+     "creators": [
+      {
+       "name": "Eden Daniels",
+       "role": "author"
+      },
+      {
+       "name": "Anna Westpfahl",
+       "role": "translator"
+      },
+      {
+       "name": "Jula Eberth",
+       "role": "reader"
+      }
+     ],
+     "rights": {
+      "kind": "cc",
+      "id": "by-nc",
+      "version": "3.0",
+      "url": "https://creativecommons.org/licenses/by-nc/3.0/"
+     },
+     "files": [
+      {
+       "url": "https://gitlab.com/api/v4/projects/6909116/repository/files/de%2F0234%2Fde-0234_andiswa.mp3/raw?ref=a2f9f1d20b3225d8bfa654e5b37fb68cc6b19656",
+       "name": "de-0234_andiswa.mp3",
+       "size": 749338,
+       "title": "Andiswa Fußballstar"
+      }
+     ]
+    },
+    {
+     "key": "global-storybooks-de/0243",
+     "title": "Ferien mit Großmutter",
+     "category": "hoerbuch",
+     "published": "2017",
+     "size": 2371747,
+     "pageUrl": "https://gitlab.com/global-asp/gsn-audio",
+     "creators": [
+      {
+       "name": "Violet Otieno",
+       "role": "author"
+      },
+      {
+       "name": "Anna Westpfahl",
+       "role": "translator"
+      },
+      {
+       "name": "Jula Eberth",
+       "role": "reader"
+      }
+     ],
+     "rights": {
+      "kind": "cc",
+      "id": "by",
+      "version": "4.0",
+      "url": "https://creativecommons.org/licenses/by/4.0/"
+     },
+     "files": [
+      {
+       "url": "https://gitlab.com/api/v4/projects/6909116/repository/files/de%2F0243%2Fde-0243_holidays.mp3/raw?ref=a2f9f1d20b3225d8bfa654e5b37fb68cc6b19656",
+       "name": "de-0243_holidays.mp3",
+       "size": 2371747,
+       "title": "Ferien mit Großmutter"
+      }
+     ]
+    },
+    {
+     "key": "global-storybooks-de/0271",
+     "title": "Zwei",
+     "category": "hoerbuch",
+     "published": "2017",
+     "size": 169811,
+     "pageUrl": "https://gitlab.com/global-asp/gsn-audio",
+     "creators": [
+      {
+       "name": "Carole Bloch",
+       "role": "author"
+      },
+      {
+       "name": "Anna Westpfahl",
+       "role": "translator"
+      },
+      {
+       "name": "Jula Eberth",
+       "role": "reader"
+      }
+     ],
+     "rights": {
+      "kind": "cc",
+      "id": "by-nc",
+      "version": "3.0",
+      "url": "https://creativecommons.org/licenses/by-nc/3.0/"
+     },
+     "files": [
+      {
+       "url": "https://gitlab.com/api/v4/projects/6909116/repository/files/de%2F0271%2Fde-0271_two.mp3/raw?ref=a2f9f1d20b3225d8bfa654e5b37fb68cc6b19656",
+       "name": "de-0271_two.mp3",
+       "size": 169811,
+       "title": "Zwei"
+      }
+     ]
+    },
+    {
+     "key": "global-storybooks-de/0291",
+     "title": "Was Vusis Schwester sagte",
+     "category": "hoerbuch",
+     "published": "2017",
+     "size": 2145853,
+     "pageUrl": "https://gitlab.com/global-asp/gsn-audio",
+     "creators": [
+      {
+       "name": "Nina Orange",
+       "role": "author"
+      },
+      {
+       "name": "Anna Westpfahl",
+       "role": "translator"
+      },
+      {
+       "name": "Jula Eberth",
+       "role": "reader"
+      }
+     ],
+     "rights": {
+      "kind": "cc",
+      "id": "by",
+      "version": "3.0",
+      "url": "https://creativecommons.org/licenses/by/3.0/"
+     },
+     "files": [
+      {
+       "url": "https://gitlab.com/api/v4/projects/6909116/repository/files/de%2F0291%2Fde-0291_vusi.mp3/raw?ref=a2f9f1d20b3225d8bfa654e5b37fb68cc6b19656",
+       "name": "de-0291_vusi.mp3",
+       "size": 2145853,
+       "title": "Was Vusis Schwester sagte"
+      }
+     ]
+    },
+    {
+     "key": "global-storybooks-de/0294",
+     "title": "Omas Bananen",
+     "category": "hoerbuch",
+     "published": "2017",
+     "size": 2245164,
+     "pageUrl": "https://gitlab.com/global-asp/gsn-audio",
+     "creators": [
+      {
+       "name": "Ursula Nafula",
+       "role": "author"
+      },
+      {
+       "name": "Anna Westpfahl",
+       "role": "translator"
+      },
+      {
+       "name": "Jula Eberth",
+       "role": "reader"
+      }
+     ],
+     "rights": {
+      "kind": "cc",
+      "id": "by",
+      "version": "3.0",
+      "url": "https://creativecommons.org/licenses/by/3.0/"
+     },
+     "files": [
+      {
+       "url": "https://gitlab.com/api/v4/projects/6909116/repository/files/de%2F0294%2Fde-0294_grandma.mp3/raw?ref=a2f9f1d20b3225d8bfa654e5b37fb68cc6b19656",
+       "name": "de-0294_grandma.mp3",
+       "size": 2245164,
+       "title": "Omas Bananen"
+      }
+     ]
+    },
+    {
+     "key": "global-storybooks-de/0296",
+     "title": "Tom der Bananenverkäufer",
+     "category": "hoerbuch",
+     "published": "2017",
+     "size": 640895,
+     "pageUrl": "https://gitlab.com/global-asp/gsn-audio",
+     "creators": [
+      {
+       "name": "Humphreys Odunga",
+       "role": "author"
+      },
+      {
+       "name": "Anna Westpfahl",
+       "role": "translator"
+      },
+      {
+       "name": "Jula Eberth",
+       "role": "reader"
+      }
+     ],
+     "rights": {
+      "kind": "cc",
+      "id": "by",
+      "version": "4.0",
+      "url": "https://creativecommons.org/licenses/by/4.0/"
+     },
+     "files": [
+      {
+       "url": "https://gitlab.com/api/v4/projects/6909116/repository/files/de%2F0296%2Fde-0296_tom.mp3/raw?ref=a2f9f1d20b3225d8bfa654e5b37fb68cc6b19656",
+       "name": "de-0296_tom.mp3",
+       "size": 640895,
+       "title": "Tom der Bananenverkäufer"
+      }
+     ]
+    },
+    {
+     "key": "global-storybooks-de/0302",
+     "title": "Feuer",
+     "category": "hoerbuch",
+     "published": "2017",
+     "size": 187820,
+     "pageUrl": "https://gitlab.com/global-asp/gsn-audio",
+     "creators": [
+      {
+       "name": "Deborah Namugosa",
+       "role": "author"
+      },
+      {
+       "name": "Beatrice Nabune",
+       "role": "author"
+      },
+      {
+       "name": "Alison Tukei",
+       "role": "author"
+      },
+      {
+       "name": "Rose Sabano",
+       "role": "author"
+      },
+      {
+       "name": "Anna Westpfahl",
+       "role": "translator"
+      },
+      {
+       "name": "Jula Eberth",
+       "role": "reader"
+      }
+     ],
+     "rights": {
+      "kind": "cc",
+      "id": "by",
+      "version": "3.0",
+      "url": "https://creativecommons.org/licenses/by/3.0/"
+     },
+     "files": [
+      {
+       "url": "https://gitlab.com/api/v4/projects/6909116/repository/files/de%2F0302%2Fde-0302_fire.mp3/raw?ref=a2f9f1d20b3225d8bfa654e5b37fb68cc6b19656",
+       "name": "de-0302_fire.mp3",
+       "size": 187820,
+       "title": "Feuer"
+      }
+     ]
+    },
+    {
+     "key": "global-storybooks-de/0315",
+     "title": "Sakimas Lied",
+     "category": "hoerbuch",
+     "published": "2017",
+     "size": 2060250,
+     "pageUrl": "https://gitlab.com/global-asp/gsn-audio",
+     "creators": [
+      {
+       "name": "Ursula Nafula",
+       "role": "author"
+      },
+      {
+       "name": "Anna Westpfahl",
+       "role": "translator"
+      },
+      {
+       "name": "Jula Eberth",
+       "role": "reader"
+      }
+     ],
+     "rights": {
+      "kind": "cc",
+      "id": "by",
+      "version": "4.0",
+      "url": "https://creativecommons.org/licenses/by/4.0/"
+     },
+     "files": [
+      {
+       "url": "https://gitlab.com/api/v4/projects/6909116/repository/files/de%2F0315%2Fde-0315_sakima.mp3/raw?ref=a2f9f1d20b3225d8bfa654e5b37fb68cc6b19656",
+       "name": "de-0315_sakima.mp3",
+       "size": 2060250,
+       "title": "Sakimas Lied"
+      }
+     ]
+    },
+    {
+     "key": "global-storybooks-de/0324",
+     "title": "Als ich mein Zuhause verließ und in die Stadt zog",
+     "category": "hoerbuch",
+     "published": "2017",
+     "size": 1817502,
+     "pageUrl": "https://gitlab.com/global-asp/gsn-audio",
+     "creators": [
+      {
+       "name": "Lesley Koyi",
+       "role": "author"
+      },
+      {
+       "name": "Ursula Nafula",
+       "role": "author"
+      },
+      {
+       "name": "Anna Westpfahl",
+       "role": "translator"
+      },
+      {
+       "name": "Jula Eberth",
+       "role": "reader"
+      }
+     ],
+     "rights": {
+      "kind": "cc",
+      "id": "by",
+      "version": "4.0",
+      "url": "https://creativecommons.org/licenses/by/4.0/"
+     },
+     "files": [
+      {
+       "url": "https://gitlab.com/api/v4/projects/6909116/repository/files/de%2F0324%2Fde-0324_city.mp3/raw?ref=a2f9f1d20b3225d8bfa654e5b37fb68cc6b19656",
+       "name": "de-0324_city.mp3",
+       "size": 1817502,
+       "title": "Als ich mein Zuhause verließ und in die Stadt zog"
+      }
+     ]
+    },
+    {
+     "key": "global-storybooks-de/0327",
+     "title": "Tiere zählen",
+     "category": "hoerbuch",
+     "published": "2017",
+     "size": 357540,
+     "pageUrl": "https://gitlab.com/global-asp/gsn-audio",
+     "creators": [
+      {
+       "name": "Zanele Buthelezi",
+       "role": "author"
+      },
+      {
+       "name": "Thembani Dladla",
+       "role": "author"
+      },
+      {
+       "name": "Clare Verbeek",
+       "role": "author"
+      },
+      {
+       "name": "Anna Westpfahl",
+       "role": "translator"
+      },
+      {
+       "name": "Jula Eberth",
+       "role": "reader"
+      }
+     ],
+     "rights": {
+      "kind": "cc",
+      "id": "by",
+      "version": "3.0",
+      "url": "https://creativecommons.org/licenses/by/3.0/"
+     },
+     "files": [
+      {
+       "url": "https://gitlab.com/api/v4/projects/6909116/repository/files/de%2F0327%2Fde-0327_counting.mp3/raw?ref=a2f9f1d20b3225d8bfa654e5b37fb68cc6b19656",
+       "name": "de-0327_counting.mp3",
+       "size": 357540,
+       "title": "Tiere zählen"
+      }
+     ]
+    }
+   ],
+   "checkedAt": "2026-10-05T04:00:00.000Z"
+  },
+  {
+   "id": "ohrka",
+   "type": "link",
+   "title": "OHRKA – Hörabenteuer für Kinder",
+   "publisher": "OHRKA e.V.",
+   "blurb": "Kostenlose, werbefreie Hörbücher und Hörspiele des gemeinnützigen Vereins OHRKA, gelesen von bekannten Schauspielerinnen und Schauspielern.",
+   "categories": [
+    "hoerspiel",
+    "hoerbuch"
+   ],
+   "ages": {
+    "min": 3,
+    "max": 12,
+    "source": "publisher",
+    "text": "ab 3 Jahre für Kindergartenkinder, ab 5 Jahre, ab 8 Jahre, aber auch ab 12 Jahre"
+   },
+   "language": "de",
+   "rights": {
+    "kind": "private-use",
+    "holder": "OHRKA e.V.",
+    "termsUrl": "https://www.ohrka.de/impressum"
+   },
+   "delivery": "browser",
+   "editPolicy": "normal",
+   "pageUrl": "https://www.ohrka.de/",
+   "note": "OHRKA erlaubt das Herunterladen für den privaten Gebrauch und für Bildungszwecke. Weitergeben nur mit Erlaubnis von OHRKA.",
+   "items": [
+    {
+     "key": "ohrka/hoeren/tierisch-spannend/alice-im-wunderland",
+     "title": "Alice im Wunderland, gelesen von Katharina Thalbach",
+     "category": "hoerbuch",
+     "ages": {
+      "min": 8,
+      "max": 12
+     },
+     "durationSec": 11409,
+     "pageUrl": "https://www.ohrka.de/hoeren/tierisch-spannend/alice-im-wunderland",
+     "files": [
+      {
+       "url": "https://www.ohrka.de/fileadmin/audio/Alice/Alice_im_Wunderland_komplett.mp3",
+       "name": "Alice_im_Wunderland_komplett.mp3"
+      }
+     ],
+     "fileName": "Alice_im_Wunderland_komplett.mp3",
+     "delivery": "browser",
+     "creators": [
+      {
+       "name": "Katharina Thalbach",
+       "role": "reader"
+      }
+     ],
+     "about": "Hörbuch von OHRKA aus der Rubrik „Tierisch spannend“, für Kinder ab 8 Jahren.",
+     "cover": "https://www.ohrka.de/fileadmin/bilder/pl_wunderland.png"
+    },
+    {
+     "key": "ohrka/hoeren/tierisch-spannend/das-dschungelbuch",
+     "title": "Das Dschungelbuch, gelesen von Anke Engelke",
+     "category": "hoerbuch",
+     "ages": {
+      "min": 8,
+      "max": 12
+     },
+     "durationSec": 8068,
+     "pageUrl": "https://www.ohrka.de/hoeren/tierisch-spannend/das-dschungelbuch",
+     "files": [],
+     "fileName": "Das_Dschungelbuch_-_Teil1-3.mp3",
+     "delivery": "browser",
+     "creators": [
+      {
+       "name": "Anke Engelke",
+       "role": "reader"
+      }
+     ],
+     "about": "Hörbuch von OHRKA aus der Rubrik „Tierisch spannend“, für Kinder ab 8 Jahren.",
+     "cover": "https://www.ohrka.de/fileadmin/bilder/pl_dschungelbuch.png"
+    },
+    {
+     "key": "ohrka/hoeren/tierisch-spannend/robinson-crusoe",
+     "title": "Robinson Crusoe, gelesen von David Nathan",
+     "category": "hoerbuch",
+     "ages": {
+      "min": 8,
+      "max": 12
+     },
+     "durationSec": 11377,
+     "pageUrl": "https://www.ohrka.de/hoeren/tierisch-spannend/robinson-crusoe",
+     "files": [],
+     "fileName": "Robinson_Crusoe_-_Teil_1-3.mp3",
+     "delivery": "browser",
+     "creators": [
+      {
+       "name": "David Nathan",
+       "role": "reader"
+      }
+     ],
+     "about": "Hörbuch von OHRKA aus der Rubrik „Tierisch spannend“, für Kinder ab 8 Jahren.",
+     "cover": "https://www.ohrka.de/fileadmin/bilder/pl_crusoe.png"
+    },
+    {
+     "key": "ohrka/hoeren/tierisch-spannend/black-beauty",
+     "title": "Black Beauty, gelesen von Petra Schmidt-Schaller",
+     "category": "hoerbuch",
+     "ages": {
+      "min": 8,
+      "max": 12
+     },
+     "durationSec": 9741,
+     "pageUrl": "https://www.ohrka.de/hoeren/tierisch-spannend/black-beauty",
+     "files": [],
+     "fileName": "Black_Beauty-cut.mp3",
+     "delivery": "browser",
+     "creators": [
+      {
+       "name": "Petra Schmidt-Schaller",
+       "role": "reader"
+      }
+     ],
+     "about": "Hörbuch von OHRKA aus der Rubrik „Tierisch spannend“, für Kinder ab 8 Jahren.",
+     "cover": "https://www.ohrka.de/fileadmin/bilder/pl_stern.png"
+    },
+    {
+     "key": "ohrka/hoeren/tierisch-spannend/die-reise-zum-mittelpunkt-der-erde",
+     "title": "Reise zum Mittelpunkt der Erde, gelesen von Stefan Kaminski",
+     "category": "hoerbuch",
+     "ages": {
+      "min": 8,
+      "max": 12
+     },
+     "durationSec": 13169,
+     "pageUrl": "https://www.ohrka.de/hoeren/tierisch-spannend/die-reise-zum-mittelpunkt-der-erde",
+     "files": [],
+     "fileName": "Reise_zum_Mittelpunkt_der_Erde_komplett_Teil_1-3.mp3",
+     "delivery": "browser",
+     "creators": [
+      {
+       "name": "Stefan Kaminski",
+       "role": "reader"
+      }
+     ],
+     "about": "Hörbuch von OHRKA aus der Rubrik „Tierisch spannend“, für Kinder ab 8 Jahren.",
+     "cover": "https://www.ohrka.de/fileadmin/bilder/pl_erde.png"
+    },
+    {
+     "key": "ohrka/hoeren/tierisch-spannend/die-schatzinsel",
+     "title": "Die Schatzinsel",
+     "category": "hoerbuch",
+     "ages": {
+      "min": 8,
+      "max": 12
+     },
+     "durationSec": 20534,
+     "pageUrl": "https://www.ohrka.de/hoeren/tierisch-spannend/die-schatzinsel",
+     "files": [],
+     "fileName": "Schatzinsel_CD1-5.mp3",
+     "delivery": "browser",
+     "about": "Hörbuch von OHRKA aus der Rubrik „Tierisch spannend“, für Kinder ab 8 Jahren.",
+     "cover": "https://www.ohrka.de/fileadmin/bilder/pl_schatzinsel.png"
+    },
+    {
+     "key": "ohrka/hoeren/tierisch-spannend/der-zauberer-von-oz",
+     "title": "Der Zauberer von Oz",
+     "category": "hoerbuch",
+     "ages": {
+      "min": 8,
+      "max": 12
+     },
+     "durationSec": 10090,
+     "pageUrl": "https://www.ohrka.de/hoeren/tierisch-spannend/der-zauberer-von-oz",
+     "files": [
+      {
+       "url": "https://www.ohrka.de/fileadmin/audio/eBooks/Der_Zauberer_von_Oz-cut.mp3",
+       "name": "Der_Zauberer_von_Oz-cut.mp3"
+      }
+     ],
+     "fileName": "Der_Zauberer_von_Oz-cut.mp3",
+     "delivery": "browser",
+     "about": "Hörbuch von OHRKA aus der Rubrik „Tierisch spannend“, für Kinder ab 8 Jahren.",
+     "cover": "https://www.ohrka.de/fileadmin/bilder/pl_verzaubert_insel_01.png"
+    },
+    {
+     "key": "ohrka/hoeren/tierisch-spannend/huckleberry-finn",
+     "title": "Huckleberry Finn",
+     "category": "hoerbuch",
+     "ages": {
+      "min": 8,
+      "max": 12
+     },
+     "durationSec": 10178,
+     "pageUrl": "https://www.ohrka.de/hoeren/tierisch-spannend/huckleberry-finn",
+     "files": [],
+     "fileName": "Huckleberry_Finn-cut.mp3",
+     "delivery": "browser",
+     "about": "Hörbuch von OHRKA aus der Rubrik „Tierisch spannend“, für Kinder ab 8 Jahren.",
+     "cover": "https://www.ohrka.de/fileadmin/bilder/pl_streit.png"
+    },
+    {
+     "key": "ohrka/hoeren/abenteuerlich-lustig/oskars-abenteuer",
+     "title": "Oskars Abenteuer, gelesen von Oliver Rohrbeck",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 5,
+      "max": 10
+     },
+     "durationSec": 4078,
+     "pageUrl": "https://www.ohrka.de/hoeren/abenteuerlich-lustig/oskars-abenteuer",
+     "files": [],
+     "fileName": "Oskars-Abenteuer-Teil1-Absatz1-5.mp3",
+     "delivery": "browser",
+     "creators": [
+      {
+       "name": "Oliver Rohrbeck",
+       "role": "reader"
+      }
+     ],
+     "about": "Hörspiel von OHRKA aus der Rubrik „Abenteuerlich lustig“, für Kinder ab 5 Jahren.",
+     "cover": "https://www.ohrka.de/fileadmin/bilder/pl_zwille.png"
+    },
+    {
+     "key": "ohrka/hoeren/abenteuerlich-lustig/alarm-im-uhrenland",
+     "title": "Alarm im Uhrenland",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 5,
+      "max": 10
+     },
+     "durationSec": 3805,
+     "pageUrl": "https://www.ohrka.de/hoeren/abenteuerlich-lustig/alarm-im-uhrenland",
+     "files": [],
+     "fileName": "Uhrenland_komplett.mp3",
+     "delivery": "browser",
+     "about": "Hörspiel von OHRKA aus der Rubrik „Abenteuerlich lustig“, für Kinder ab 5 Jahren.",
+     "cover": "https://www.ohrka.de/fileadmin/bilder/pl_uhrenland.png"
+    },
+    {
+     "key": "ohrka/hoeren/maerchen-fuer-alle/bekannte-maerchen",
+     "title": "14 besonders bekannte Märchen, gelesen von Katharina Thalbach, Oliver Rohrbeck und anderen",
+     "category": "hoerbuch",
+     "ages": {
+      "min": 5,
+      "max": 10
+     },
+     "durationSec": 10515,
+     "pageUrl": "https://www.ohrka.de/hoeren/maerchen-fuer-alle/bekannte-maerchen",
+     "files": [],
+     "fileName": "Bekannte_Maerchen.mp3",
+     "delivery": "browser",
+     "about": "14 Märchen von den Bremer Stadtmusikanten bis zum hässlichen jungen Entlein, gelesen von sechs Sprecherinnen und Sprechern, für Kinder ab 5 Jahren."
+    }
+   ],
+   "checkedAt": "2026-10-05T04:00:00.000Z",
+   "reviewedAt": "2026-10-09",
+   "single": true,
+   "cover": "https://www.ohrka.de/fileadmin/bilder/pl_verzaubert_insel.png",
+   "coverFrom": "Bild von ohrka.de (OHRKA e.V.)"
+  },
+  {
+   "id": "jamendo-139374-eckhardt",
+   "type": "archive-album",
+   "title": "Einmal ganz anders … Kleine ganz groß!",
+   "publisher": "Stefan Eckhardt",
+   "blurb": "Hänsel und Gretel und Weißt du, wie viel Sternlein stehen, gesungen und als Karaoke.",
+   "categories": [
+    "lied"
+   ],
+   "ages": {
+    "min": 3,
+    "max": 8,
+    "source": "editor"
+   },
+   "language": "de",
+   "rights": {
+    "kind": "cc",
+    "id": "by-sa",
+    "version": "2.0",
+    "port": "de",
+    "url": "http://creativecommons.org/licenses/by-sa/2.0/de/"
+   },
+   "delivery": "direct",
+   "editPolicy": "normal",
+   "pageUrl": "https://archive.org/details/jamendo-139374",
+   "items": [
+    {
+     "key": "jamendo-139374-eckhardt/jamendo-139374",
+     "title": "Einmal ganz anders … Kleine ganz groß!",
+     "category": "lied",
+     "published": "2014",
+     "durationSec": 779,
+     "size": 18258754,
+     "pageUrl": "https://archive.org/details/jamendo-139374",
+     "creators": [
+      {
+       "name": "Stefan Eckhardt",
+       "role": "performer"
+      }
+     ],
+     "rights": {
+      "kind": "cc",
+      "id": "by-sa",
+      "version": "2.0",
+      "port": "de",
+      "url": "http://creativecommons.org/licenses/by-sa/2.0/de/"
+     },
+     "files": [
+      {
+       "url": "https://archive.org/download/jamendo-139374/01-1160540-Stefan%20Eckhardt-Hansel%20und%20Gretel.mp3",
+       "name": "01-1160540-Stefan Eckhardt-Hansel und Gretel.mp3",
+       "size": 4089001,
+       "durationSec": 178,
+       "title": "Hänsel und Gretel",
+       "track": 1
+      },
+      {
+       "url": "https://archive.org/download/jamendo-139374/02-1160541-Stefan%20Eckhardt-Weisst%20Du%20wieviel%20Sternlein%20stehen.mp3",
+       "name": "02-1160541-Stefan Eckhardt-Weisst Du wieviel Sternlein stehen.mp3",
+       "size": 4823583,
+       "durationSec": 213,
+       "title": "Weisst Du wieviel Sternlein stehen",
+       "track": 2
+      },
+      {
+       "url": "https://archive.org/download/jamendo-139374/03-1160551-Stefan%20Eckhardt-Hansel%20und%20Gretel%20_Karaoke_.mp3",
+       "name": "03-1160551-Stefan Eckhardt-Hansel und Gretel _Karaoke_.mp3",
+       "size": 4334633,
+       "durationSec": 178,
+       "title": "Hänsel und Gretel (Karaoke)",
+       "track": 3
+      },
+      {
+       "url": "https://archive.org/download/jamendo-139374/04-1160552-Stefan%20Eckhardt-Weisst%20Du%20wieviel%20Sternlein%20stehen%20_Karaoke_.mp3",
+       "name": "04-1160552-Stefan Eckhardt-Weisst Du wieviel Sternlein stehen _Karaoke_.mp3",
+       "size": 5011537,
+       "durationSec": 210,
+       "title": "Weisst Du wieviel Sternlein stehen (Karaoke)",
+       "track": 4
+      }
+     ]
+    }
+   ],
+   "checkedAt": "2026-10-05T04:00:00.000Z"
+  }
+ ],
+ "blocked": []
+}

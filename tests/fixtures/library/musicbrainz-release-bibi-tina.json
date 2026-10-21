@@ -1,0 +1,135 @@
+{
+ "id": "8e2b4c1d-6a3f-4e5b-9c7d-1f2a3b4c5d6e",
+ "title": "050/Das Kürbisfest",
+ "status": "Official",
+ "date": "2006-09-01",
+ "country": "DE",
+ "barcode": "4001504266502",
+ "artist-credit": [
+  {
+   "name": "Bibi und Tina",
+   "joinphrase": "",
+   "artist": {
+    "id": "6a7b8c9d-0e1f-4a2b-8c3d-4e5f6a7b8c9d",
+    "name": "Bibi und Tina",
+    "sort-name": "Bibi und Tina"
+   }
+  }
+ ],
+ "release-group": {
+  "id": "3c1d7a52-0b6e-4f0e-9d1a-5e2f6b7c8d90",
+  "title": "050/Das Kürbisfest",
+  "primary-type": "Album",
+  "secondary-types": [
+   "Audio drama"
+  ],
+  "genres": []
+ },
+ "genres": [],
+ "media": [
+  {
+   "position": 1,
+   "format": "CD",
+   "track-count": 8,
+   "track-offset": 0,
+   "tracks": [
+    {
+     "id": "t500",
+     "position": 1,
+     "number": "1",
+     "title": "Das Kürbisfest - Teil 1",
+     "length": 313050,
+     "recording": {
+      "id": "r500",
+      "title": "Das Kürbisfest - Teil 1",
+      "length": 313050
+     }
+    },
+    {
+     "id": "t501",
+     "position": 2,
+     "number": "2",
+     "title": "Das Kürbisfest - Teil 2",
+     "length": 298720,
+     "recording": {
+      "id": "r501",
+      "title": "Das Kürbisfest - Teil 2",
+      "length": 298720
+     }
+    },
+    {
+     "id": "t502",
+     "position": 3,
+     "number": "3",
+     "title": "Das Kürbisfest - Teil 3",
+     "length": 305900,
+     "recording": {
+      "id": "r502",
+      "title": "Das Kürbisfest - Teil 3",
+      "length": 305900
+     }
+    },
+    {
+     "id": "t503",
+     "position": 4,
+     "number": "4",
+     "title": "Das Kürbisfest - Teil 4",
+     "length": 302430,
+     "recording": {
+      "id": "r503",
+      "title": "Das Kürbisfest - Teil 4",
+      "length": 302430
+     }
+    },
+    {
+     "id": "t504",
+     "position": 5,
+     "number": "5",
+     "title": "Das Kürbisfest - Teil 5",
+     "length": 310880,
+     "recording": {
+      "id": "r504",
+      "title": "Das Kürbisfest - Teil 5",
+      "length": 310880
+     }
+    },
+    {
+     "id": "t505",
+     "position": 6,
+     "number": "6",
+     "title": "Das Kürbisfest - Teil 6",
+     "length": 297310,
+     "recording": {
+      "id": "r505",
+      "title": "Das Kürbisfest - Teil 6",
+      "length": 297310
+     }
+    },
+    {
+     "id": "t506",
+     "position": 7,
+     "number": "7",
+     "title": "Das Kürbisfest - Teil 7",
+     "length": 311540,
+     "recording": {
+      "id": "r506",
+      "title": "Das Kürbisfest - Teil 7",
+      "length": 311540
+     }
+    },
+    {
+     "id": "t507",
+     "position": 8,
+     "number": "8",
+     "title": "Das Kürbisfest - Teil 8",
+     "length": 320170,
+     "recording": {
+      "id": "r507",
+      "title": "Das Kürbisfest - Teil 8",
+      "length": 320170
+     }
+    }
+   ]
+  }
+ ]
+}

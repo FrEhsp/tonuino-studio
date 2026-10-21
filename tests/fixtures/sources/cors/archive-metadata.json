@@ -1,0 +1,24 @@
+{
+ "name": "archive.org item metadata API",
+ "kind": "observed",
+ "observed": "2026-10-05T22:11:00Z",
+ "evidence": [
+  "../../cors/01_archive_org_tester.txt (1)"
+ ],
+ "request": {
+  "method": "GET",
+  "url": "https://archive.org/metadata/peterchens_mondfahrt_librivox/metadata"
+ },
+ "hops": [
+  {
+   "status": 200,
+   "url": "https://archive.org/metadata/peterchens_mondfahrt_librivox/metadata",
+   "headers": {
+    "access-control-allow-origin": "*",
+    "content-type": "application/json",
+    "vary": "Accept-Encoding"
+   }
+  }
+ ],
+ "expect": "direct"
+}

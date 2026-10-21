@@ -1,0 +1,33 @@
+{
+ "name": "measurement redirects (podtrac -> pdst.fm -> megaphone): rejected by host rules before any CORS question",
+ "kind": "synthetic",
+ "request": {
+  "method": "GET",
+  "url": "https://www.podtrac.com/pts/redirect.mp3/pdst.fm/e/traffic.megaphone.fm/KBBF1008780097.mp3"
+ },
+ "hops": [
+  {
+   "status": 302,
+   "url": "https://www.podtrac.com/pts/redirect.mp3/pdst.fm/e/traffic.megaphone.fm/KBBF1008780097.mp3",
+   "headers": {
+    "location": "https://pdst.fm/e/traffic.megaphone.fm/KBBF1008780097.mp3"
+   }
+  },
+  {
+   "status": 302,
+   "url": "https://pdst.fm/e/traffic.megaphone.fm/KBBF1008780097.mp3",
+   "headers": {
+    "location": "https://traffic.megaphone.fm/KBBF1008780097.mp3"
+   }
+  },
+  {
+   "status": 200,
+   "url": "https://traffic.megaphone.fm/KBBF1008780097.mp3",
+   "headers": {
+    "access-control-allow-origin": "*",
+    "content-type": "audio/mpeg"
+   }
+  }
+ ],
+ "expect": "rejected"
+}

@@ -1,0 +1,1333 @@
+/*
+ * Werkstatt: overview, firmware wizard, Box einstellen, Box-Logbuch, system
+ * sounds and USB help. Only design tokens, so light and dark mode follow tokens.css.
+ */
+
+/* ------------------------------------------------------------------ shared tweaks */
+
+/* The file row is a row too: its link sits centred (see .row > .link-button). */
+.ws-page .ws-file > .link-button {
+  align-self: center;
+}
+
+/* All tools start at the same place as every other page: see .page.narrow in layout.css. */
+
+/* ------------------------------------------------------------------ overview */
+
+/*
+ * At most three tiles a row: the nine tools fill three whole rows on a wide
+ * screen, as the eight of 0.3.1 filled two, instead of four, four and one
+ * left alone.
+ */
+.ws-tools {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(max(260px, calc((100% - 2 * var(--space-4)) / 3)), 1fr));
+  gap: var(--space-4);
+}
+
+@media (max-width: 640px) {
+  .ws-tools {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.ws-tool {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-5);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  color: inherit;
+}
+
+.ws-tool:hover {
+  text-decoration: none;
+}
+
+/* The card's own shadow would hide the global focus ring, so it is set again here. */
+.ws-tool:focus-visible {
+  box-shadow: var(--focus-ring);
+}
+
+.ws-tool-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  margin-bottom: var(--space-1);
+}
+
+.ws-tool-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--text-md);
+}
+
+.ws-tool-text {
+  color: var(--text-soft);
+  font-size: var(--text-sm);
+}
+
+.ws-tool-note {
+  margin-top: auto;
+  padding-top: var(--space-2);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: var(--warning-text);
+}
+
+.ws-tool-note.busy {
+  color: var(--primary-soft-text);
+}
+
+.ws-tool-note.ok {
+  color: var(--success-text);
+}
+
+.ws-tool-note.calm {
+  color: var(--text-soft);
+  font-weight: 600;
+}
+
+/* ------------------------------------------------------------------ wizard */
+
+.ws-steps .steps {
+  flex-wrap: wrap;
+  row-gap: var(--space-2);
+}
+
+@media (max-width: 560px) {
+  /* Only the current step keeps its name; the others shrink to their number. */
+  .ws-steps .step:not(.active) {
+    font-size: 0;
+    gap: 0;
+  }
+
+  .ws-steps .step:not(.active) .step-num {
+    font-size: var(--text-xs);
+  }
+
+  .ws-steps .sep {
+    width: 12px;
+  }
+}
+
+.ws-chip {
+  display: inline-block;
+  align-self: flex-start;
+  margin-top: 4px;
+  padding: 1px 7px;
+  border-radius: 6px;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--text-soft);
+  background: var(--bg-sunken);
+}
+
+.ws-fit {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  align-self: flex-start;
+  margin-top: 6px;
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: var(--success-text);
+}
+
+.choices.ws-two {
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+}
+
+.choice-title .badge {
+  font-weight: 700;
+}
+
+.choice .ws-variant-mark {
+  font-size: var(--text-sm);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.ws-problem-box {
+  padding: var(--space-4);
+  border: 1px solid color-mix(in srgb, var(--danger) 35%, var(--border));
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.ws-problem-box .ws-problem-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+}
+
+.ws-nav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.ws-nav .spacer {
+  flex: 1;
+}
+
+.ws-numbered {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: ws-step;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.ws-numbered > li {
+  counter-increment: ws-step;
+  position: relative;
+  padding-left: 38px;
+  min-height: 26px;
+}
+
+.ws-numbered > li::before {
+  content: counter(ws-step);
+  position: absolute;
+  left: 0;
+  top: -1px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: var(--text-xs);
+  font-weight: 800;
+}
+
+.ws-file {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius);
+  background: var(--bg-sunken);
+  min-width: 0;
+}
+
+.ws-file > svg {
+  flex: none;
+  color: var(--success);
+}
+
+.ws-file-name {
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+/* "Box erkennen" below the board choices: a quiet box of its own. */
+.ws-recognize {
+  padding: var(--space-4);
+  border-radius: var(--radius);
+  background: var(--bg-sunken);
+}
+
+.ws-recognize h3 {
+  font-size: var(--text-md);
+}
+
+/* A checkbox with a title and a sentence, e.g. "Alte Firmware vorher sichern". */
+.ws-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.ws-check input {
+  width: 20px;
+  height: 20px;
+  margin: 1px 0 0;
+  flex: none;
+  accent-color: var(--primary);
+}
+
+/* „Extras“ of the Firmware-Baukasten under „Fertige Firmware“. */
+.ws-extras > summary > .stack {
+  min-width: 0;
+}
+
+/* The line under „Extras“ reads like the other descriptions, not like a second heading. */
+.ws-extras > summary .small {
+  font-weight: 400;
+}
+
+.ws-extras-body {
+  padding: var(--space-2) var(--space-4) var(--space-4);
+}
+
+.ws-extras-group {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+
+.ws-extras-group > legend {
+  padding: 0;
+  margin-bottom: var(--space-2);
+  font-weight: 800;
+}
+
+.ws-check.is-off {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.ws-extras-parts {
+  color: var(--text-muted);
+}
+
+/* „Mehr: anderer MP3-Player-Chip, Wecker-Start“: rarely needed, so folded away. */
+.ws-extras-more {
+  border-top: 1px dashed var(--border);
+  padding-top: var(--space-3);
+}
+
+.ws-extras-more > summary {
+  cursor: pointer;
+  font-weight: 700;
+  color: var(--text-soft);
+}
+
+.ws-extras-more[open] > summary {
+  margin-bottom: var(--space-3);
+}
+
+.ws-extras-more > fieldset + fieldset {
+  margin-top: var(--space-4);
+}
+
+/* The firmware saved before the last upload. */
+.ws-backup {
+  display: flex;
+  gap: var(--space-3);
+  align-items: flex-start;
+  padding: var(--space-4);
+  border-radius: var(--radius);
+  background: var(--surface);
+  min-width: 0;
+}
+
+.ws-backup > svg {
+  flex: none;
+  margin-top: 2px;
+  color: var(--primary);
+}
+
+/* The Play/Pause warning of AiO boards: big enough that nobody misses it. */
+.ws-hold {
+  display: flex;
+  gap: var(--space-4);
+  align-items: flex-start;
+  padding: var(--space-5);
+  border-radius: var(--radius-lg);
+  border: 2px solid var(--accent);
+  background: var(--accent-soft);
+}
+
+.ws-hold-icon {
+  flex: none;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--accent);
+  color: #fff;
+}
+
+.ws-hold h3 {
+  font-size: var(--text-lg);
+}
+
+.ws-hold .keycap {
+  height: 26px;
+  font-size: var(--text-sm);
+}
+
+.ws-hold-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: var(--space-3);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ws-hold-check input {
+  width: 20px;
+  height: 20px;
+  margin: 1px 0 0;
+  flex: none;
+  accent-color: var(--accent-600);
+}
+
+.ws-hold.compact {
+  padding: var(--space-3) var(--space-4);
+  align-items: center;
+}
+
+.ws-hold.compact .ws-hold-icon {
+  width: 36px;
+  height: 36px;
+}
+
+/* ------------------------------------------------------------------ ports */
+
+.ws-ports {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.ws-port {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius);
+  background: var(--surface);
+  text-align: left;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
+}
+
+.ws-port:hover {
+  background: var(--surface-hover);
+}
+
+.ws-port.ws-port-static,
+.ws-port.ws-port-static:hover {
+  border-width: 1px;
+  border-color: var(--border);
+  background: var(--surface);
+}
+
+.ws-port-dot {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid var(--border-strong);
+  background: var(--surface);
+}
+
+.ws-port[aria-checked='true'] .ws-port-dot {
+  box-shadow: inset 0 0 0 4px var(--surface);
+}
+
+/* "Alle USB-Geräte zeigen" after a chooser that showed no box: the likely next step. */
+.link-button.ws-show-all {
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+}
+
+.link-button.ws-show-all:hover {
+  text-decoration: none;
+  background: var(--surface-hover);
+}
+
+.ws-miss a {
+  align-self: flex-start;
+  font-weight: 600;
+  color: var(--primary-text, var(--primary));
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.ws-port-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.ws-port-name {
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.ws-port-detail {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+
+/* ------------------------------------------------------------------ flashing */
+
+.ws-progress {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.ws-percent {
+  font-size: var(--text-3xl);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.ws-phases {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.ws-phases li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ws-phases li[aria-current='step'] {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.ws-phases li.done {
+  color: var(--success-text);
+}
+
+/* ------------------------------------------------------------------ result */
+
+.ws-done {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  text-align: center;
+  padding-top: var(--space-4);
+}
+
+.ws-facts {
+  display: grid;
+  grid-template-columns: minmax(110px, max-content) minmax(0, 1fr);
+  gap: var(--space-2) var(--space-5);
+  margin: 0;
+}
+
+.ws-facts dt {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.ws-facts dd {
+  margin: 0;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.ws-facts dd.ok {
+  color: var(--success-text);
+}
+
+.ws-facts dd.warn {
+  color: var(--warning-text);
+}
+
+.ws-facts dd.error {
+  color: var(--danger-text);
+}
+
+.ws-fact-link {
+  margin-left: var(--space-1);
+  font-size: var(--text-sm);
+  white-space: nowrap;
+}
+
+@media (max-width: 480px) {
+  .ws-facts {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2px;
+  }
+
+  .ws-facts dd {
+    margin-bottom: var(--space-2);
+  }
+}
+
+/* auto-fit: two suggestions share the full width instead of leaving an empty third slot */
+.ws-next {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: var(--space-3);
+}
+
+.ws-next-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.ws-next-item .btn {
+  align-self: flex-start;
+  margin-top: auto;
+}
+
+/* The step that comes first after every upload spans the whole row. */
+.ws-next-item.ws-next-wide {
+  grid-column: 1 / -1;
+}
+
+.ws-problem-head {
+  display: flex;
+  gap: var(--space-4);
+  align-items: flex-start;
+}
+
+.ws-problem-icon {
+  flex: none;
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+}
+
+.ws-problem-icon.neutral {
+  background: var(--bg-sunken);
+  color: var(--text-soft);
+}
+
+.ws-problem-steps {
+  margin: 0;
+  padding-left: 1.4em;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.ws-problem-steps li::marker {
+  font-weight: 800;
+  color: var(--primary);
+}
+
+.ws-tech {
+  border-radius: var(--radius);
+  background: var(--bg);
+}
+
+.ws-tech summary {
+  padding: var(--space-3) var(--space-4);
+  cursor: pointer;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-soft);
+}
+
+.ws-tech[open] summary {
+  border-bottom: 1px solid var(--border);
+}
+
+.ws-tech-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4) var(--space-4);
+}
+
+.ws-tech pre {
+  margin: 0;
+  max-height: 220px;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--text-soft);
+}
+
+/* ------------------------------------------------------------------ logbook */
+
+.ws-log-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 330px;
+  gap: var(--space-5);
+  align-items: start;
+}
+
+@media (max-width: 1180px) {
+  .ws-log-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.ws-log-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.ws-log-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border);
+}
+
+.ws-log-toolbar .spacer {
+  flex: 1;
+}
+
+.ws-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  padding: 0 12px;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  background: var(--bg-sunken);
+  color: var(--text-soft);
+}
+
+.ws-link .dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--gray-400);
+}
+
+.ws-link.on {
+  background: var(--success-soft);
+  color: var(--success-text);
+}
+
+.ws-link.on .dot {
+  background: var(--success);
+  animation: ws-pulse 1.6s ease-in-out infinite;
+}
+
+.ws-link.lost {
+  background: var(--danger-soft);
+  color: var(--danger-text);
+}
+
+.ws-link.lost .dot {
+  background: var(--danger);
+}
+
+@keyframes ws-pulse {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ws-link.on .dot {
+    animation: none;
+  }
+}
+
+.ws-log-paused {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: var(--space-2) var(--space-4);
+  border-bottom: 1px solid var(--border);
+  background: var(--warning-soft);
+  color: var(--warning-text);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+/* A big file is read in slices; the lines shown before stay until it is done. */
+.ws-log-loading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4) var(--space-3);
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-sunken);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.ws-card-title {
+  font-size: var(--text-lg);
+}
+
+.ws-log-wrap {
+  position: relative;
+}
+
+.ws-log {
+  height: min(62vh, 640px);
+  min-height: 300px;
+  overflow: auto;
+  overscroll-behavior: contain;
+  background: var(--bg);
+  padding: var(--space-2) 0;
+}
+
+.ws-log:focus-visible {
+  box-shadow: inset var(--focus-ring);
+}
+
+/* Without rows the list shrinks; a tall empty box would push the actions out of view. */
+.ws-log.ws-log-none {
+  height: auto;
+  min-height: 160px;
+  display: grid;
+}
+
+.ws-log-hint {
+  margin: var(--space-4) 0 0;
+  padding: 0 var(--space-4);
+  color: var(--text-muted);
+}
+
+.ws-log-empty {
+  height: 100%;
+  display: grid;
+  place-items: center;
+  padding: var(--space-6);
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.ws-row {
+  display: grid;
+  grid-template-columns: 70px minmax(0, 1fr);
+  gap: var(--space-3);
+  padding: 3px var(--space-4);
+  border-left: 3px solid transparent;
+}
+
+.ws-row-time {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  line-height: 1.7;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.ws-row-raw {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: var(--text);
+}
+
+.ws-row.explained {
+  padding-top: 7px;
+  padding-bottom: 7px;
+}
+
+.ws-row.explained .ws-row-raw {
+  color: var(--text-muted);
+}
+
+.ws-row-info {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: 1.6;
+}
+
+.ws-row-info .badge {
+  height: 20px;
+  margin-right: 2px;
+  vertical-align: 1px;
+}
+
+.ws-row-info .ws-row-text {
+  margin-left: 4px;
+}
+
+.ws-row-title {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 8px;
+  font-weight: 700;
+  font-size: var(--text-sm);
+}
+
+.ws-row-text {
+  font-size: var(--text-sm);
+  color: var(--text-soft);
+}
+
+.ws-row-fix {
+  margin-top: 2px;
+  font-size: var(--text-sm);
+  color: var(--text);
+}
+
+.ws-row-fix b {
+  color: var(--primary-soft-text);
+}
+
+.ws-row.warn {
+  border-left-color: var(--warning);
+  background: color-mix(in srgb, var(--warning-soft) 55%, transparent);
+}
+
+.ws-row.error {
+  border-left-color: var(--danger);
+  background: color-mix(in srgb, var(--danger-soft) 60%, transparent);
+}
+
+.ws-row.note .ws-row-raw,
+.ws-row.boot .ws-row-raw {
+  font-family: var(--font);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-soft);
+}
+
+.ws-row.boot {
+  margin: 6px 0;
+  border-top: 1px dashed var(--border-strong);
+  padding-top: 8px;
+}
+
+.ws-row.boot.warn {
+  border-top-color: var(--warning);
+}
+
+.ws-row.fresh {
+  animation: ws-fresh 1.2s ease-out;
+}
+
+@keyframes ws-fresh {
+  from {
+    background: color-mix(in srgb, var(--primary-soft) 80%, transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ws-row.fresh {
+    animation: none;
+  }
+}
+
+.ws-jump {
+  position: absolute;
+  right: var(--space-4);
+  bottom: var(--space-4);
+  box-shadow: var(--shadow);
+}
+
+.ws-jump:focus-visible {
+  box-shadow: var(--shadow), var(--focus-ring);
+}
+
+.ws-log-foot {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid var(--border);
+  font-size: var(--text-sm);
+}
+
+.ws-side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.ws-side .card-header h2 {
+  font-size: var(--text-md);
+}
+
+.ws-side .ws-facts {
+  grid-template-columns: minmax(96px, max-content) minmax(0, 1fr);
+  font-size: var(--text-sm);
+}
+
+@media (max-width: 480px) {
+  .ws-side .ws-facts {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* The findings in the Box-Logbuch's card: as far in as the Steckbrief next to it, not to the frame. */
+.ws-issues > .issue {
+  padding-inline: var(--space-6);
+}
+
+.ws-issue-count {
+  margin-left: auto;
+}
+
+/* ------------------------------------------------------------------ usb help */
+
+.ws-help {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.ws-help h2 {
+  font-size: var(--text-md);
+}
+
+.ws-help .command-line {
+  max-width: 100%;
+}
+
+.ws-live {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* Fixes that only matter in Chrome, Edge or the desktop app, folded under the browser answer. */
+.ws-later > summary {
+  padding: var(--space-4) var(--space-5);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--text-soft);
+}
+
+.ws-later[open] > summary {
+  margin-bottom: var(--space-4);
+}
+
+/* ------------------------------------------------------------------ sounds */
+
+.ws-sounds-state {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-4);
+}
+
+.ws-sounds-state .ws-tool-icon {
+  margin: 0;
+}
+
+.ws-sounds-art {
+  flex: none;
+}
+
+@media (max-width: 560px) {
+  .ws-sounds-state {
+    flex-direction: column;
+  }
+}
+
+/* ------------------------------------------------------------------ box settings */
+
+.ws-set-title {
+  font-size: var(--text-lg);
+}
+
+.ws-set-firmware .field-label {
+  margin-right: var(--space-2);
+}
+
+.ws-set-source svg {
+  flex: none;
+}
+
+.ws-set-unknown {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+/* One setting: a tick in the head, the choices below once it is ticked. */
+.ws-set {
+  padding: var(--space-4) var(--space-5);
+  transition: border-color 0.15s;
+}
+
+.ws-set.on {
+  border-color: color-mix(in srgb, var(--primary) 45%, var(--border));
+}
+
+.ws-set-head .pen-check {
+  display: flex;
+  width: 100%;
+  cursor: pointer;
+}
+
+.ws-set-name {
+  font-weight: 600;
+}
+
+/* How it is now, on the line of the name: no grey line under every row. */
+.ws-set-now {
+  margin-left: var(--space-1);
+}
+
+.ws-set-body {
+  margin-top: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border);
+}
+
+.ws-set-more {
+  margin-top: var(--space-3);
+}
+
+.ws-radios {
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+}
+
+/* Native radio buttons inside, so the whole card is the label. */
+.ws-radio {
+  cursor: pointer;
+}
+
+.ws-radio:focus-within {
+  box-shadow: var(--focus-ring);
+}
+
+.ws-radio.on:focus-within {
+  box-shadow:
+    0 0 0 1px var(--primary),
+    var(--focus-ring);
+}
+
+.ws-vol-fields {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.ws-set-problem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--danger-text);
+}
+
+.ws-set-problem svg {
+  flex: none;
+}
+
+.ws-pin {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.ws-pin-keys {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.ws-shortcut {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: var(--space-3);
+}
+
+@media (max-width: 520px) {
+  .ws-set {
+    padding: var(--space-4);
+  }
+
+  .ws-vol-fields,
+  .ws-shortcut {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ws-pin-keys {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  /* „Alle drei Tasten zusammen lang“ is wider than a phone's step column. */
+  .ws-page .press {
+    flex-wrap: wrap;
+  }
+}
+
+/* "Box testen": switch between the two tests, right under the title; what the test does under it. */
+/* The switch and its sentence in one row where they fit: the test's first step with its button stays on a laptop screen. */
+.ws-test-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+  margin: calc(-1 * var(--space-2)) 0 var(--space-2);
+}
+
+.ws-test-tabs > p {
+  flex: 1 1 280px;
+  margin: 0;
+}
+
+/* A note at the foot of a card without padding (a list of tests): as far in as the card's header. */
+.ws-card-note {
+  margin: 0;
+  padding: 0 var(--space-6) var(--space-4);
+}
+
+/* ------------------------------------------------------------------ Box-Meldungen (banner on the tools) */
+
+.box-meldungen {
+  flex-wrap: wrap;
+}
+
+.box-meldungen .grow {
+  min-width: min(100%, 260px);
+}
+
+.box-meldungen-mehr summary {
+  cursor: pointer;
+}
+
+.box-meldungen-mehr ul {
+  margin: var(--space-2) 0 0;
+  padding-left: var(--space-4);
+}
+
+/* The boards that do not work yet: folded under the others (audit 0.4 #18). */
+.ws-boards-later > summary {
+  width: fit-content;
+  margin: var(--space-2) 0;
+  cursor: pointer;
+}
+
+/* ------------------------------------------------------------------ Tasten-Sticker */
+
+/* The questions on the left, the sheet (the big thing of the page) on the right. */
+.keys-layout {
+  display: grid;
+  grid-template-columns: minmax(280px, 380px) minmax(0, 1fr);
+  gap: var(--space-6, 24px);
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .keys-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.keys-colors {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+
+.keys-color-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2, 8px);
+  margin-top: var(--space-2, 8px);
+}
+
+.keys-color {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 40px;
+  font-size: var(--text-sm);
+  cursor: pointer;
+}
+
+.keys-color input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.keys-color-dot {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--border-strong);
+}
+
+.keys-color input:checked + .keys-color-dot {
+  outline: 3px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.keys-color input:focus-visible + .keys-color-dot {
+  outline: 3px solid var(--focus, var(--primary));
+  outline-offset: 2px;
+}
+
+.keys-set {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4, 16px);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.keys-set li {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1, 4px);
+}
+
+.keys-set img,
+.keys-set-empty {
+  display: block;
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px var(--border), var(--shadow-sm);
+}
+
+/* The sheet is paper: white in the dark theme too, like the print. */
+.keys-sheet {
+  max-width: 620px;
+  aspect-ratio: 210 / 297;
+  background: #fff;
+  box-shadow: var(--shadow-lg);
+}
+
+.keys-sheet img {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.keys-colors legend {
+  padding: 0;
+}

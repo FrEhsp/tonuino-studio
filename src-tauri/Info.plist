@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- macOS only: tauri build merges this into the app's Info.plist. Without
+     the microphone text macOS ends the app at the first getUserMedia
+     ("Selbst aufnehmen"); the others word the questions macOS asks before
+     the app may read a card or the user's folders. -->
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>de</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>TonUINO Studio nimmt mit dem Mikrofon auf, wenn du „Selbst aufnehmen“ wählst.</string>
+	<key>NSRemovableVolumesUsageDescription</key>
+	<string>TonUINO Studio liest und schreibt die SD-Karte deiner TonUINO-Box.</string>
+	<key>NSDocumentsFolderUsageDescription</key>
+	<string>TonUINO Studio öffnet Musik und Hörspiele, die du aus diesem Ordner hinzufügst.</string>
+	<key>NSDownloadsFolderUsageDescription</key>
+	<string>TonUINO Studio öffnet Musik und Hörspiele, die du aus diesem Ordner hinzufügst.</string>
+	<key>NSDesktopFolderUsageDescription</key>
+	<string>TonUINO Studio öffnet Musik und Hörspiele, die du aus diesem Ordner hinzufügst.</string>
+</dict>
+</plist>
