@@ -80,5 +80,4 @@ mit ihren Lizenztexten (Hilfe, „Bausteine anderer Projekte“).
 
 ## Marke
 
-„TonUINO“ ist eine Marke von Thorsten Voß. TonUINO Studio verwendet den Namen
-und das TonUINO-Logo mit seiner Erlaubnis.
+„TonUINO“ ist eine Marke von Thorsten Voß.
