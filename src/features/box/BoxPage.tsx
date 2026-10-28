@@ -1,12 +1,11 @@
 import { signal } from '@preact/signals';
 import { useEffect, useMemo, useState } from 'preact/hooks';
-import { ArchiveRestore, CardSim, CircleCheck, Copy, FolderSearch, Hammer, HardDrive, ListOrdered, Nfc, Package, Printer, RefreshCw, ScrollText, ShieldCheck, Wrench, type LucideIcon } from 'lucide-preact';
+import { ArchiveRestore, CardSim, CircleCheck, Copy, FolderSearch, Hammer, HardDrive, ListOrdered, Package, Printer, RefreshCw, ScrollText, ShieldCheck, Wrench } from 'lucide-preact';
 import { Haken, Hinweis, Lupe, Mehr, Plus, Stift } from '../../ui/icons';
 import type { BulkTarget } from '../../core/stickers/bulkcover';
 import type { ShelfItem } from '../../core/tonuino/catalog';
 import { buildShelf } from '../../core/tonuino/catalog';
 import { Button, Callout, EmptyState, IconButton, Progress } from '../../ui/components/controls';
-import { Bubble } from '../../ui/components/Sketch';
 import { MenuButton } from '../../ui/components/Menu';
 import { SdCardArt, WelcomeBoxArt } from '../../ui/components/Art';
 import { toast, toastError } from '../../ui/components/Toast';
@@ -22,8 +21,7 @@ import { routeToHash } from '../../app/router';
 import { useCardDrop } from '../../ui/useCardDrop';
 import { CardNoteCallout, CardReader, UPLOAD_HINT } from './CardReader';
 import { openPackageDialog } from './PackageDialog';
-import { openRebuildDialog } from './RebuildDialog';
-import { openCopyToCardDialog } from './CopyToCardDialog';
+import { openCopyToCardDialog, openRebuildDialog } from './openDialogs';
 import { useWaitingGate } from './PackageWaitingGate';
 import { PendingChanges } from './PendingChanges';
 import { LOOKS_EMPTY_TEXT, rereadText, timeOfDay } from './packageTexts';
@@ -105,14 +103,16 @@ function NoSdSupport() {
     <div class="page narrow">
       <EmptyState
         art={<SdCardArt />}
-        title={handheld ? 'Die SD-Karte geht nur am Computer' : 'Dieser Browser kann keine SD-Karte lesen'}
+        title={handheld ? 'Im Browser am Handy geht die SD-Karte nicht' : 'Dieser Browser kann keine SD-Karte lesen'}
         actions={
           <Button variant="primary" onClick={() => navigate({ page: 'help', topic: 'browser' })}>
             Welche Möglichkeiten habe ich?
           </Button>
         }
       >
-        Nimm am Computer Firefox, Chrome, Edge oder Safari. Mit der Desktop-App für Windows und Linux geht es auch.
+        {handheld
+          ? 'Nimm am Computer Firefox, Chrome, Edge oder Safari. Am Android-Handy geht es mit der Android-App und einem SD-Kartenleser.'
+          : 'Nimm am Computer Firefox, Chrome, Edge oder Safari. Mit der Desktop-App für Windows und Linux geht es auch.'}
       </EmptyState>
       <RememberedBoxes />
       <FeatureGrid />
@@ -221,11 +221,6 @@ function Welcome() {
             ) : null}
           </div>
           {!p.capabilities.sdAutoDetect ? (
-            <Bubble tail="top">
-              Hier kommt deine <span class="nowrap">SD-Karte</span> rein!
-            </Bubble>
-          ) : null}
-          {!p.capabilities.sdAutoDetect ? (
             <p class="small muted">
               {phone
                 ? 'Im Fenster des Handys tippst du im Menü links auf den SD-Kartenleser, dann auf „Diesen Ordner verwenden“ und „Zulassen“. Wähle die ganze Karte, nicht einen Ordner darauf.'
@@ -259,34 +254,15 @@ function Welcome() {
   );
 }
 
-/** What the app does, for a first visit, and a thank-you to the people the box comes from. */
+/**
+ * A thank-you to the people the box comes from. The four tiles that repeated
+ * the header (Musik, Sticker, Karte, Werkstatt) are gone (Prüfrunde 1 Aussehen 7).
+ */
 function FeatureGrid() {
   return (
-    <>
-      <div class="feature-grid four">
-        <Feature icon={Plus} title="Hörspiele hinzufügen" text="Ziehe die Dateien herein, ich nummeriere, wandle um und teile lange Hörbücher." />
-        <Feature icon={Printer} title="Sticker drucken" text="Cover finden, gestalten und passend für deine Etiketten drucken." />
-        <Feature icon={Nfc} title="Karten beschreiben" text="Mit dem Handy, einem NFC-Leser am Computer oder direkt an der Box." />
-        <Feature icon={Wrench} title="Werkstatt" text="Firmware aufspielen, Fehler finden, Ansagen erneuern." />
-      </div>
-      <p class="community-line small muted">
-        Gemacht für alle, die TonUINO-Boxen bauen, unabhängig und kostenlos. Danke an Thorsten Voß und alle im <ExternalLink href={FORUM_URL}>TonUINO-Forum</ExternalLink>.
-      </p>
-    </>
-  );
-}
-
-function Feature({ icon: Icon, title, text }: { icon: LucideIcon; title: string; text: string }) {
-  return (
-    <div class="feature">
-      <div class="feature-icon">
-        <Icon size={20} strokeWidth={2.2} />
-      </div>
-      <div class="stack tight">
-        <b>{title}</b>
-        <span class="small soft">{text}</span>
-      </div>
-    </div>
+    <p class="community-line small muted">
+      Gemacht für alle, die TonUINO-Boxen bauen, unabhängig und kostenlos. Danke an Thorsten Voß und alle im <ExternalLink href={FORUM_URL}>TonUINO-Forum</ExternalLink>.
+    </p>
   );
 }
 
@@ -544,6 +520,7 @@ function Shelf() {
   const [rename, setRename] = useState(false);
   const coverless = useCoverless();
   const [findCovers, setFindCovers] = useState<readonly BulkTarget[] | null>(null);
+  const [allNotes, setAllNotes] = useState(false);
   const shelf = useMemo(() => buildShelf(scan, s.catalog ?? null), [scan, s.catalog]);
   const unknown = useMemo(() => unknownFolders(scan, s.catalog ?? null), [scan, s.catalog]);
   const filtered = query ? shelf.filter((i) => `${i.name} ${i.title} ${i.entry?.artist ?? ''}`.toLowerCase().includes(query.toLowerCase())) : shelf;
@@ -558,7 +535,6 @@ function Shelf() {
   const rebuildLine = !!snapshot && scan.folders.length > 0;
   // What PendingChanges shows with a lila button of its own: changes for a Paket, or a Paket to unpack.
   const waiting = !!snapshot && !!plan.value && pkg.kind !== 'clean';
-  const slip = unknown.length > 0 || (coverless.length >= 2 && !query) || offerRemember.value;
   const readAgain = () => {
     if (pkg.kind === 'pending') setReread(true);
     else chooseCardFolder('card');
@@ -584,6 +560,31 @@ function Shelf() {
 
   const report = card.value?.report;
   const healthLine = (!report || report.status === 'ok') && setupRun.value?.volume !== s.volume.id;
+  // The red box of the health check (or the line while the announcements go on) stands above the others.
+  const problemBox = !healthLine;
+  const notes = [
+    // The question comes once, after the first transfer: before the other notes.
+    offerRemember.value ? <RememberOffer key="remember" /> : null,
+    unknown.length ? <DiscoverBanner key="discover" numbers={unknown} /> : null,
+    coverless.length >= 2 && !query ? (
+      <p class="shelf-note" key="covers">
+        <span>{plural(coverless.length, 'Ordner hat', 'Ordner haben')} noch kein Cover.</span>
+        <button type="button" class="link-button" onClick={() => setFindCovers(coverless)}>
+          Cover suchen
+        </button>
+      </p>
+    ) : null,
+    // "Karte neu aufbauen …" is in the menu "…" and in the health check (audit 0.4 #1): here only for a
+    // Paket card, which has no menu. A card without folders has nothing to play, nothing to rebuild.
+    rebuildLine ? (
+      <p class="rebuild-entry small" key="rebuild">
+        <span class="muted">Findet die Box Titel nicht oder springt sie?</span>{' '}
+        <button type="button" class="link-button" onClick={() => openPackageDialog('choose')}>
+          Karte neu aufbauen …
+        </button>
+      </p>
+    ) : null,
+  ].filter((n) => n !== null);
 
   /*
    * #80 "Platz nutzen" (regal audit 20.10.2026): name, facts and buttons in
@@ -630,7 +631,7 @@ function Shelf() {
             <Button variant={waiting ? 'default' : 'primary'} icon={Plus} onClick={() => navigate({ page: 'add' })}>
               Hinzufügen
             </Button>
-            <Button icon={Printer} onClick={() => navigate({ page: 'stickers' })}>
+            <Button icon={Printer} onClick={() => navigate({ page: 'sticker' })}>
               Sticker drucken
             </Button>
             {/* While changes wait, the banner under the buttons leads to the Paket. */}
@@ -647,30 +648,22 @@ function Shelf() {
           <WriteAccessNotice />
           <PendingChanges />
           {setupRun.value?.volume === s.volume.id ? <SetupSoundsLine /> : !healthLine ? <HealthBanner onOpen={() => setHealth(true)} /> : null}
-          {/* The other notes in one calm box, none at all when there is nothing to say. */}
-          {slip || rebuildLine ? (
-            <div class="box-notes card">
-              {unknown.length ? <DiscoverBanner numbers={unknown} /> : null}
-              <RememberOffer />
-              {coverless.length >= 2 && !query ? (
-                <p class="shelf-note">
-                  <span>{plural(coverless.length, 'Ordner hat', 'Ordner haben')} noch kein Cover.</span>
-                  <button type="button" class="link-button" onClick={() => setFindCovers(coverless)}>
-                    Cover suchen
+          {/* The other notes in one calm box, none at all when there is nothing to say. One at a time, the problem
+              of the card first; the rest folds into a line (Prüfrunde 1 Aussehen 11). */}
+          {notes.length ? (
+            allNotes || (!problemBox && notes.length === 1) ? (
+              <div class="box-notes card">{notes}</div>
+            ) : (
+              <>
+                {problemBox ? null : <div class="box-notes card">{notes[0]}</div>}
+                <p class="box-notes-more small">
+                  <span class="muted">{problemBox ? (notes.length === 1 ? 'Dazu ein Hinweis.' : `Dazu ${notes.length} Hinweise.`) : notes.length === 2 ? 'Noch ein Hinweis.' : `Noch ${notes.length - 1} Hinweise.`}</span>{' '}
+                  <button type="button" class="link-button" onClick={() => setAllNotes(true)}>
+                    Zeigen
                   </button>
                 </p>
-              ) : null}
-              {/* "Karte neu aufbauen …" is in the menu "…" and in the health check (audit 0.4 #1): here only for a
-                  Paket card, which has no menu. A card without folders has nothing to play, nothing to rebuild. */}
-              {rebuildLine ? (
-                <p class="rebuild-entry small">
-                  <span class="muted">Findet die Box Titel nicht oder springt sie?</span>{' '}
-                  <button type="button" class="link-button" onClick={() => openPackageDialog('choose')}>
-                    Karte neu aufbauen …
-                  </button>
-                </p>
-              ) : null}
-            </div>
+              </>
+            )
           ) : null}
         </div>
 
@@ -686,7 +679,6 @@ function Shelf() {
               ) : null}
               <ShelfViewChoice />
             </div>
-            <RoomOnCard shelf={shelf} />
           </div>
         ) : null}
 
@@ -715,6 +707,8 @@ function Shelf() {
             <FolderShelf items={filtered} onOpen={(item) => navigate({ page: 'folder', folder: item.number })} addTile={!query} />
           )}
         </section>
+        {/* The room on the card under the shelf: the shelf is the big thing of the page (Prüfrunde 1 Aussehen 11). */}
+        {shelf.length ? <RoomOnCard shelf={shelf} /> : null}
         {/* Under the shelf; on phones after the room on the card, so "In einen Ordner packen" is not the last thing on the page. */}
         {query ? null : <PicksTeaser />}
       </div>
@@ -877,14 +871,5 @@ function RenameBox({ onClose }: { onClose: () => void }) {
   );
 }
 
-export function useAutoRefresh() {
-  useEffect(() => {
-    const onFocus = () => {
-      // A snapshot does not change behind the app's back: nothing to look at again.
-      if (card.value?.status === 'ready' && card.value.volume.access !== 'snapshot') void rescan().catch(() => undefined);
-    };
-    window.addEventListener('focus', onFocus);
-    return () => window.removeEventListener('focus', onFocus);
-  }, []);
-}
+export { useAutoRefresh } from '../../app/autoRefresh';
 

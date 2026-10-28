@@ -46,6 +46,12 @@ describe('the notice on "Meine Box"', () => {
     expect(writeNoticeText('denied', false)).toMatch(/auswerfen|Wirf die Karte/);
   });
 
+  it('a card the system made read-only after a broken write is not blamed on the slider', () => {
+    expect(kind({ writable: false, readOnly: true, readOnlyBySystem: true })).toBe('read-only-system');
+    expect(writeNoticeText('read-only-system', false)).toMatch(/Am Schalter liegt es nicht/);
+    expect(writeNoticeText('read-only-system', false)).toMatch(/geprüft/);
+  });
+
   it('a snapshot of the card (Firefox, Safari) never gets the notice', () => {
     expect(writeNoticeKind({ info: { writable: false }, volume: { access: 'snapshot' } }, true)).toBeNull();
   });

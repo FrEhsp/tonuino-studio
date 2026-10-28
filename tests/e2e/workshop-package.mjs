@@ -48,7 +48,13 @@ export async function workshopPackage(browser) {
   const { page, errors } = await openApp(browser, { hash: '#/werkstatt' });
   await page.getByRole('heading', { name: 'Werkstatt' }).waitFor();
   check(await page.getByText('Per USB nur in Chrome, Edge, Firefox ab 151 oder der Desktop-App').isVisible(), 'overview: USB note names Firefox 151');
-  check(await page.getByText('Das geht mit Firefox ab Version 151, Google Chrome oder Microsoft Edge auf einem Computer, oder mit der Desktop-App für Windows und Linux.').isVisible(), 'overview: NoSerial text');
+  // 0.6: the overview says it in one note per row; the whole sentence waits on the tool's own page.
+  check(await page.getByText('Live nicht in diesem Browser, Dateien schon').isVisible(), 'overview: the Box-Logbuch row says what works here');
+  await page.goto(page.url().replace(/#.*$/, '#/werkstatt/firmware'));
+  await page.getByText('Das geht mit Firefox ab Version 151, Google Chrome oder Microsoft Edge auf einem Computer, oder mit der Desktop-App für Windows und Linux.').waitFor();
+  check(true, 'firmware: NoSerial text');
+  await page.goto(page.url().replace(/#.*$/, '#/werkstatt'));
+  await page.getByRole('heading', { name: 'Werkstatt' }).waitFor();
   check((await page.getByText('Braucht Chrome, Edge oder die Desktop-App').filter({ visible: true }).count()) === 0, 'overview: no "Braucht Chrome" note for the announcements');
   await shot(page, 'werkstatt-01-overview');
   await page.getByRole('link', { name: /Systemansagen/ }).click();

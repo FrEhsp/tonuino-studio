@@ -3,9 +3,9 @@
  * writes the PDF into the app's temp folder, the backend hands it to CUPS's
  * lp with the options that keep the size, or opens it in the PDF program.
  *
- *   fs_temp_file + fs_write, print_printers, print_pdf
+ *   fs_temp_file + fs_write, print_printers, print_paper, print_pdf
  */
-import type { PrinterAccess, PrinterList, PrintJob } from '../types';
+import type { PaperKind, PrinterAccess, PrinterList, PrinterPaper, PrintJob } from '../types';
 import type { Bridge } from './bridge';
 import { writeFile } from './fs';
 
@@ -15,6 +15,12 @@ export class TauriPrinter implements PrinterAccess {
   async list(): Promise<PrinterList> {
     const dto = await this.bridge.call<PrinterList>('print', 'print_printers');
     return { way: dto.way === 'system' ? 'system' : 'open', printers: dto.printers ?? [], default: dto.default ?? null };
+  }
+
+  async paper(printer: string): Promise<PrinterPaper> {
+    const dto = await this.bridge.call<{ size?: string | null; kinds?: string[] }>('print', 'print_paper', { printer });
+    const kinds = (dto.kinds ?? []).filter((k): k is PaperKind => k === 'plain' || k === 'photo' || k === 'labels');
+    return { size: dto.size ?? null, kinds };
   }
 
   async print(job: PrintJob): Promise<'sent' | 'opened'> {
@@ -34,6 +40,9 @@ export class TauriPrinter implements PrinterAccess {
       heightMm: job.page.heightMm,
       twoSided: !!job.twoSided,
       open: !!job.open,
+      color: job.color !== false,
+      quality: job.quality ?? 'normal',
+      paper: job.paper ?? null,
     });
     return done.way === 'sent' ? 'sent' : 'opened';
   }

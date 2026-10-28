@@ -1,4 +1,3 @@
-import { signal } from '@preact/signals';
 import type { ComponentChildren } from 'preact';
 import { useEffect, useId, useRef, useState } from 'preact/hooks';
 import { CircleCheck, FolderOpen, HardDrive, LogOut, RefreshCw, Trash2, TriangleAlert } from 'lucide-preact';
@@ -46,6 +45,7 @@ import {
   type RebuildStart,
 } from './rebuildTexts';
 import { playDoneSound } from '../../ui/sound';
+import { openRebuildDialog, rebuildDialog } from './openDialogs';
 import '../../ui/styles/package.css';
 
 /**
@@ -59,17 +59,12 @@ import '../../ui/styles/package.css';
 
 export type { RebuildStart };
 
-const dialog = signal<{ start: RebuildStart; seq: number } | null>(null);
-let seq = 0;
-
-export function openRebuildDialog(start: RebuildStart = 'rebuild'): void {
-  dialog.value = { start, seq: ++seq };
-}
+export { openRebuildDialog };
 
 export function RebuildDialogHost() {
-  const d = dialog.value;
+  const d = rebuildDialog.value;
   if (!d) return null;
-  return <RebuildDialog key={d.seq} start={d.start} onClose={() => (dialog.value = null)} />;
+  return <RebuildDialog key={d.seq} start={d.start} onClose={() => (rebuildDialog.value = null)} />;
 }
 
 /** What the card holds for the backup, read when the dialog opens. */

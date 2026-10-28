@@ -110,6 +110,101 @@ pub struct Job {
     pub height_mm: f64,
     /// Sheets of back sides follow their fronts: both sides, turned over the long edge.
     pub two_sided: bool,
+    /// In colour; false: black and white. The printer's own default is never trusted (0.5.1: a
+    /// Brother set to black and white printed the covers grey).
+    pub color: bool,
+    /// The printer's best quality instead of its normal one.
+    pub high_quality: bool,
+    /// The printer driver's own options (`lpoptions -l`), to say colour and quality in its words.
+    pub driver: Vec<DriverOption>,
+    /// The kind of paper: "plain", "photo" or "labels"; None leaves the driver's setting (Prüfrunde 1, bastler 23).
+    pub paper: Option<String>,
+}
+
+/// One option of a printer driver as `lpoptions -l` lists it: "ColorModel/Farbmodus: *RGB Gray".
+#[derive(Debug, Clone, PartialEq)]
+pub struct DriverOption {
+    pub key: String,
+    pub values: Vec<String>,
+    /// The value marked with "*": what the printer uses when nothing is said.
+    pub default: Option<String>,
+}
+
+/// The driver options of `LC_ALL=C lpoptions -p NAME -l`.
+pub fn parse_driver_options(listing: &str) -> Vec<DriverOption> {
+    let mut out = Vec::new();
+    for line in listing.lines() {
+        let Some((head, values)) = line.split_once(':') else { continue };
+        let key = head.split('/').next().unwrap_or("").trim();
+        if key.is_empty() || key.starts_with('-') || !key.chars().all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_' || c == '.') {
+            continue;
+        }
+        let default = values.split_whitespace().find_map(|v| v.strip_prefix('*')).filter(|v| !v.is_empty() && !v.contains('=')).map(str::to_string);
+        let values: Vec<String> = values.split_whitespace().map(|v| v.trim_start_matches('*').to_string()).filter(|v| !v.is_empty() && !v.contains('=')).collect();
+        if !values.is_empty() {
+            out.push(DriverOption { key: key.to_string(), values, default });
+        }
+    }
+    out
+}
+
+/// A fax queue: its driver asks for a phone number.
+pub fn is_fax(driver: &[DriverOption]) -> bool {
+    driver.iter().any(|o| o.key.eq_ignore_ascii_case("phone") || o.key.eq_ignore_ascii_case("faxPrefix"))
+}
+
+fn first_of(values: &[String], wanted: &[&str]) -> Option<String> {
+    wanted.iter().find_map(|w| values.iter().find(|v| v.eq_ignore_ascii_case(w)).cloned())
+}
+
+/// The driver's words for the kinds of paper, most common first.
+const PAPER_WORDS: &[(&str, &[&str])] = &[
+    ("plain", &["Plain", "PlainPaper", "Normal", "Stationery", "Standard", "Auto"]),
+    ("photo", &["Photo", "Glossy", "PhotoGlossy", "GlossyPhoto", "Photographic", "PhotographicGlossy", "PhotoPaper", "BrilliantGlossy"]),
+    ("labels", &["Labels", "Label", "Thick", "HeavyPaper", "Heavyweight", "Cardstock", "ThickPaper"]),
+];
+
+fn is_media_type(key: &str) -> bool {
+    let k = key.to_ascii_lowercase();
+    k == "mediatype" || k == "media-type" || k == "brmediatype" || k.ends_with("mediatype")
+}
+
+/// The kinds of paper the driver can be told ("plain", "photo", "labels").
+pub fn paper_kinds(driver: &[DriverOption]) -> Vec<&'static str> {
+    let Some(o) = driver.iter().find(|o| is_media_type(&o.key)) else { return Vec::new() };
+    PAPER_WORDS.iter().filter(|(_, words)| first_of(&o.values, words).is_some()).map(|(kind, _)| *kind).collect()
+}
+
+/// The paper size the printer uses when nothing is said ("A4", "Letter"), from PageSize or media.
+pub fn default_paper(driver: &[DriverOption]) -> Option<String> {
+    driver.iter().find(|o| o.key.eq_ignore_ascii_case("PageSize") || o.key.eq_ignore_ascii_case("media")).and_then(|o| o.default.clone())
+}
+
+/// Colour and quality in the driver's words: "ColorModel=RGB", "BRMonoColor=FullColor",
+/// "cupsPrintQuality=High". Options the job says nothing about stay as the printer has them.
+pub fn driver_choices(job: &Job) -> Vec<String> {
+    const COLOR: &[&str] = &["RGB", "Color", "Colour", "FullColor", "CMYK", "RGBColor", "AdobeRGB"];
+    const MONO: &[&str] = &["Gray", "Grayscale", "Grey", "Greyscale", "Mono", "Monochrome", "Black", "BlackWhite", "KGray"];
+    const HIGH: &[&str] = &["High", "Best", "Fine", "Highest", "Photo", "5"];
+    const NORMAL: &[&str] = &["Normal", "Standard", "4"];
+    let mut out = Vec::new();
+    for o in &job.driver {
+        let k = o.key.to_ascii_lowercase();
+        let pick = if k.contains("color") || k.contains("colour") {
+            first_of(&o.values, if job.color { COLOR } else { MONO })
+        } else if k.contains("quality") || k == "brresolution" {
+            first_of(&o.values, if job.high_quality { HIGH } else { NORMAL })
+        } else if is_media_type(&o.key) {
+            let words = job.paper.as_deref().and_then(|p| PAPER_WORDS.iter().find(|(kind, _)| *kind == p)).map(|(_, w)| *w);
+            words.and_then(|w| first_of(&o.values, w))
+        } else {
+            None
+        };
+        if let Some(v) = pick {
+            out.push(format!("{}={v}", o.key));
+        }
+    }
+    out
 }
 
 /// The arguments of `lp` for `file`: real size, one copy, the paper of the PDF.
@@ -128,7 +223,13 @@ pub fn lp_args(job: &Job, file: &Path) -> Vec<String> {
         "fit-to-page=false".to_string(),
         "fitplot=false".to_string(),
         format!("sides={}", if job.two_sided { "two-sided-long-edge" } else { "one-sided" }),
-    ] {
+        // IPP's names (driverless printers); the driver's own ones follow.
+        format!("print-color-mode={}", if job.color { "color" } else { "monochrome" }),
+        format!("print-quality={}", if job.high_quality { 5 } else { 4 }),
+    ]
+    .into_iter()
+    .chain(driver_choices(job))
+    {
         args.push("-o".to_string());
         args.push(option);
     }
@@ -181,7 +282,9 @@ pub fn system_printers(dirs: &[&Path]) -> Option<PrintersDto> {
         let (_, lpstat) = cups(dirs)?;
         // -e also names printers found on the network that CUPS sets up when used; -a for CUPS before 2.2.
         let listing = output(&lpstat, &["-e"]).or_else(|| output(&lpstat, &["-a"])).unwrap_or_default();
-        let printers = parse_printers(&listing);
+        // A fax queue of a printer-fax device (driverless CUPS sets one up next to the printer, sometimes as the
+        // default): grey only, and it may dial. Never offered for stickers (0.5.1).
+        let printers: Vec<String> = parse_printers(&listing).into_iter().filter(|p| !is_fax(&driver_options(dirs, Some(p)))).collect();
         let default = output(&lpstat, &["-d"]).and_then(|l| parse_default(&l)).filter(|d| printers.contains(d));
         Some(PrintersDto { way: "system", printers, default })
     }
@@ -190,6 +293,17 @@ pub fn system_printers(dirs: &[&Path]) -> Option<PrintersDto> {
         let _ = dirs;
         None
     }
+}
+
+/// The driver options of `printer` (the default one when None) through `lpoptions` in `dirs`; empty when unknown.
+pub fn driver_options(dirs: &[&Path], printer: Option<&str>) -> Vec<DriverOption> {
+    let Some(lpoptions) = crate::speech::find_program(dirs, "lpoptions") else { return Vec::new() };
+    let mut args = Vec::new();
+    if let Some(p) = printer {
+        args.extend(["-p", p]);
+    }
+    args.push("-l");
+    output(&lpoptions, &args).map(|l| parse_driver_options(&l)).unwrap_or_default()
 }
 
 /// Sends `file` to `lp` in `dirs`. Answers the job id where lp names one.
@@ -253,6 +367,29 @@ pub async fn print_printers() -> CmdResult<PrintersDto> {
     blocking(move || Ok(system_printers(&dirs()).unwrap_or(PrintersDto { way: "open", printers: Vec::new(), default: None }))).await
 }
 
+/// What the printer has in itself: its paper size, and the kinds of paper its driver knows.
+#[derive(Serialize, Debug, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct PaperDto {
+    pub size: Option<String>,
+    pub kinds: Vec<&'static str>,
+}
+
+/// The paper of `printer` (the default one when None), for the print dialog (Prüfrunde 1, bastler 23).
+#[tauri::command]
+pub async fn print_paper(printer: Option<String>) -> CmdResult<PaperDto> {
+    if let Some(p) = &printer {
+        if !valid_printer(p) {
+            return Err(CmdError::invalid(format!("no printer name: {p}")));
+        }
+    }
+    blocking(move || {
+        let driver = if cfg!(unix) { driver_options(&dirs(), printer.as_deref()) } else { Vec::new() };
+        Ok(PaperDto { size: default_paper(&driver), kinds: paper_kinds(&driver) })
+    })
+    .await
+}
+
 /// What happened to the PDF.
 #[derive(Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -277,6 +414,9 @@ pub async fn print_pdf(
     height_mm: f64,
     two_sided: bool,
     open: bool,
+    color: Option<bool>,
+    quality: Option<String>,
+    paper: Option<String>,
 ) -> CmdResult<PrintedDto> {
     let st = state.inner().clone();
     blocking(move || {
@@ -291,7 +431,9 @@ pub async fn print_pdf(
             if !(width_mm > 0.0 && height_mm > 0.0 && width_mm < 2000.0 && height_mm < 2000.0) {
                 return Err(CmdError::invalid("paper size"));
             }
-            let job = Job { title: name.clone(), printer, width_mm, height_mm, two_sided };
+            let driver = driver_options(&dirs(), printer.as_deref());
+            let paper = paper.filter(|p| PAPER_WORDS.iter().any(|(kind, _)| kind == p));
+            let job = Job { title: name.clone(), printer, width_mm, height_mm, two_sided, color: color.unwrap_or(true), high_quality: quality.as_deref() == Some("high"), driver, paper };
             let id = send_to_lp(&dirs(), &job, &file)?;
             return Ok(PrintedDto { way: "sent", job: id });
         }
@@ -313,7 +455,32 @@ mod tests {
     use super::*;
 
     fn job(printer: Option<&str>, w: f64, h: f64, two_sided: bool) -> Job {
-        Job { title: "Sticker Meine Box".into(), printer: printer.map(String::from), width_mm: w, height_mm: h, two_sided }
+        Job { title: "Sticker Meine Box".into(), printer: printer.map(String::from), width_mm: w, height_mm: h, two_sided, color: true, high_quality: false, driver: Vec::new(), paper: None }
+    }
+
+    #[test]
+    fn asks_for_colour_and_quality_in_the_drivers_words() {
+        let listing = "PageSize/Media Size: *A4 Letter Custom.WIDTHxHEIGHT\nColorModel/Color Mode: *Gray RGB\ncupsPrintQuality/Print Quality: Draft *Normal High\nBRMonoColor/Farbe: FullColor *Mono\nBRColorMatching/Farbabstimmung: *Natural Vivid\n";
+        let driver = parse_driver_options(listing);
+        assert_eq!(driver[1], DriverOption { key: "ColorModel".into(), values: vec!["Gray".into(), "RGB".into()], default: Some("Gray".into()) });
+        let mut j = job(Some("Brother_MFC_J5320DW"), 210.0, 297.0, false);
+        j.driver = driver;
+        assert_eq!(driver_choices(&j), ["ColorModel=RGB", "cupsPrintQuality=Normal", "BRMonoColor=FullColor"]);
+        let args = lp_args(&j, Path::new("/tmp/a.pdf"));
+        assert!(args.contains(&"print-color-mode=color".to_string()));
+        assert!(args.contains(&"ColorModel=RGB".to_string()));
+        j.color = false;
+        j.high_quality = true;
+        assert_eq!(driver_choices(&j), ["ColorModel=Gray", "cupsPrintQuality=High", "BRMonoColor=Mono"]);
+        let args = lp_args(&j, Path::new("/tmp/a.pdf"));
+        assert!(args.contains(&"print-color-mode=monochrome".to_string()));
+        assert!(args.contains(&"print-quality=5".to_string()));
+        // The fax queue driverless CUPS puts next to a printer-fax device.
+        assert!(is_fax(&parse_driver_options("ColorModel/Color Mode: *Gray\nphone/Phone Number: *None\nfaxPrefix/Pre-Dial Number: *None\n")));
+        assert!(!is_fax(&j.driver));
+        // A printer without such options: only IPP's words.
+        j.driver = parse_driver_options("PageSize/Media Size: *A4\n");
+        assert!(driver_choices(&j).is_empty());
     }
 
     #[test]
@@ -323,7 +490,7 @@ mod tests {
             args,
             [
                 "-d", "Brother_MFC_J5320DW", "-t", "Sticker Meine Box", "-n", "1", "-o", "media=A4", "-o", "print-scaling=none", "-o", "fit-to-page=false", "-o",
-                "fitplot=false", "-o", "sides=one-sided", "/tmp/x/a.pdf"
+                "fitplot=false", "-o", "sides=one-sided", "-o", "print-color-mode=color", "-o", "print-quality=4", "/tmp/x/a.pdf"
             ]
         );
         // Without a printer: CUPS's default one.
@@ -331,6 +498,23 @@ mod tests {
         assert_eq!(args[0], "-t");
         assert!(args.contains(&"media=Letter".to_string()));
         assert!(args.contains(&"sides=two-sided-long-edge".to_string()));
+    }
+
+    #[test]
+    fn knows_the_printers_paper_and_says_the_kind_in_the_drivers_words() {
+        let driver = parse_driver_options("PageSize/Media Size: A4 *Letter Legal\nMediaType/Media Type: *Plain Glossy Labels Envelope\n");
+        assert_eq!(default_paper(&driver), Some("Letter".into()));
+        assert_eq!(paper_kinds(&driver), ["plain", "photo", "labels"]);
+        let mut j = job(None, 210.0, 297.0, false);
+        j.driver = driver;
+        assert!(driver_choices(&j).is_empty());
+        j.paper = Some("photo".into());
+        assert_eq!(driver_choices(&j), ["MediaType=Glossy"]);
+        j.paper = Some("labels".into());
+        assert_eq!(driver_choices(&j), ["MediaType=Labels"]);
+        // A driver without kinds of paper: nothing is said.
+        assert!(paper_kinds(&parse_driver_options("PageSize/Media Size: *A4\n")).is_empty());
+        assert_eq!(default_paper(&parse_driver_options("PageSize/Media Size: *A4\n")), Some("A4".into()));
     }
 
     #[test]

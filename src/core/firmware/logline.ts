@@ -3,11 +3,12 @@
  *
  * Formats come from the LOG(...) calls of TonUINO-TNG V3.3.3:
  * TonUINO-TNG.ino (banner, version, board), settings.cpp (Ver/Vol/EQ/ST/IB/
- * AL/AP/PCR), chip_card.cpp (MFRC522, card data and errors), mp3.cpp
+ * AL/AP/PCR, from 26.10.2026 BV), chip_card.cpp (MFRC522, card data and errors), mp3.cpp
  * (DfPl Err, track_count, missing OnPlayFinished, play …), tonuino.cpp
  * ("tr in folder", standby), commands.cpp (btn/cmd), batVoltage.cpp,
  * state_machine.cpp and webservice.cpp (ESP32). Lines of TonUINO 2.1 are
- * recognised on a best-effort basis (banner, settings, "Com Error").
+ * recognised on a best-effort basis (banner, settings, "Com Error", the
+ * reader's "Firmware Version", "Shortcut not configured!").
  */
 import type { BoardId } from './variants';
 
@@ -24,7 +25,10 @@ export interface VolumeLevels {
 export type AdminLockKind = 'none' | 'card' | 'pin' | 'calc' | 'unknown';
 
 export interface BoxSettings {
-  /** Layout version of the settings block in EEPROM ("Ver:", TNG: 2). */
+  /**
+   * Layout version of the settings block in EEPROM ("Ver:"): TNG 2, from TNG of
+   * 26.10.2026 3. A box keeps 3 when older firmware comes back.
+   */
   version?: number;
   speakerVolume?: VolumeLevels;
   /** Separate headphone volumes (TNG 3.1.7 and later). */
@@ -40,6 +44,12 @@ export interface BoxSettings {
   /** Key codes: 1 = Play/Pause, 2 = Vor, 3 = Zurück. null when the logged digits cannot be split. */
   adminPin?: number[] | null;
   pauseWhenCardRemoved?: boolean;
+  /**
+   * Correction factor of the battery measurement ("BV:", TNG from 26.10.2026
+   * built with BAT_VOLTAGE_MEASUREMENT): the voltage divider in ‰ of the
+   * reference, e.g. 2075 on the AiO+. Calibration ("BAT <mV>") changes it.
+   */
+  voltMeasCorrection?: number;
 }
 
 export type LogRecord =
@@ -73,8 +83,16 @@ export type LogRecord =
   | { kind: 'headphones'; plugged: boolean }
   | { kind: 'standby'; event: 'started' | 'stopped' | 'power-off' }
   | { kind: 'battery-empty' }
-  /** batVoltage.cpp logs the measured voltage every 2 s ("BatVoltage: 2.86"); some builds write "BatVoltage low 2.86". */
-  | { kind: 'battery-voltage'; volts: number; low: boolean }
+  /**
+   * batVoltage.cpp logs the measured voltage every 2 s ("BatVoltage: 2.86"); some builds write "BatVoltage low 2.86".
+   * TNG from 26.10.2026 measures in millivolts ("BatVoltage: 3712") and logs it only in a build for calibration
+   * (BAT_VOLTAGE_MEASUREMENT_CALIBRATION or …_NANO): `millivolts` is set then.
+   */
+  | { kind: 'battery-voltage'; volts: number; low: boolean; millivolts?: number }
+  /** state_machine.cpp after "BAT <mV>" on the serial line: the new correction factor, saved in the EEPROM. */
+  | { kind: 'battery-correction'; value: number }
+  /** TonUINO 2.1 (and the AiO+ firmware of the Leiterkartenpiraten): playShortCut() found nothing stored for that key, or for the start sound. */
+  | { kind: 'shortcut-missing' }
   | { kind: 'settings-cleared' }
   | { kind: 'eeprom-failed'; op: 'begin' | 'commit' }
   | { kind: 'quiz-error'; field: 'answers' | 'solution'; value: number }
@@ -164,13 +182,17 @@ export function parseLogLine(rawLine: string): LogRecord | null {
   }
 
   // ---- settings
-  if ((m = s.match(/^(Ver|Vol|EQ|ST|IB|AL|AP|PCR):\s*(.*)$/))) return tngSetting(m[1], m[2].trim());
+  if ((m = s.match(/^(Ver|Vol|EQ|ST|IB|AL|AP|PCR|BV):\s*(.*)$/))) return tngSetting(m[1], m[2].trim());
   if ((m = s.match(/^(Version|Maximal Volume|Minimal Volume|Initial Volume|Sleep Timer|Inverted Volume Buttons|Admin Menu locked|Admin Menu Pin):\s*(.*)$/))) {
     return classicSetting(m[1], m[2].trim());
   }
 
   // ---- hardware diagnostics
   if ((m = s.match(/^MFRC522:\s*(\d+)$/))) return { kind: 'rfid-version', version: Number(m[1]) };
+  // TonUINO 2.1: MFRC522 PCD_DumpVersionToSerial ("Firmware Version: 0x92 = v2.0", "0x12 = counterfeit chip", "0x0 = (unknown)").
+  if ((m = s.match(/^Firmware Version:\s*0x([0-9a-fA-F]{1,2})\b/))) return { kind: 'rfid-version', version: parseInt(m[1], 16) };
+  if (/^WARNING: Communication failure/i.test(s)) return { kind: 'rfid-broken' };
+  if (/^Shortcut not configured!?$/i.test(s)) return { kind: 'shortcut-missing' };
   if (/^com to mfrc broken$/i.test(s)) return { kind: 'rfid-broken' };
   if (/^com to dfplayer broken$/i.test(s)) return { kind: 'mp3-broken' };
   if ((m = s.match(/^track_count:\s*(\d+)$/))) return { kind: 'track-count', count: Number(m[1]) };
@@ -179,8 +201,13 @@ export function parseLogLine(rawLine: string): LogRecord | null {
   if (/^missing OnPlayFinished$/.test(s)) return { kind: 'missing-finished' };
   if (/^BatVoltage empty$/.test(s)) return { kind: 'battery-empty' };
   if ((m = s.match(/^BatVoltage(:|\s+low:?)\s*(\d+(?:[.,]\d+)?)$/))) {
-    return { kind: 'battery-voltage', volts: Number(m[2].replace(',', '.')), low: m[1] !== ':' };
+    const low = m[1] !== ':';
+    // A whole number is millivolts (TNG from 26.10.2026: uint16_t voltage); older TNG prints volts with two
+    // decimals. Even tens count: on Arduino boards that TNG computes some 30 mV (tngstands.ts batteryMathBrokenOnAvr).
+    if (/^\d+$/.test(m[2]) && Number(m[2]) >= 10) return { kind: 'battery-voltage', volts: Number(m[2]) / 1000, low, millivolts: Number(m[2]) };
+    return { kind: 'battery-voltage', volts: Number(m[2].replace(',', '.')), low };
   }
+  if ((m = s.match(/^Bat Volt Corr set:\s*(\d+)$/))) return { kind: 'battery-correction', value: Number(m[1]) };
   if (/^clEEPROM$/.test(s)) return { kind: 'settings-cleared' };
   if ((m = s.match(/^EEPROM (begin|commit):\s*0$/))) return { kind: 'eeprom-failed', op: m[1] as 'begin' | 'commit' };
 
@@ -270,6 +297,9 @@ function tngSetting(key: string, value: string): SettingRecord {
     }
     case 'PCR':
       return setting(key, value, n === 0 || n === 1 ? { pauseWhenCardRemoved: n === 1 } : {}, n !== 0 && n !== 1);
+    case 'BV':
+      // settings.cpp puts back the default when the value is 0 or above 10000.
+      return setting(key, value, n !== undefined && n > 0 && n <= 10000 ? { voltMeasCorrection: n } : {}, n === undefined || n === 0 || n > 10000);
   }
   return setting(key, value, {}, true);
 }

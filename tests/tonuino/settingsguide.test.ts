@@ -402,6 +402,18 @@ describe('TNG', () => {
     expect(back.steps.find((s) => s.hear === '„Ja.“')!.text).toContain('kurz drücken die Lautstärke ändert');
   });
 
+  it('says what „Tasten umdrehen“ does on a box with 5 buttons and TNG from 26.10.2026', () => {
+    const on = guide(settingsGuide('tng', { shortPressVolume: true }, { ...known(factory()), shortPressVolume: false }, { buttons: 5, invert: 'five' }));
+    expect(on.steps.find((s) => s.hear === '„Ja.“')!.text).toContain('Vor und Zurück beim Abspielen die Lautstärke ändern');
+    const off = guide(settingsGuide('tng', { shortPressVolume: false }, known(factory()), { buttons: 5, invert: 'five' }));
+    expect(off.steps.find((s) => s.hear === '„Nein.“')!.text).toContain('alle Tasten tun, was draufsteht');
+    // From the factory the 5 keys do what is printed on them: after a reset nothing is left to do.
+    const reset = guide(settingsGuide('tng', { reset: true, shortPressVolume: false }, known(factory()), { buttons: 5, invert: 'five' }));
+    expect(reset.steps.some((s) => s.hear === '„Nein.“')).toBe(false);
+    const reset3 = guide(settingsGuide('tng', { reset: true, shortPressVolume: false }, known(factory()), { buttons: 3, invert: 'three' }));
+    expect(reset3.steps.some((s) => s.hear === '„Nein.“')).toBe(true);
+  });
+
   it('sets a Kurzwahl: mode first, then the folder', () => {
     const g = guide(settingsGuide('tng', { shortcut: { slot: 2, folder: 7, mode: 2 } }, known(factory())));
     const hears = g.steps.map((s) => s.hear);

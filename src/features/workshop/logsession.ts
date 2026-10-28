@@ -188,10 +188,14 @@ export class LogSession {
     return () => this.lineListeners.delete(listener);
   }
 
-  /** Sends one line to the box (writecard.ts). Rejects without a connection. */
-  async send(line: string): Promise<void> {
+  /** Sends one line to the box (writecard.ts); `note` goes into the logbook first. Rejects without a connection. */
+  async send(line: string, note?: string): Promise<void> {
     const a = this.active;
     if (!a) throw new Error('Die Box ist nicht verbunden.');
+    if (note) {
+      this.book.note(note);
+      this.bump();
+    }
     await a.monitor.write(lineBytes(line));
   }
 

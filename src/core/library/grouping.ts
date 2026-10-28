@@ -1,4 +1,5 @@
 import type { ByteSource } from '../../platform/types';
+import type { TrimEdit } from '../audio/trimedit';
 import type { TrackOrigin } from '../sources/origin';
 import type { ContentKind } from '../tonuino/catalog';
 import { MAX_TRACKS } from '../tonuino/sd';
@@ -29,6 +30,19 @@ export interface DraftTrack {
   origin?: TrackOrigin;
   /** A whole album in one file: where its tracks start and what they are called (see albumcut.ts). */
   albumCuts?: AlbumCuts;
+  /**
+   * Cut before it went to the card („Zuschneiden …“ in the list, src/core/library/trimmed.ts):
+   * `source` and `info` are the cut file in memory, this is the file as it came and the edit, to cut it again.
+   */
+  trimmed?: TrimmedFrom;
+}
+
+/** A title as it was before „Zuschneiden …“: the picked file and what was cut. */
+export interface TrimmedFrom {
+  source: ByteSource;
+  info?: TrackInfo;
+  albumCuts?: AlbumCuts;
+  edit: TrimEdit;
 }
 
 /** The tracks of an album that came as one file, with the cuts already moved into the pauses. */

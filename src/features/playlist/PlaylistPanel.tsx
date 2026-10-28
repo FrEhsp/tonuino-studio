@@ -12,7 +12,6 @@ import {
   FolderOpen,
   Info,
   ListMusic,
-  ListOrdered,
   Repeat2,
   ShoppingBag,
   type LucideIcon,
@@ -31,6 +30,7 @@ import { ExternalLink } from '../sources/links';
 import { missingFileName, missingListText, summaryText, type Row, type RowStatus } from './state';
 import { playlist as p } from './store';
 import './playlist.css';
+import { ArcadeCap, CapListe } from '../../ui/icons/caps';
 
 const STATUS: Record<RowStatus, { icon: LucideIcon; text: string }> = {
   gefunden: { icon: CircleCheck, text: 'Gefunden' },
@@ -74,9 +74,7 @@ export function PlaylistPanel({ folder }: { folder?: number }) {
   return (
     <section ref={section} class="card web-import playlist-import" aria-labelledby="playlist-import-title">
       <div class="web-import-head playlist-head">
-        <span class="web-import-icon" aria-hidden="true">
-          <ListOrdered size={20} />
-        </span>
+        <ArcadeCap icon={CapListe} color="gelb" size={36} />
         <div class="stack tight grow">
           <h2 id="playlist-import-title">
             <button type="button" id="playlist-toggle" class="playlist-toggle" aria-expanded={open} aria-controls="playlist-import-body" onClick={() => (p.open.value = !open)}>
@@ -124,9 +122,7 @@ function ListStep() {
       <div class="stack tight">
         <StepTitle n={1}>Die Liste</StepTitle>
         <div class="web-import-summary">
-          <span class="web-import-icon" aria-hidden="true">
-            <ListMusic size={20} />
-          </span>
+          <ArcadeCap icon={CapListe} color="gelb" size={36} />
           <div class="stack tight grow" style={{ minWidth: 0 }}>
             <strong class="web-import-clamp">{list.name}</strong>
             <span class="small muted">

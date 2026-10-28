@@ -3,7 +3,7 @@
  * turned into a template. Pure functions, so the dialog only shows them.
  */
 
-import { customTemplate, fmtMm, type CustomTemplateParams, type LabelTemplate } from '../../core/stickers/templates';
+import { customTemplate, fmtMm, isLetter, LETTER, type CustomTemplateParams, type LabelTemplate } from '../../core/stickers/templates';
 
 /** A pre-cut label sheet, paper or film the user cuts, or single pictures for a photo service. */
 export type OwnPaper = 'sheet' | 'cut' | 'photo';
@@ -11,6 +11,8 @@ export type OwnPaper = 'sheet' | 'cut' | 'photo';
 /** The form as typed: millimetres with comma or point; an empty field means "the app works it out". */
 export interface OwnSizeForm {
   paper: OwnPaper;
+  /** The sheet's size: A4, or US Letter (Prüfrunde 1, bastler 26). */
+  page: 'a4' | 'letter';
   shape: 'rect' | 'round';
   width: string;
   height: string;
@@ -22,7 +24,7 @@ export interface OwnSizeForm {
   gapY: string;
 }
 
-export const EMPTY_FORM: OwnSizeForm = { paper: 'sheet', shape: 'rect', width: '', height: '', cols: '', rows: '', marginLeft: '', marginTop: '', gapX: '', gapY: '' };
+export const EMPTY_FORM: OwnSizeForm = { paper: 'sheet', page: 'a4', shape: 'rect', width: '', height: '', cols: '', rows: '', marginLeft: '', marginTop: '', gapX: '', gapY: '' };
 
 /** Smallest and largest side the app accepts; smaller labels have no room for anything. */
 export const MIN_SIDE_MM = 15;
@@ -63,6 +65,7 @@ export function templateFromForm(form: OwnSizeForm): OwnSizeResult {
     params.output = 'images';
   } else {
     params.kind = form.paper === 'sheet' ? 'die-cut' : 'cut-yourself';
+    if (form.page === 'letter') params.page = LETTER;
     const counts: [keyof OwnSizeForm, string, 'cols' | 'rows'][] = [
       ['cols', 'Spalten', 'cols'],
       ['rows', 'Zeilen', 'rows'],
@@ -102,6 +105,7 @@ export function formFromParams(params: CustomTemplateParams | undefined): OwnSiz
   const paper: OwnPaper = params.output === 'images' ? 'photo' : params.kind === 'die-cut' ? 'sheet' : 'cut';
   return {
     paper,
+    page: params.page && isLetter(params.page) ? 'letter' : 'a4',
     shape: params.shape === 'round' ? 'round' : 'rect',
     width: mm(params.labelWidthMm),
     height: params.shape === 'round' ? '' : mm(params.labelHeightMm),
@@ -133,6 +137,8 @@ export function cleanCustomParams(raw: unknown): CustomTemplateParams | undefine
     return params;
   }
   params.kind = r.kind === 'die-cut' ? 'die-cut' : 'cut-yourself';
+  const page = r.page as { widthMm?: unknown; heightMm?: unknown } | undefined;
+  if (page && typeof page.widthMm === 'number' && typeof page.heightMm === 'number' && isLetter({ widthMm: page.widthMm, heightMm: page.heightMm })) params.page = LETTER;
   const optional = { cols: count(r.cols), rows: count(r.rows), marginLeftMm: num(r.marginLeftMm), marginTopMm: num(r.marginTopMm), gapXMm: num(r.gapXMm), gapYMm: num(r.gapYMm) };
   for (const [key, value] of Object.entries(optional)) if (value !== undefined) Object.assign(params, { [key]: value });
   return params;

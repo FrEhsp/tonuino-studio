@@ -266,3 +266,11 @@ label.setting-label {
   font-size: max(12px, 0.78em);
   font-weight: 400;
 }
+
+/* "Was in diesem Browser geht" (src/features/settings/WebAbilities.tsx): a plain list, no boxes. */
+.web-abilities-list {
+  margin: 0;
+  padding-inline-start: 1.2em;
+  display: grid;
+  gap: var(--space-1);
+}

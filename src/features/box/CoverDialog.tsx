@@ -8,6 +8,7 @@ import { bytesToObjectUrl, normalizeCover } from '../../ui/image';
 import { card, coverUrlFor, plat } from '../../app/state';
 import { setCoversAnywhere } from '../../app/waiting';
 import { CoverSearch } from './CoverSearch';
+import { PictogramCoverSearch } from '../stickers/PictogramCoverSearch';
 import type { CoverKind } from '../../core/stickers/coversearch';
 
 type Candidate = ReadyCover & { url: string; orientation?: 'portrait' };
@@ -158,7 +159,14 @@ export function CoverDialog({ folder, query, onClose }: { folder: number; query:
         {/* On a phone the preview moves below the search. On a wider screen only the hits scroll (layout.css). */}
         <div class="cover-dialog-main">
           <div class="cover-dialog-pick">
-            {tab === 'search' ? <CoverSearch initialQuery={query} quiet onPick={(blob, source, kind) => take(blob, blob.type || 'image/jpeg', source, kind)} /> : null}
+            {tab === 'search' ? (
+              <CoverSearch
+                initialQuery={query}
+                quiet
+                onPick={(blob, source, kind) => take(blob, blob.type || 'image/jpeg', source, kind)}
+                pictograms={() => <PictogramCoverSearch title={query} onPick={(blob, source) => take(blob, 'image/png', source)} />}
+              />
+            ) : null}
             {tab === 'file' ? (
               <div class="stack">
                 <p class="soft">Nimm ein Foto vom CD-Cover, ein gemaltes Bild oder ein Bild aus dem Internet. Am besten quadratisch und mindestens 600 Pixel groß.</p>

@@ -8,7 +8,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { VNode } from 'preact';
-import { menuPlacement, menuSpot } from '../../src/ui/components/Menu';
+import { menuPlacement, menuSpot, staysOpenOnResize, staysOpenOnScroll } from '../../src/ui/components/Menu';
 
 const read = (path: string) => readFileSync(fileURLToPath(new URL(`../../${path}`, import.meta.url)), 'utf8');
 
@@ -120,50 +120,32 @@ describe('a cover without a picture', () => {
   });
 });
 
-describe('the phone tab bar', () => {
-  type Phone = Parameters<typeof import('../../src/app/Sidebar').tabsFor>[0];
-  const android = (sd: boolean) => ({ mobile: true, capabilities: { sd } }) as Phone;
-
-  it('has Meine Box, Hinzufügen, Sticker and Karten, picked by page', async () => {
-    const src = read('src/app/Sidebar.tsx');
-    expect(src).not.toMatch(/NAV\[\d\]/);
-    const { tabsFor } = await import('../../src/app/Sidebar');
-    expect(tabsFor(null).map((t) => [t.route.page, t.short])).toEqual([
-      ['box', 'Meine Box'],
-      ['add', 'Hinzufügen'],
-      ['stickers', 'Sticker'],
-      ['cards', 'Karten'],
+describe('the bars of 0.6 (06-entwuerfe)', () => {
+  it('have exactly the three tasks in front, in their order and colours', async () => {
+    const { TASKS } = await import('../../src/app/Kopf');
+    expect(TASKS.map((t) => [t.route.page, t.label, t.short, t.cap])).toEqual([
+      ['musik', 'Musik auf die SD-Karte', 'Musik', 'gelb'],
+      ['karte', 'Karte beschreiben', 'Karte', 'blau'],
+      ['sticker', 'Sticker drucken', 'Sticker', 'rot'],
     ]);
   });
 
-  it('starts with the cards and recording in the Android app, then Meine Box, nothing of it under "Mehr"', async () => {
-    const { tabsFor, navItems } = await import('../../src/app/Sidebar');
-    expect(tabsFor(android(true)).map((t) => [t.route.page, t.short])).toEqual([
-      ['cards', 'Karten'],
-      ['record', 'Aufnehmen'],
-      ['box', 'Meine Box'],
-    ]);
-    // The menu of a tablet in the same order; the computer's keeps Meine Box first and has no recording page.
-    expect(navItems(true).map((n) => n.route.page).slice(0, 3)).toEqual(['cards', 'record', 'box']);
-    expect(navItems(false).map((n) => n.route.page)).not.toContain('record');
-    expect(navItems(false)[0].route.page).toBe('box');
-    // An APK without the SD card: what works on the phone.
-    expect(tabsFor(android(false)).map((t) => t.route.page)).toEqual(['cards', 'sources', 'help']);
+  it('put every other page behind „Werkstatt“ („Mehr“ on a phone)', async () => {
+    const { taskOf } = await import('../../src/app/Kopf');
+    expect(taskOf('musik')).toBe('musik');
+    expect(taskOf('sticker')).toBe('sticker');
+    for (const page of ['box', 'folder', 'add', 'sources', 'stickers', 'cards', 'record', 'workshop', 'help', 'settings'] as const) expect(taskOf(page), page).toBe('workshop');
   });
 
-  it('is Karten, Hinzufügen, Sticker drucken and Mehr on a phone, in the app and in the browser (0.5 #74)', async () => {
-    const { tabsFor } = await import('../../src/app/Sidebar');
-    for (const p of [null, android(true)]) {
-      expect(tabsFor(p, true).map((t) => [t.route.page, t.label])).toEqual([
-        ['cards', 'Karten beschreiben'],
-        ['add', 'Hinzufügen'],
-        ['stickers', 'Sticker drucken'],
-      ]);
-    }
-    // Werkstatt and Meine Box are under "Mehr"; the APK without the SD card keeps its bar.
-    expect(tabsFor(android(false), true).map((t) => t.route.page)).toEqual(['cards', 'sources', 'help']);
-    // "Mehr" on a phone starts with Meine Box.
-    expect(read('src/app/Sidebar.tsx')).toMatch(/phone \? \[\.\.\.menu\.filter\(\(n\) => n\.route\.page === 'box'\)/);
+  it('start at the music on a computer and at the cards on the phone', async () => {
+    const { startPage } = await import('../../src/app/Kopf');
+    expect(startPage(false)).toEqual({ page: 'musik' });
+    expect(startPage(true)).toEqual({ page: 'karte' });
+  });
+
+  it('keep every cap in its full colour: no unlit cap any more', () => {
+    const css = read('src/ui/styles/stil-holz.css');
+    expect(css).not.toMatch(/> \.arcade-cap \{\s*background: var\(--surface\)/);
   });
 });
 
@@ -181,7 +163,10 @@ describe('the choices in the settings', () => {
   it('move with the arrow keys and are one tab stop, for the way to write cards', () => {
     const method = src.slice(src.indexOf('function CardMethodChoice'), src.indexOf('function BoxAddressField'));
     expect(method).toMatch(/role="radiogroup"[\s\S]{0,200}onKeyDown=\{arrowKeyHandler\(/);
-    expect(method).toMatch(/tabIndex=\{ok && m\.value === current \? 0 : -1\}/);
+    expect(method).toMatch(/tabIndex=\{m\.value === current \? 0 : -1\}/);
+    // Only the ways this app can use are buttons; the others are one sentence (TODO #122).
+    expect(method).toMatch(/\{usable\.map\(\(m\) =>/);
+    expect(method).not.toMatch(/aria-disabled/);
   });
 
   it('skip ways this app cannot use', () => {
@@ -199,5 +184,20 @@ describe('menuSpot', () => {
   });
   it('stays inside the window when it fits on neither side', () => {
     expect(menuSpot({ button: { top: 60, bottom: 100, left: 10, right: 50 }, menuHeight: 300, limit: 320, width: 400, align: 'left', placement: 'below' }).top).toBe(20);
+  });
+});
+
+describe('an open menu and a window that changes (360 px, first tap on „…“)', () => {
+  it('stays open when only the height changes: the phone keyboard going away after the tap', () => {
+    expect(staysOpenOnResize(360, 360)).toBe(true);
+  });
+  it('closes when the width changes: the phone turned, the window made narrower', () => {
+    expect(staysOpenOnResize(360, 780)).toBe(false);
+    expect(staysOpenOnResize(1440, 1200)).toBe(false);
+  });
+  it('stays open on a scroll that leaves its button where it was, closes when the button moved away', () => {
+    expect(staysOpenOnScroll({ top: 400, left: 300 }, { top: 400, left: 300 })).toBe(true);
+    expect(staysOpenOnScroll({ top: 400, left: 300 }, { top: 403, left: 300 })).toBe(true);
+    expect(staysOpenOnScroll({ top: 400, left: 300 }, { top: 340, left: 300 })).toBe(false);
   });
 });

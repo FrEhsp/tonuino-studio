@@ -26,6 +26,7 @@
 import { buttonLabel, COMMAND_LABELS } from '../../core/firmware/logexplain';
 import { parseLogLine, type BoxButtons, type FirmwareFamily, type LogRecord } from '../../core/firmware/logline';
 import type { BoardId } from '../../core/firmware/variants';
+import { invertKind } from '../../core/firmware/tngstands';
 
 /** The five buttons as buttons.cpp names them. */
 export type ButtonKey = 'up' | 'down' | 'four' | 'five' | 'pause';
@@ -119,8 +120,10 @@ export class PartsTest {
   board?: BoardId;
   /** From the start of the box ("C 3", "A+ 5"). */
   buttons?: BoxButtons;
-  /** IB:1, only matters with 3 buttons. */
+  /** IB:1; matters with 3 buttons, and with 5 on TNG from 26.10.2026 (tngstands.ts invertKind). */
   invertVolumeButtons?: boolean;
+  /** The version line of the start, "V3.3.4 26.10.26". */
+  version?: { version: string; date?: string };
   /** Pressed "Fertig": rows still open get their hint. */
   finished = false;
   /** The row ticked or reported last, for the highlight. */
@@ -182,6 +185,9 @@ export class PartsTest {
 
   record(rec: LogRecord, at: number): boolean {
     switch (rec.kind) {
+      case 'version':
+        this.version = { version: rec.version, ...(rec.date ? { date: rec.date } : {}) };
+        return false;
       case 'banner':
         this.firmware = rec.firmware;
         // The volume set at the start is no change.
@@ -360,7 +366,11 @@ export function instruction(t: PartsTest, row: PartRow): { say: string; sub: str
 }
 
 function volumeHowTo(t: PartsTest): string {
-  if (t.buttonCount === 5) return 'Drücke kurz auf Lauter oder Leiser, während die Box spielt.';
+  if (t.buttonCount === 5) {
+    // Swapped keys on TNG from 26.10.2026: Vor/Zurück change the volume while music plays.
+    const swapped = t.invertVolumeButtons && invertKind({ buttons: '5', ...t.version }) === 'five';
+    return swapped ? 'Drücke kurz auf Vor oder Zurück, während die Box spielt.' : 'Drücke kurz auf Lauter oder Leiser, während die Box spielt.';
+  }
   return t.invertVolumeButtons
     ? 'Drücke kurz auf Vor oder Zurück, während die Box spielt.'
     : 'Halte Vor oder Zurück lang gedrückt, während die Box spielt.';

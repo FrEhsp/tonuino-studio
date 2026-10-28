@@ -42,7 +42,8 @@ export async function mergedFeatures(browser) {
   const readCard = async (dir) => {
     await go('#/');
     await chooseFolder(page, dir, page.getByRole('button', { name: /SD-Karte einlesen|Neu einlesen/ }).first());
-    await page.locator('.sidebar').getByText(/Eingelesen um/).waitFor();
+    // The bar on top names what waits instead of the time, when something does.
+    await page.locator('.kopf .sd-zeile').getByText(/Eingelesen um|wartet|warten|Karte hat sich geändert/).waitFor();
   };
   /** Hinzufügen once more: coming back after an add that went well, the page starts afresh. */
   const addAnother = (files) => addAlbum(page, files);
@@ -104,11 +105,11 @@ export async function mergedFeatures(browser) {
   console.log('merged: Box einstellen leaves the card alone');
   await go('#/werkstatt/einstellen');
   await page.getByRole('heading', { name: 'Box einstellen' }).waitFor();
-  await page.getByRole('checkbox', { name: /^Lautstärke/ }).check();
-  await page.getByText('Fürs Kinderzimmer', { exact: true }).click();
+  // 0.6: the sentences of „Verhalten“ (VerhaltenSaetze.tsx).
+  await page.locator('.satzzeile:has(#vh-laut)').getByRole('button', { name: /fürs Kinderzimmer/ }).click();
   await page.getByRole('button', { name: 'Erledigt: Die Box ist eingestellt' }).click();
-  await page.getByText(/^Erledigt\. Oben stehen jetzt die neuen Werte/).waitFor();
-  check((await page.locator('.sidebar').getByText(/Änderung(en)? wartet|Änderungen warten/).count()) === 0, 'Box einstellen: nothing waits for the card');
+  await page.getByText(/^Erledigt\. In den Sätzen steht jetzt, was die Box hat/).waitFor();
+  check((await page.locator('.kopf .sd-zeile').getByText(/Änderung(en)? wartet|Änderungen warten/).count()) === 0, 'Box einstellen: nothing waits for the card');
   await go('#/');
   await shown(page).locator('.page-header h1').waitFor();
   check((await shown(page).locator('.package-banner').count()) === 0, 'Box einstellen: no Paket banner on the shelf');
@@ -205,7 +206,7 @@ export async function mergedFeatures(browser) {
   await go('#/');
   await shown(page).locator('.changed-elsewhere').waitFor();
   check((await page.getByRole('button', { name: 'Paket herunterladen' }).count()) === 0, 'elsewhere: no Paket from the old reading on the shelf');
-  check(await page.locator('.sidebar').getByText('Karte hat sich geändert').isVisible(), 'elsewhere: the sidebar says so');
+  check(await page.locator('.kopf .sd-zeile').getByText('Karte hat sich geändert').isVisible(), 'elsewhere: the bar on top says so');
   // On a phone and in the dark the notice stays readable and its buttons fit.
   await page.setViewportSize({ width: 390, height: 844 });
   await page.emulateMedia({ colorScheme: 'dark' });
@@ -218,8 +219,8 @@ export async function mergedFeatures(browser) {
   await shot(page, 'merged-04-elsewhere-1280-dark');
   await page.emulateMedia({ colorScheme: 'light' });
   await shot(page, 'merged-05-elsewhere-1280-light');
-  // While own changes wait, the shelf has no "Paket" button of its own (the banner leads there); the sidebar has one.
-  await page.locator('.sidebar').getByRole('button', { name: 'Paket' }).click();
+  // While own changes wait, the shelf has no "Paket" button of its own (the banner leads there); the bar on top has one.
+  await page.locator('.kopf .sd-zeile').getByRole('button', { name: 'Paket' }).click();
   await page.getByRole('dialog', { name: 'Erst die Karte neu übernehmen' }).waitFor();
   check(true, 'elsewhere: the Paket dialog asks to take the card first');
   await page.getByRole('dialog').getByRole('button', { name: 'Neuen Stand übernehmen' }).click();
@@ -244,7 +245,7 @@ export async function mergedFeatures(browser) {
   page = await visitAgain(page, errors, answerDialogs);
   await readCard(otherBare);
   check((await shown(page).locator('.package-banner.downloaded').count()) === 0, 'no catalog: another card without a catalog is not locked');
-  check((await page.getByText(/wartet aufs Entpacken/).filter({ visible: true }).count()) === 0, 'no catalog: no "wartet aufs Entpacken" on the other card');
+  check((await page.getByText(/wartet aufs Entpacken|Paket wartet/).filter({ visible: true }).count()) === 0, 'no catalog: no "wartet aufs Entpacken" on the other card');
   page = await visitAgain(page, errors, answerDialogs);
   await readCard(bare);
   await shown(page).locator('.package-banner.downloaded').waitFor();

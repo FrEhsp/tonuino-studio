@@ -18,6 +18,8 @@ export const ARASAAC_API = 'https://api.arasaac.org/v1';
 export const ARASAAC_STATIC = 'https://static.arasaac.org/pictograms';
 
 /** The line on a card that shows a pictogram. */
+/** A search that got no answer at all: no internet, or a filter that blocks ARASAAC (Hilfe „Internetfilter und Firewall“). */
+export const PICTOGRAM_NET_ERROR = `Die Suche hat nicht geklappt. Prüfe die Internetverbindung. Blockiert vielleicht ein Filter? Dann gib dort ${new URL(ARASAAC_API).host} und ${new URL(ARASAAC_STATIC).host} frei.`;
 export const PICTOGRAM_CREDIT = 'Piktogramm: Sergio Palao, ARASAAC (arasaac.org), CC BY-NC-SA';
 
 /** The full credit as ARASAAC asks for it, for the app's thanks and help. */

@@ -1,6 +1,6 @@
 /**
  * The two extras that change the sound of tracks on the card: "Titel
- * zusammenfügen" (JoinDialog) and "Anfang und Ende abschneiden"
+ * zusammenfügen" (JoinDialog) and "Zuschneiden"
  * (TrimDialog). The new file takes the old one's place only once it is
  * complete (platform write()), and afterwards the catalog learns the new
  * sizes and lengths, so the folder does not look changed elsewhere. Writes

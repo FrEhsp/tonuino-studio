@@ -132,8 +132,8 @@ export function RunPanel() {
         ) : null}
         {b?.kind === 'folder' ? <Button onClick={() => navigate({ page: 'add', folder: b.folder })}>Zur Auswahl</Button> : null}
         {b?.kind === 'result' ? (
-          <Button variant="primary" onClick={() => navigate({ page: 'add', folder: b.folder })}>
-            Zum Ergebnis
+          <Button variant="primary" onClick={() => navigate({ page: 'musik' })}>
+            Ansehen
           </Button>
         ) : null}
         {b?.kind === 'rest' ? (

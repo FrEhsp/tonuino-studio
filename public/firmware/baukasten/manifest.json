@@ -3,6 +3,8 @@
  "tng": {
   "version": "3.3.3",
   "versionString": "V3.3.3 17.09.26",
+  "date": "2026-09-17",
+  "config": "defines",
   "repository": "https://github.com/tonuino/TonUINO-TNG",
   "commit": "d527ca5f3c5090a74ccdf5505202db352d7531c8",
   "license": "GPL-3.0",

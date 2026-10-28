@@ -48,9 +48,11 @@ export async function launch() {
 
 /**
  * A page of the app. mode 'package': as in Firefox and Safari; 'direct': as
- * in Chrome and Edge. `init`: more scripts to run before the app.
+ * in Chrome and Edge. `init`: more scripts to run before the app. `hash`:
+ * the page to open; "#/" is Meine Box, where most checks begin (the bare
+ * address opens „Musik auf die SD-Karte“ since 0.6: pass '' for that).
  */
-export async function openApp(browser, { mode = 'package', theme = 'light', width = 1280, height = 900, init = [], hash = '' } = {}) {
+export async function openApp(browser, { mode = 'package', theme = 'light', width = 1280, height = 900, init = [], hash = '#/' } = {}) {
   const context = await browser.newContext({
     viewport: { width, height },
     colorScheme: theme,
@@ -64,7 +66,8 @@ export async function openApp(browser, { mode = 'package', theme = 'light', widt
   const errors = [];
   collectErrors(page, errors);
   await page.goto(APP_URL + hash);
-  await page.waitForSelector('.sidebar');
+  // Attached: on a phone the bar on top hides and the one at the bottom takes over.
+  await page.waitForSelector('.kopf', { state: 'attached' });
   return { context, page, errors };
 }
 
@@ -93,7 +96,7 @@ export async function visitAgain(page, errors, prepare = () => undefined) {
   collectErrors(next, errors);
   prepare(next);
   await next.goto(url);
-  await next.waitForSelector('.sidebar');
+  await next.waitForSelector('.kopf', { state: 'attached' });
   return next;
 }
 
@@ -204,6 +207,16 @@ export async function folderPage(page, name) {
   return more;
 }
 
+/**
+ * Opens the page at `hash` the way a link does („Meine Box“ is "#/"). Since
+ * 0.6 most pages have no link in the bar on top; they are in the Werkstatt.
+ */
+export async function go(page, hash) {
+  await page.evaluate((h) => {
+    location.hash = h;
+  }, hash);
+}
+
 /** Clicks a button that opens the folder chooser and hands it `dir`. */
 export async function chooseFolder(page, dir, button) {
   const [chooser] = await Promise.all([page.waitForEvent('filechooser'), button.click()]);
@@ -243,6 +256,18 @@ export function copyDir(from, to) {
   mkdirSync(dirname(to), { recursive: true });
   cpSync(from, to, { recursive: true, preserveTimestamps: true });
   return to;
+}
+
+/**
+ * Deezer for the cover search, knowing nothing: in the browser it is asked by
+ * JSONP (its answers have no CORS header), so the answer is a script calling
+ * back with no hits. `target` is a page or a context.
+ */
+export async function noDeezer(target) {
+  await target.route('https://api.deezer.com/**', (route) => {
+    const callback = new URL(route.request().url()).searchParams.get('callback') ?? 'callback';
+    return route.fulfill({ headers: { 'content-type': 'application/javascript' }, body: `${callback}({"data":[],"total":0})` });
+  });
 }
 
 export async function shot(page, name) {

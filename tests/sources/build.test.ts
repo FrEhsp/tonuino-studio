@@ -119,7 +119,8 @@ describe('buildIndex on the fixtures', () => {
     // Kakadu; OHRKA and the ARD links need none (links written in the catalogue); the knowledge shows of 0.3 get
     // their titles only from their show pages.
     expect(prod.index.entries.map((e) => e.id).sort()).toEqual(['kakadu-kinderhoerspiel', 'ohrka', ...ARD_LINKS].sort());
-    expect(prod.report.skipped).toHaveLength(16);
+    // Skipped: every entry that is not active, Krümelgeschichten (27.10.2026, 'check') among them.
+    expect(prod.report.skipped).toHaveLength(17);
     expect(prod.report.failures).toEqual([]);
     // br-geschichten-fuer-kinder waits for the broadcaster: 'off' in the catalogue, the editors' notes say why.
     expect(report.skipped.map((s) => s.status).sort()).toEqual(['off', 'off', 'off']);
@@ -383,7 +384,11 @@ describe('ARD titles kept unchanged', () => {
     };
     const r = buildIndex(catalog, sampleInputs());
     const notes = r.report.notes.filter((n) => n.note.includes('ohne Dateiname, Größe und Länge'));
-    expect(notes).toEqual([{ entry: 'ohrka', note: expect.stringMatching(/^1 von 12 Titeln ohne Dateiname.*\(Ohne alles\)\.$/) }]);
+    // The ARD shows read their pages, which do not know the made-up title; Krümelgeschichten waits for a check, so nobody reads its page yet.
+    expect(notes).toEqual([
+      { entry: 'ohrka', note: expect.stringMatching(/^1 von 12 Titeln ohne Dateiname.*\(Ohne alles\)\.$/) },
+      { entry: 'mdr-kruemelgeschichten', note: expect.stringMatching(/^1 von 1 Titeln ohne Dateiname.*\(Ohne alles\)\.$/) },
+    ]);
     // A source that may be changed takes the file without asking which title it is.
     expect(report.notes.filter((n) => n.note.includes('ohne Dateiname, Größe und Länge'))).toEqual([]);
   });
@@ -535,8 +540,8 @@ describe('sample index file', () => {
 
 /** A picture of the ARD image service at a fixed width (no {width} placeholder). */
 const ARD_IMAGE = /^https:\/\/api\.ardmediathek\.de\/image-service\/images\/urn:ard:image:[0-9a-f]{16}\?w=448&ch=[0-9a-f]{16}$/;
-/** ARD Sounds names no day the episodes go away for these shows (no unavailable_after on their pages, 2026-10-15). */
-const NO_UNTIL = ['rbb-dr-brumm'];
+/** ARD Sounds names no day the episodes go away for these shows (no unavailable_after on their pages, 2026-10-15 and 2026-10-27). */
+const NO_UNTIL = ['rbb-dr-brumm', 'rbb-mimi-sandmaedchen'];
 
 describe('the list that ships with the app', () => {
   const text = readFileSync(new URL('../../sources/snapshot/index-v1.json', import.meta.url), 'utf8');

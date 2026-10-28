@@ -338,7 +338,10 @@ function plateBadge(plate: Box, g: StickerGeometry): Slot & { kind: 'plate' } {
  * Largest title on the flap of "Kassette", per mm of its width: short titles stay as large as a
  * two-word one (Frank, 17.10.2026: „Schriftgröße bei Bibi find ich gut, danach wirds riesig“).
  */
-const FLAP_TITLE = 0.16;
+const FLAP_TITLE = 0.2;
+
+/** Lines a title may take on the flap of "Kassette"; the flap's height decides first (TODO #127). */
+const FLAP_LINES = 8;
 
 /** Width of the thin white lines between the parts of a cassette inlay, mm. */
 function inlayLine(g: StickerGeometry): number {
@@ -399,14 +402,13 @@ function tapeLandscape(g: StickerGeometry, input: LayoutInput): StickerLayout {
     const fx = left + width + 1.6;
     const fw = Math.max(1, W - S - fx);
     const logoH = clamp(H * 0.12, 4, 6.5);
-    if (input.logo && !input.title) {
-      // The logo alone: larger, in the middle of the flap, like the maker's mark on a cassette inlay.
-      const h = Math.min(fw * 0.5, H - 2 * S);
-      layout.logo = { x: fx, y: (H - h) / 2, width: fw, height: h, align: 'center', valign: 'middle' };
-    } else if (input.logo) layout.logo = { x: fx, y: H - S - logoH, width: fw, height: logoH, align: 'left', valign: 'bottom' };
+    // The logo always at the foot of the flap, with or without a title: in the same corner on every sticker
+    // (Frank, 24.10.2026, TODO #118: „Warum ist das nicht immer fest unten in derselben Ecke“).
+    if (input.logo) layout.logo = { x: fx, y: H - S - logoH, width: fw, height: logoH, align: 'left', valign: 'bottom' };
     if (input.title) {
       const top = S + 0.4;
-      layout.text = { x: fx, y: top, width: fw, height: Math.max(1, H - S - top - (input.logo ? logoH + 1 : 0)), align: 'left', valign: 'top', maxLines: 5, maxSize: FLAP_TITLE * fw };
+      // As many lines as the flap holds: a long title is never cut short while there is room (TODO #127).
+      layout.text = { x: fx, y: top, width: fw, height: Math.max(1, H - S - top - (input.logo ? logoH + 1 : 0)), align: 'left', valign: 'top', maxLines: FLAP_LINES, maxSize: FLAP_TITLE * fw };
     }
     tape.head = { ...along, up: true };
   } else if (input.title) {

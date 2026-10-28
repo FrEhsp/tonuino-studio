@@ -6,7 +6,7 @@
  */
 import { isCompact, pictureFrame, placementBox, stickerLayout, type Box, type Slot, type StickerGeometry, type StickerLayout } from '../../core/stickers/layout';
 import { ellipsize, fitLine, fitText, type Measure } from '../../core/stickers/text';
-import { BLACK, bestTextColor, contrast, paperOf, darkeningFor, ensureContrast, inkOnPhoto, lightestCell, luminance, mix, toCss, WHITE, type RGB } from '../../core/stickers/color';
+import { BLACK, bestTextColor, contrast, fromHex, paperOf, darkeningFor, ensureContrast, inkOnPhoto, lightestCell, luminance, mix, toCss, WHITE, type RGB } from '../../core/stickers/color';
 import { blurredBackground, createCanvas, drawContain, drawImageHQ, fitContain, get2d, imageSize, placePicture, type CanvasLike, type Context2D, type DrawableImage, type RectPx } from '../../core/stickers/image';
 import { EDGE_STRIP, flatness } from '../../core/covers/analyse';
 import { analyseImage } from '../../core/covers/build';
@@ -17,7 +17,8 @@ import { fontCss, wordmarkFont, type StickerFont } from './fonts';
 import type { StickerItem, PreparedPicture } from './content';
 import type { StickerDesign } from './design';
 import type { BackInk } from './backside';
-import { cassetteColors, drawNumberPlate, drawTapeLines, drawTapeParts, flapLine, PAPER, splitEpisode, tapeColors } from './tape';
+import { bandFitsCover, cassetteColors, drawNumberPlate, drawTapeLines, drawTapeParts, flapLine, PAPER, splitEpisode, tapeColors, withoutSeries } from './tape';
+import type { WorkColors } from '../../core/stickers/works';
 
 /**
  * Version of the sticker drawing. Raise it whenever a sticker comes out
@@ -25,7 +26,7 @@ import { cassetteColors, drawNumberPlate, drawTapeLines, drawTapeParts, flapLine
  * fonts): shelf stickers kept on this computer are then drawn again instead
  * of showing the old look.
  */
-export const STICKER_LOOK = 10;
+export const STICKER_LOOK = 11;
 
 export interface RenderOptions {
   item: StickerItem;
@@ -37,6 +38,11 @@ export interface RenderOptions {
   font: StickerFont;
   /** Picture logo, when the design asks for one. */
   logo?: DrawableImage | null;
+  /**
+   * The font of the number on the plate of "Kassette": one clear type on every sticker, whatever the
+   * series brings for its title (Frank, 22.10.2026, TODO #114: „optischer Bug bei den Zahlen“). Missing: the title font.
+   */
+  numberFont?: StickerFont;
 }
 
 const MIN_TITLE_MM = 2.6;
@@ -154,10 +160,11 @@ export function renderSticker(o: RenderOptions): CanvasLike {
   const seamEdge = coverSrc && upright ? coverSide(picture.image, coverSrc, true) : coverEdge;
   // A light, colourless edge reads as paper: the strip is then plain white, not a creamy tint of it.
   const calmEdge = coverEdge && coverEdge.share >= EDGE_CALM ? paperOf(coverEdge.color) : undefined;
+  // The colours of a known work, unless a colour of its own was chosen (the plate then follows that colour)
+  // or its band does not suit this episode's cover (TODO #117): then the cover decides.
+  const work = flat ? fittingWork(item, picture, calmEdge) : item.color ? undefined : item.work;
   // A colour chosen for the sticker or a known work's colour keeps the spine; else the cover decides.
-  const own = !!item.color || !!item.work?.band;
-  // The colours of a known work, unless a colour of its own was chosen: the plate then follows that colour.
-  const work = item.color ? undefined : item.work;
+  const own = !!item.color || !!work?.band;
   let tape = layout.tape
     ? flat
       ? cassetteColors({ palette: picture.palette, calm: calmEdge, own: own ? picture.base : undefined, work })
@@ -348,9 +355,10 @@ export function renderSticker(o: RenderOptions): CanvasLike {
       const p = layout.tape.plate;
       drawNumberPlate(ctx, X(p.x), Y(p.y), p.width * k, p.height * k, tape.plate, k, tape.band);
       const digits = numeric(badge);
+      const face = (o.numberFont ?? font).title;
       // As large as the pill of Vollbild (0.58 of its height); a word such as "15 Min." smaller.
-      const size = fitLine(badge, measureTitle, b.width, Math.min(p.height * (digits ? 0.62 : 0.42), b.height / 0.72), 1.4);
-      ctx.font = fontCss(font.title, size * k);
+      const size = fitLine(badge, measureWith(face), b.width, Math.min(p.height * (digits ? 0.62 : 0.42), b.height / 0.72), 1.4);
+      ctx.font = fontCss(face, size * k);
       ctx.fillStyle = toCss(tape.digits);
       ctx.textAlign = 'center';
       ctx.textBaseline = 'alphabetic';
@@ -417,7 +425,8 @@ export function renderSticker(o: RenderOptions): CanvasLike {
   const head = layout.tape?.head;
   // Only with the flap's line shown does the episode leave the spine: it must stay on the sticker.
   const said = layout.tape && layout.text && !layout.text.up ? tapeText(item) : undefined;
-  const named = said ? said.spine : (item.series ?? item.subtitle)?.trim();
+  // A known work names the spine when the folder says no series (TODO #127: „Benjamin Blümchen - …“ as title).
+  const named = said ? (said.spine ?? item.work?.name) : (item.series ?? item.subtitle)?.trim();
   const series = named || (!layout.text ? item.title.trim() : '');
   if (head && tape && series) {
     ctx.save();
@@ -442,6 +451,11 @@ export function renderSticker(o: RenderOptions): CanvasLike {
     const sub = item.subtitle?.trim().toLowerCase();
     const full = (item.series ?? item.subtitle)?.trim().toLowerCase();
     if (named && (!sub || named.toLowerCase().includes(sub) || full?.includes(sub))) titled = { ...item, subtitle: undefined };
+    // The spine says the series: the flap's title does not say it again (TODO #117, #127).
+    if (said && named) {
+      const series = item.series ? splitEpisode(item.series.trim()).name : undefined;
+      titled = { ...titled, title: withoutSeries(item.title, [named, series, item.work?.name]) };
+    }
   }
   // Upright, the line stands on the wordmark's row, left of it, where the field is empty anyway: every
   // sticker then shows it in the same place, also under a title of two lines (final audit 20.10.2026).
@@ -614,7 +628,10 @@ export function fitTitle(slot: Slot & { maxLines: number; maxSize?: number; asid
     const size = Math.min(3.3, Math.max(slot.aside ? ASIDE_MIN_MM : 2.1, title.size * 0.62));
     const room = slot.height - title.height - title.size * 0.38;
     if (room >= size * 1.15) {
-      subtitle = fitText(sub, measureText, { maxWidth: slot.width, maxHeight: room, maxLines: 2, maxSize: size, minSize: Math.min(size, 2.1), lineHeight: 1.15 });
+      const fitSub = (maxLines: number, minSize: number) => fitText(sub, measureText, { maxWidth: slot.width, maxHeight: room, maxLines, maxSize: size, minSize, lineHeight: 1.15 });
+      // The flap's small line stays one line where it can, a breath smaller rather than broken ("Folge 50 · 44 Min.").
+      const one = slot.aside ? fitSub(1, ASIDE_MIN_MM) : undefined;
+      subtitle = one && !one.truncated ? one : fitSub(2, Math.min(size, 2.1));
       if (!subtitle.lines.length) subtitle = null;
     }
     if (title.truncated || !subtitle) {
@@ -942,6 +959,18 @@ function drawFoot(field: RGB, seam: { width: number; color: RGB } | undefined, c
   }
 }
 
+/**
+ * The colours of the sticker's known work for "Kassette" around a real cover: none when a colour of its own
+ * was chosen, and none when the work's fixed band does not suit this episode's cover (TODO #117: the pink of
+ * "Bibi & Tina" next to a green cover); the cover's own colours then, as for a work nobody knows.
+ */
+function fittingWork(item: StickerItem, picture: PreparedPicture, calm: RGB | undefined): WorkColors | undefined {
+  const w = item.color ? undefined : item.work;
+  if (!w?.band || !/^#[0-9a-f]{6}$/i.test(w.band)) return w;
+  const fromCover = cassetteColors({ palette: picture.palette, calm }).band;
+  return bandFitsCover(fromHex(w.band), picture.palette, fromCover) ? w : undefined;
+}
+
 /** True when white text would be the better choice on this colour (for previews of colour swatches). */
 export function prefersLightText(c: RGB): boolean {
   return contrast(WHITE, c) >= contrast(BLACK, c);
@@ -986,8 +1015,8 @@ export function backInk(item: StickerItem, picture: PreparedPicture): BackInk {
   const { width, height } = imageSize(picture.image);
   const edge = picture.generated ? undefined : coverSide(picture.image, { x: 0, y: 0, width, height }, false);
   const calm = edge && edge.share >= EDGE_CALM ? paperOf(edge.color) : undefined;
-  const own = !!item.color || !!item.work?.band;
-  const work = item.color ? undefined : item.work;
+  const work = picture.generated ? (item.color ? undefined : item.work) : fittingWork(item, picture, calm);
+  const own = !!item.color || !!work?.band;
   const t = picture.generated ? tapeColors(picture.base, work) : cassetteColors({ palette: picture.palette, calm, own: own ? picture.base : undefined, work });
   const light = luminance(t.field) > 0.6;
   // A dark front: a light tint of the spine on the warm paper of inlays, not a cold grey (final audit 20.10.2026).

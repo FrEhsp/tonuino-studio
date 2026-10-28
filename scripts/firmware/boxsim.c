@@ -23,6 +23,8 @@
 //   --no-mp3             no MP3 player answers
 //   --no-rfid            no card reader on SPI
 //   --rfid-version N     MFRC522 VersionReg (default 0x92 = v2.0; 0x88 clone, 0x12 counterfeit)
+//   --bat-pin MV         voltage at A5, the battery measurement (BAT_VOLTAGE_MEASUREMENT; behind a
+//                        100k/100k divider half the battery voltage; default 0)
 //   --reqa-answers       a selected card answers the reader's next REQA. Default is ISO 14443-3: it
 //                        falls back to IDLE silently, so TNG's polling (chip_card.cpp getCardEvent)
 //                        finds the card only every second time and leaves it unselected half of the
@@ -161,6 +163,7 @@ static struct {
   // A selected card answers the next REQA instead of falling back to IDLE silently (ISO 14443-3).
   int reqa_answers;
   int rfid_version;
+  int bat_pin_mv;
   const char *eeprom_file;
   double realtime;  // 0: lockstep
 } cfg = {.track_seconds = 20.0, .mp3_boot = 0.3, .mp3_start = 0.15, .rfid_version = 0x92};
@@ -1265,6 +1268,7 @@ static void outside_levels(void) {
   pin_set('B', 1, 1);
   poti_apply();
   avr_raise_irq(avr_io_getirq(avr, AVR_IOCTL_ADC_GETIRQ, ADC_IRQ_ADC7), 1234);
+  avr_raise_irq(avr_io_getirq(avr, AVR_IOCTL_ADC_GETIRQ, ADC_IRQ_ADC5), (uint32_t)cfg.bat_pin_mv);
 }
 
 static int hp_in;
@@ -1600,6 +1604,9 @@ int main(int argc, char **argv) {
     else if (!strcmp(a, "--reqa-answers")) cfg.reqa_answers = 1;
     else if (!strcmp(a, "--rfid-version") && v) {
       cfg.rfid_version = (int)strtol(v, NULL, 0);
+      i++;
+    } else if (!strcmp(a, "--bat-pin") && v) {
+      cfg.bat_pin_mv = atoi(v);
       i++;
     } else if (!strcmp(a, "--eeprom") && v) {
       cfg.eeprom_file = v;

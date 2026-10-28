@@ -9,7 +9,7 @@
  * drawing code; the places come from the layout (TapeParts).
  */
 import type { Box, TapeParts } from '../../core/stickers/layout';
-import { BLACK, bestTextColor, colorDistance, colourfulness, contrast, coverAccents, coverColor, ensureContrast, fromHex, luminance, mix, toCss, WHITE, type Palette, type RGB } from '../../core/stickers/color';
+import { BLACK, bestTextColor, colorDistance, colourfulness, contrast, coverAccents, coverColor, ensureContrast, fromHex, luminance, mix, rgbToOklab, toCss, WHITE, type Palette, type RGB } from '../../core/stickers/color';
 import type { WorkColors } from '../../core/stickers/works';
 import type { Context2D } from '../../core/stickers/image';
 
@@ -44,6 +44,54 @@ export function flapParts(o: { series?: string; length?: { tracks: number; durat
 export function flapLine(o: Parameters<typeof flapParts>[0], withEpisode: boolean): string | undefined {
   const parts = flapParts(o, withEpisode).map((p) => p.replace(/ /g, '\u00a0'));
   return parts.length ? parts.join(' · ') : undefined;
+}
+
+const SEPARATOR_END = /[-–—:,|/·]$/u;
+const SEPARATOR_START = /^\s*[-–—:,|/·]+\s*/u;
+/** "Folge 61", "Nr. 3", "Teil 2", or a bare number followed by a separator ("12 - "). */
+const EPISODE_START = /^\s*(?:(?:Folge|Nr\.?|Teil)\s*\d+\b|\d+\s*(?=[-–—:,|/·]))\s*/iu;
+
+/** Folds a name for comparing: lower case, "&" as "und", "ß" as "ss", no punctuation, single spaces. */
+function fold(s: string): string {
+  return s
+    .toLowerCase()
+    .replace(/&/g, ' und ')
+    .replace(/ß/g, 'ss')
+    .replace(/[^\p{L}\p{N}?!]+/gu, ' ')
+    .trim();
+}
+
+/**
+ * The title for the flap of "Kassette" without the series it starts with, when the spine says that
+ * series already (TODO #117, #127: „Bibi und Tina, Folge 61 Bibi und Tina retten die Biber“, „Benjamin
+ * Blümchen - Geburtstag im Zoo - …“ from file names). Also takes off "Folge 61" right after the name.
+ * The title stays as it is when nothing would be left of it, or when the name is part of the episode's
+ * own title with no separator after it ("Bibi und Tina retten die Biber" keeps its "Bibi und Tina").
+ */
+export function withoutSeries(title: string, names: readonly (string | undefined)[]): string {
+  const t = title.trim();
+  for (const raw of names) {
+    const name = raw?.trim();
+    if (!name) continue;
+    const want = fold(name);
+    if (!want) continue;
+    // Find the shortest beginning of the title that reads as the name (any spelling of "&", case, punctuation).
+    const words = t.split(/\s+/);
+    for (let n = 1; n <= words.length; n++) {
+      const head = words.slice(0, n).join(' ');
+      const folded = fold(head);
+      if (folded.length > want.length) break;
+      if (folded !== want) continue;
+      let rest = t.slice(head.length);
+      // The name must end at a separator ("-", ":", ",", "|", "–") or before "Folge 12"; else it is part of the title.
+      const ends = SEPARATOR_END.test(head) || SEPARATOR_START.test(rest) || EPISODE_START.test(rest);
+      if (!ends) break;
+      rest = rest.replace(SEPARATOR_START, '').replace(EPISODE_START, '').replace(SEPARATOR_START, '').trim();
+      if (rest.length >= 3) return rest;
+      break;
+    }
+  }
+  return t;
 }
 
 /** Warm off-white of inlay paper. */
@@ -115,6 +163,39 @@ export function cassetteColors(o: { palette: Palette; calm?: RGB; own?: RGB; wor
   const onPaper =
     contrast(WHITE, field) >= contrast(BLACK, field) ? (contrast(light, field) >= TITLE_CONTRAST ? { ...light } : { ...WHITE }) : ensureContrast(t.band, field, TITLE_CONTRAST);
   return { ...t, onPaper, field };
+}
+
+/** The work's band suits the cover when this much of the cover is in a colour of about the band's hue… */
+const BAND_SHARE = 0.1;
+/** …within this angle of hue (Oklab), counting only colours with at least BAND_CHROMA of colour in them. */
+const BAND_HUE_DEG = 40;
+const BAND_CHROMA = 0.05;
+/** A grey or black band: colours this close (Oklab distance) count. */
+const BAND_NEAR = 0.15;
+/** …or when the colour the cover would choose itself is this close to the band (Oklab distance). */
+const BAND_LIKE_COVER = 0.12;
+
+/**
+ * Whether a known work's fixed band colour suits this episode's cover (Frank, 24.10.2026, TODO #117:
+ * „Das Pinke passt bei Bibi und Tina gar nicht immer“): a tenth of the cover or more is in about the
+ * band's hue (the reds and pinks of an autumn Bibi & Tina cover beside its pink; not its small pink logo
+ * on a green meadow), or the cover rule would pick about that colour anyway. Else the cover decides,
+ * as for a work nobody knows.
+ */
+export function bandFitsCover(band: RGB, palette: Palette, coverSpine: RGB): boolean {
+  if (colorDistance(band, coverSpine) < BAND_LIKE_COVER) return true;
+  const b = rgbToOklab(band);
+  const hue = (o: { a: number; b: number }) => (Math.atan2(o.b, o.a) * 180) / Math.PI;
+  // A band of hardly any colour (the black of a detective series) suits a cover with that much of about its colour.
+  const grey = Math.hypot(b.a, b.b) < BAND_CHROMA;
+  const share = palette.swatches.reduce((sum, s) => {
+    if (grey) return colorDistance(s.color, band) < BAND_NEAR ? sum + s.population : sum;
+    const o = rgbToOklab(s.color);
+    if (Math.hypot(o.a, o.b) < BAND_CHROMA) return sum;
+    const d = Math.abs(((hue(o) - hue(b) + 540) % 360) - 180);
+    return d <= BAND_HUE_DEG ? sum + s.population : sum;
+  }, 0);
+  return share >= BAND_SHARE;
 }
 
 function safeHex(hex: string): RGB | undefined {

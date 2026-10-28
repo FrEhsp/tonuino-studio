@@ -39,7 +39,7 @@ import { dragTarget } from '../../ui/dragTarget';
 import { MenuButton } from '../../ui/components/Menu';
 import { toast, toastError } from '../../ui/components/Toast';
 import { navigate } from '../../app/router';
-import { card, changeCovers, coverUrlFor, healthContext, platform, profile, recordingOffered, rescan, runRepair, selection, settings, stickerToEdit, updateCatalog, type RepairRun } from '../../app/state';
+import { card, changeCovers, coverUrlFor, healthContext, platform, profile, recordingOffered, rescan, runRepair, revealPicked, selection, settings, stickerToEdit, updateCatalog, type RepairRun } from '../../app/state';
 import { formatBytes, formatDuration, plural } from '../../app/format';
 import { applyFolderCard, extraSelection, keepsFolderCard } from '../cards/items';
 import { ModePicker } from '../cards/ModePicker';
@@ -55,6 +55,7 @@ import { applyShownRows, emptyEntry } from './shownRows';
 import { TagsDialog } from './TagsDialog';
 import { JoinDialog } from './JoinDialog';
 import { TrimDialog } from './TrimDialog';
+import { CutFromHere } from '../trim/CutFromHere';
 import { planJoin } from './trackEdit';
 import { EpisodesSection } from './EpisodesSection';
 import { AnnounceDialog } from './AnnounceDialog';
@@ -205,10 +206,11 @@ function FolderView({ folder }: { folder: number }) {
       { touchFolders: entry ? [] : [folder] },
     ).catch((e) => toastError('Speichern hat nicht geklappt', e));
 
-  const select = (page: 'cards' | 'stickers') => {
+  const select = (page: 'cards' | 'sticker' | 'stickers') => {
     selection.value = new Set([folder]);
     // "Karte beschreiben" means this folder's card only: special cards picked before stay in the list, unticked.
     if (page === 'cards') extraSelection.value = new Set();
+    revealPicked.value = page === 'cards';
     navigate({ page });
   };
 
@@ -297,10 +299,11 @@ function FolderView({ folder }: { folder: number }) {
           ) : null}
           <ShelfCardSection folder={folder} title={title} />
           <div class="folder-actions row wrap">
-            <Button variant="primary" icon={Nfc} onClick={() => select('cards')}>
+            {/* One card for this folder: „Karte beschreiben“ of 0.6 with its number set. */}
+            <Button variant="primary" icon={Nfc} onClick={() => navigate({ page: 'karte', folder })}>
               Karte beschreiben
             </Button>
-            <Button icon={Printer} onClick={() => select('stickers')}>
+            <Button icon={Printer} onClick={() => select('sticker')}>
               Sticker drucken
             </Button>
             <Button icon={Plus} onClick={() => navigate({ page: 'add', folder })}>
@@ -528,8 +531,8 @@ function TrackList({
   /** Extra "Titel zusammenfügen": the tracks picked so far (null: not picking), and whether the dialog asks. */
   const [joinPick, setJoinPick] = useState<Set<string> | null>(null);
   const [joinAsk, setJoinAsk] = useState(false);
-  /** Extra "Anfang/Ende abschneiden": the track whose dialog is open. */
-  const [trim, setTrim] = useState<string | null>(null);
+  /** "Zuschneiden": the track whose editor is open; `from`: „Ab hier abschneiden“ at this second. */
+  const [trim, setTrim] = useState<{ file: string; from?: number } | null>(null);
   /** Extra "Titelansagen": the dialog that is open. */
   const [announce, setAnnounce] = useState<'add' | 'remove' | null>(null);
   /** "Lautstärke anpassen" / "Kleiner machen": the dialog that is open. */
@@ -715,8 +718,11 @@ function TrackList({
     else return true;
     return false;
   };
-  const trimTrack = (file: string) => {
-    if (mayChange()) setTrim(file);
+  const trimTrack = (file: string, from?: number) => {
+    if (!mayChange()) return;
+    // From the player: it stops, the editor plays on its own.
+    if (from !== undefined) stop();
+    setTrim({ file, from });
   };
   useEffect(() => {
     if (!announceAsk) return;
@@ -824,7 +830,6 @@ function TrackList({
               badge={added.has(r.file.toLowerCase()) ? 'neu' : replaced.has(r.file.toLowerCase()) ? 'ausgetauscht' : null}
               locked={!!saving}
               picked={joinPick && !saving && extras.joinTracks ? joinPick.has(r.file) : null}
-              trim={extras.trimTracks}
               act={act}
             />
           ))}
@@ -872,7 +877,7 @@ function TrackList({
           }}
         />
       ) : null}
-      {trim ? <TrimDialog folder={folder} rows={rows} file={trim} beforeSave={stop} onClose={() => setTrim(null)} /> : null}
+      {trim ? <TrimDialog folder={folder} rows={rows} file={trim.file} cutFrom={trim.from} beforeSave={stop} onClose={() => setTrim(null)} /> : null}
       {announce ? <AnnounceDialog folder={folder} rows={rows} mode={announce} beforeSave={stop} onClose={() => setAnnounce(null)} /> : null}
       {sound ? <SoundDialog folder={folder} rows={rows} job={sound} kind={s.catalog?.folders[name]?.kind} beforeSave={stop} onClose={() => setSound(null)} /> : null}
     </section>
@@ -886,8 +891,8 @@ interface RowActions {
   move: (from: number, to: number) => void;
   remove: (file: string) => void;
   editTags: (file?: string) => void;
-  /** Extras of the settings page. */
-  trim: (file: string) => void;
+  /** "Zuschneiden …" (TrimDialog); `from`: „Ab hier abschneiden“ while it plays. */
+  trim: (file: string, from?: number) => void;
   pick: (file: string, on: boolean) => void;
 }
 
@@ -905,13 +910,11 @@ interface RowProps {
   locked: boolean;
   /** Picking tracks to join: whether this one is picked; null when not picking. */
   picked: boolean | null;
-  /** "Anfang/Ende abschneiden" in the menu (an extra). */
-  trim: boolean;
   act: RowActions;
 }
 
 /** One title of the list. Drawn again only when its own props change (playing and pausing touched every row before). */
-const TrackListRow = memo(function TrackListRow({ r, i, last, number, dragging, playing, listening, badge, locked, picked, trim, act }: RowProps) {
+const TrackListRow = memo(function TrackListRow({ r, i, last, number, dragging, playing, listening, badge, locked, picked, act }: RowProps) {
   return (
     <div class="list-row" data-row style={dragging || picked ? { background: 'var(--primary-soft)' } : undefined}>
       {picked === null ? (
@@ -934,6 +937,7 @@ const TrackListRow = memo(function TrackListRow({ r, i, last, number, dragging, 
           {r.titleAuto ? ' · automatisch erkannt' : ''}
         </span>
         {listening ? <AudioSeekBar audio={listening.audio} label={r.title || r.file} durationSec={listening.durationSec} onSeek={listening.seek} /> : null}
+        {listening && !locked ? <CutFromHere audio={listening.audio} title={r.title || r.file} onCut={(sec) => act.trim(r.file, sec)} /> : null}
       </div>
       <span class="muted small nowrap">{formatDuration(listening ? (listening.durationSec ?? r.durationSec) : r.durationSec)}</span>
       <MenuButton
@@ -946,7 +950,7 @@ const TrackListRow = memo(function TrackListRow({ r, i, last, number, dragging, 
                 { label: 'Nach unten', icon: ArrowDown, disabled: last, onSelect: () => act.move(i, i + 1) },
               ]),
           { label: 'Titel-Infos bearbeiten', icon: Tags, disabled: locked, onSelect: () => act.editTags(r.file) },
-          ...(trim ? [{ label: 'Anfang/Ende abschneiden …', icon: Scissors, disabled: locked, onSelect: () => act.trim(r.file) }] : []),
+          { label: 'Zuschneiden …', icon: Scissors, disabled: locked, onSelect: () => act.trim(r.file) },
           { label: 'Löschen', icon: Trash2, danger: true, separatorBefore: true, onSelect: () => act.remove(r.file) },
         ]}
       />

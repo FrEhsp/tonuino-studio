@@ -1,6 +1,6 @@
 /**
  * Holz: the frames look drawn with a pen. Each framed box (FRAMED) has a
- * layer on ::before (the edge of the sidebar on ::after) that carries its
+ * layer on ::before (the edge of a bar on ::after) that carries its
  * line as a plain CSS border; here that line is replaced by a pen stroke:
  *
  * - every side is one slightly bowed stroke, thin at its ends and thicker
@@ -29,7 +29,7 @@ import { stil } from './stil';
  * time while it scrolled.
  */
 const FRAMED =
-  ".card, .dialog, .choice, .trouble, .menu, .segmented, .dropzone, .bubble, .shelf, .tile-cover, .feature, .health-banner, .sd-status, .import-bar, .style-choice, .font-choice, .paper-option, .ws-tool, .help-topic-card, .source-card, .source-pick, .picks-teaser, .qr-block, .guide, .page > .package-gate, .btn:not(.ghost, .soft), .dialog-foot .btn, .nav a[aria-current='page'], .sidebar";
+  ".card, .dialog, .choice, .trouble, .menu, .segmented, .dropzone, .bubble, .shelf, .tile-cover, .feature, .health-banner, .sd-status, .import-bar, .style-choice, .font-choice, .paper-option, .ws-tool, .help-topic-card, .picks-teaser, .qr-block, .guide, .page > .package-gate, .btn:not(.ghost, .soft), .dialog-foot .btn, .nav a[aria-current='page'], .sidebar, .kopf, .leiste, .schirm .unten, .kopf .tab[aria-current='page'], .zahl .wert, .liste, .ablage, .karte-gross, .stil-wahl[aria-checked='true'], .ws-liste, .blatt";
 const PSEUDOS = ['before', 'after'] as const;
 type Pseudo = (typeof PSEUDOS)[number];
 
@@ -375,8 +375,8 @@ function shapeFor(el: HTMLElement, p: Pseudo): string | null {
   const seedText = el.dataset.frameSeed ?? '';
   const drawn = el.hasAttribute(`data-fc-${p}`);
 
-  if (sides.length === 1 && (sides[0] === 1 || sides[0] === 2)) {
-    // The edge of the sidebar: one line along its right side, or its foot on narrow screens.
+  if (sides.length === 1 && sides[0] !== 3) {
+    // An edge: the foot of the bar on top, the top of the bar at the bottom of a phone (or the right side of the old sidebar).
     const vertical = sides[0] === 1;
     const length = vertical ? el.clientHeight : el.clientWidth;
     const line = bw[sides[0]];
@@ -421,11 +421,18 @@ const tracked = new Set<HTMLElement>();
 let resizeObs: ResizeObserver | null = null;
 let mutationObs: MutationObserver | null = null;
 let pending = new Set<HTMLElement>();
+/**
+ * Boxes just added whose first ResizeObserver callback (after the next layout) is still to come:
+ * that callback measures them, so a class set on them meanwhile needs no look of its own before it.
+ * Looked at twice, the boxes of a page shown for the first time held back its first frame (Tempo #121).
+ */
+const fresh = new WeakSet<HTMLElement>();
 let frame = 0;
 let running = false;
 
-/** Only the sidebar draws a line on ::after (its edge, stil-holz.css); every other box only on ::before. */
-const pseudosOf = (el: HTMLElement): readonly Pseudo[] => (el.classList.contains('sidebar') ? PSEUDOS : BEFORE);
+/** Only the bars draw a line on ::after (their edge, schlank.css); every other box only on ::before. */
+const EDGED = '.sidebar, .kopf, .leiste, .schirm .unten';
+const pseudosOf = (el: HTMLElement): readonly Pseudo[] => (el.matches(EDGED) ? PSEUDOS : BEFORE);
 const BEFORE: readonly Pseudo[] = ['before'];
 
 type Measured = [HTMLElement, Partial<Record<Pseudo, string | null>>];
@@ -492,6 +499,7 @@ function track(el: Element) {
   if (!(el instanceof HTMLElement) || tracked.has(el)) return;
   tracked.add(el);
   // The first callback comes after the next layout, before that frame is painted.
+  fresh.add(el);
   resizeObs?.observe(el);
 }
 
@@ -506,6 +514,7 @@ function collect(root: Element) {
  * frame is painted.
  */
 function later(el: HTMLElement) {
+  if (fresh.has(el)) return;
   pending.add(el);
   if (!frame) {
     frame = requestAnimationFrame(() => {
@@ -521,7 +530,15 @@ function start() {
   if (running || typeof ResizeObserver === 'undefined') return;
   running = true;
   if (PLAIN) document.documentElement.setAttribute('data-fc-webkit', '');
-  resizeObs = new ResizeObserver((entries) => apply(entries.map((e) => e.target as HTMLElement)));
+  resizeObs = new ResizeObserver((entries) =>
+    apply(
+      entries.map((e) => {
+        const el = e.target as HTMLElement;
+        fresh.delete(el);
+        return el;
+      }),
+    ),
+  );
   mutationObs = new MutationObserver((records) => {
     for (const r of records) {
       if (r.type === 'childList') {

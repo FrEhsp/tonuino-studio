@@ -92,19 +92,19 @@ export function commercialHint(series: CommercialSeries): CommercialHint {
   if (series.kind === 'kreativ') {
     return {
       title: 'Aufnahmen von Kreativ-Tonies',
-      text: 'Was auf einem Kreativ-Tonie ist, kann ich nicht von der Figur holen. Hast du die Aufnahmen noch als Dateien, zum Beispiel auf dem Handy oder Computer? Dann bringst du sie mit „Hinzufügen“ auf die Box.',
+      text: 'Was auf einem Kreativ-Tonie ist, kann ich nicht von der Figur holen. Hast du die Aufnahmen noch als Dateien, zum Beispiel auf dem Handy oder Computer? Dann bringst du sie mit „Musik auf die SD-Karte“ auf die Box.',
     };
   }
   if (series.kind === 'tonies') {
     return {
       title: 'Inhalte von Tonies gibt es hier nicht',
-      text: 'Die Hörspiele auf den Tonie-Figuren darfst du nicht frei herunterladen, und ich kann sie nicht von den Figuren holen. Viele davon gibt es auch auf CD. Die kopierst du auf deinen Computer und bringst sie dann mit „Hinzufügen“ auf die Box.',
+      text: 'Die Hörspiele auf den Tonie-Figuren darfst du nicht frei herunterladen, und ich kann sie nicht von den Figuren holen. Viele davon gibt es auch auf CD. Die kopierst du auf deinen Computer und bringst sie dann mit „Musik auf die SD-Karte“ auf die Box.',
       help: BUY_HELP_ID,
     };
   }
   return {
     title: `„${series.name}“ gibt es hier nicht`,
-    text: `Hier stehen nur Inhalte, die du kostenlos und legal herunterladen darfst. „${series.name}“ gehört nicht dazu. Du kannst die Folgen auf CD oder als Download ohne Kopierschutz (MP3) kaufen und dann mit „Hinzufügen“ auf die Box bringen.`,
+    text: `Hier stehen nur Inhalte, die du kostenlos und legal herunterladen darfst. „${series.name}“ gehört nicht dazu. Du kannst die Folgen auf CD oder als Download ohne Kopierschutz (MP3) kaufen und dann mit „Musik auf die SD-Karte“ auf die Box bringen.`,
     help: BUY_HELP_ID,
   };
 }

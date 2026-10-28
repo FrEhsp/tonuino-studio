@@ -9,7 +9,7 @@ import { MenuButton } from '../../ui/components/Menu';
 import { Button, Callout, IconButton, Segmented } from '../../ui/components/controls';
 import { arrowKeyHandler } from '../../ui/arrowKeys';
 import { toastError } from '../../ui/components/Toast';
-import { boxProfile, card, catalog, chooseCardMethod, coverUrlFor, coverUrlForCard, openVolume, plat, profile, profileDecision, setProfile, settings, shownMemory, type CardMethod } from '../../app/state';
+import { boxProfile, card, catalog, chooseCardMethod, coverUrlFor, coverUrlForCard, openVolume, plat, profile, profileDecision, revealPicked, setProfile, settings, shownMemory, type CardMethod } from '../../app/state';
 import { PROFILE_NAMES, boxDisagrees, sourceText } from '../../core/tonuino/firmwaredetect';
 import { route, routeToHash } from '../../app/router';
 import { cardIntoDevice, handheldWord } from '../../app/device';
@@ -20,6 +20,7 @@ import { CardReader } from '../box/CardReader';
 import { RememberedBoxes, RememberedNote } from '../box/Remembered';
 import { openPackageDialog } from '../box/PackageDialog';
 import { DESKTOP_ONLY, phoneCardMethod } from '../settings/options';
+import { abilitiesOf, cardWaysElsewhere } from '../../platform/web/abilities';
 import { PhoneFold } from '../../ui/components/PhoneFold';
 import { PHONE_QUERY, useMedia } from '../../ui/useMedia';
 import { BoxPanel } from './BoxPanel';
@@ -40,6 +41,7 @@ import { keepsLogConnection, logSession } from '../workshop/logsession';
 import { boxWritesCards } from '../workshop/writeability';
 import { softHyphens } from '../../core/stickers/text';
 import '../../ui/styles/freecard.css';
+import { BackToWorkshop } from '../../ui/components/BackToWorkshop';
 
 interface MethodInfo {
   id: CardMethod;
@@ -113,6 +115,8 @@ export function CardsPage() {
   // Arriving with cards picked on a folder page (a folder with a new number, audit 0.4 #6): the first of them in
   // view, also when it is folder 48 at the bottom of the list. Once, so it never fights the user's own scrolling.
   useEffect(() => {
+    if (!revealPicked.peek()) return;
+    revealPicked.value = false;
     const ul = list.current;
     const row = ul?.querySelector('.pick-row.checked');
     if (!ul || !row) return;
@@ -143,6 +147,7 @@ export function CardsPage() {
     <div class="page cards-page">
       <header class="page-header">
         <div class="titles">
+          <BackToWorkshop />
           <h1>Karten beschreiben</h1>
           <p>Wähle die Karten aus und dann, womit du sie beschreibst.</p>
         </div>
@@ -266,32 +271,26 @@ export function CardsPage() {
                   (i) => chooseCardMethod(usableMethods[i].id),
                 )}
               >
-                {methods.map((m) => {
+                {/* Only the ways this app can use: the others are one sentence below, not buttons that do nothing (TODO #122). */}
+                {usableMethods.map((m) => {
                   const Icon = m.icon;
-                  const ok = available(m);
-                  const checked = ok && m.id === method.id;
+                  const checked = m.id === method.id;
                   return (
-                    <button
-                      type="button"
-                      role="radio"
-                      aria-checked={checked}
-                      aria-disabled={!ok}
-                      tabIndex={checked ? 0 : -1}
-                      class={`choice ${ok ? '' : 'disabled'}`}
-                      key={m.id}
-                      title={ok ? undefined : DESKTOP_ONLY}
-                      onClick={() => ok && chooseCardMethod(m.id)}
-                    >
+                    <button type="button" role="radio" aria-checked={checked} tabIndex={checked ? 0 : -1} class="choice" key={m.id} onClick={() => chooseCardMethod(m.id)}>
                       <span class="choice-icon">
                         <Icon size={19} strokeWidth={2.2} />
                       </span>
                       <span class="choice-title">{m.title}</span>
                       <span class="choice-text">{m.text}</span>
-                      {!ok ? <span class="choice-note">{DESKTOP_ONLY}</span> : null}
                     </button>
                   );
                 })}
               </div>
+              {usableMethods.length < methods.length ? (
+                <p class="small soft">
+                  {plat().kind === 'web' ? cardWaysElsewhere(abilitiesOf(plat())) : `${DESKTOP_ONLY}: ${methods.filter((m) => !available(m)).map((m) => m.title).join(', ')}.`}
+                </p>
+              ) : null}
               <div class="row wrap" style={{ gap: 16 }}>
                 <a class="link-button" href={routeToHash({ page: 'help', topic: 'kartentypen' })}>
                   <CircleHelp size={15} aria-hidden="true" /> Welche Karten passen?

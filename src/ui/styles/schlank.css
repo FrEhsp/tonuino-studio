@@ -1,0 +1,2192 @@
+/*
+ * 0.6 „Schlank neu“ (design/06-entwuerfe, quelle/basis.css): the bar on top
+ * of a computer's window, the bar at the bottom of a phone, the three
+ * screens in front (Musik, Karte, Sticker) and the list of the Werkstatt.
+ * Loaded last (main.tsx), so it wins where the styles of 0.5 say otherwise.
+ *
+ * Same on all three screens: the big thing on the left (card, list, sheet),
+ * a column with the title, at most three questions and the one purple button
+ * at the bottom on the right; on a phone one above the other with the button
+ * fixed above the bar. Pen frames only around things (card, list, buttons,
+ * fields), corners nearly square (3–4 px), a hard shadow only under the card
+ * and the sheet, which lie like paper on a table.
+ */
+
+/* ------------------------------------------------------------------ the frame of the app */
+
+.app.schlank {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  height: 100%;
+}
+
+.app.schlank > .kopf {
+  grid-row: 1;
+}
+
+.app.schlank > .main {
+  grid-row: 2;
+}
+
+/* A screen of 0.6 fills the room between the bars; pages of the Werkstatt scroll as before. */
+.app.schlank .page-slot:has(> .schirm) {
+  height: 100%;
+}
+
+.app.schlank > .leiste {
+  grid-row: 3;
+}
+
+/* Frames drawn with the pen (drawnFrames.ts) on the new parts: the layer carries a plain line first. */
+:where(:root[data-stil='holz']) :where(.kopf .tab, .zahl .wert, .liste, .ablage, .karte-gross, .stil-wahl, .ws-liste, .blatt) {
+  --frame-color: var(--ink);
+  --frame-w: var(--line);
+  --frame-style: solid;
+  position: relative;
+}
+
+:root:where([data-stil='holz']) :is(.kopf .tab[aria-current='page'], .zahl .wert, .liste, .ablage, .karte-gross, .stil-wahl[aria-checked='true'], .ws-liste)::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border: var(--frame-w) var(--frame-style) var(--frame-color);
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+/* The drawn edge under the bar on top, over the bar at the bottom and over the fixed button of a phone. */
+:where(:root[data-stil='holz']) :is(.kopf, .leiste, .schirm .unten)::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  pointer-events: none;
+}
+
+:where(:root[data-stil='holz']) .kopf::after {
+  bottom: 0;
+  border-bottom: var(--line) solid var(--ink);
+}
+
+:where(:root[data-stil='holz']) .leiste::after {
+  top: 0;
+  border-top: var(--line) solid var(--ink);
+}
+
+:root:where([data-stil='holz']) :is(.kopf, .leiste, .schirm .unten)[data-fc-after]::after {
+  --fc-after: inherit;
+  height: 12px;
+  border-color: transparent;
+  background: var(--ink);
+  clip-path: var(--fc-after);
+}
+
+:root[data-fc-webkit]:where([data-stil='holz']) :is(.kopf, .leiste, .schirm .unten)[data-fc-after]::after {
+  clip-path: var(--fcw-after);
+}
+
+:root:where([data-stil='holz']) .kopf[data-fc-after]::after {
+  bottom: -6px;
+}
+
+:root:where([data-stil='holz']) :is(.leiste, .schirm .unten)[data-fc-after]::after {
+  top: -6px;
+}
+
+/* ------------------------------------------------------------------ the bar on top */
+
+.kopf {
+  position: relative;
+  z-index: 3;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 24px 0 20px;
+  background: var(--surface) var(--paper-grain);
+  min-width: 0;
+}
+
+.kopf .marke {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-right: 12px;
+  color: var(--text);
+  text-decoration: none;
+  flex: none;
+}
+
+.kopf .marke:hover {
+  text-decoration: none;
+}
+
+.kopf .marke b {
+  font-size: 20px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.kopf .aufgaben {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  /* The tasks keep their size; when room is short, the card's name gives way (ellipsis). */
+  flex: none;
+}
+
+.kopf .tab {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 44px;
+  padding: 0 12px 0 10px;
+  border-radius: 4px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-soft);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.kopf .tab:hover {
+  color: var(--text);
+  text-decoration: none;
+  background: var(--surface-hover, var(--bg));
+}
+
+.kopf .tab[aria-current='page'] {
+  background: var(--primary-soft);
+  color: var(--text);
+  font-weight: 700;
+}
+
+.kopf .tab-short {
+  display: none;
+}
+
+.kopf .rest {
+  flex: 1;
+}
+
+.sd-zeile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.sd-zeile .sd-none {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.kopf .sd-zeile > :is(.btn, .sd-room) {
+  flex: none;
+}
+
+/* The menu around the card's name may shrink, or the name ran under „Paket“ and „Werkstatt“ (Prüfrunde 1 B5). */
+.kopf .sd-zeile > div {
+  min-width: 0;
+}
+
+.sd-glyph {
+  flex: none;
+}
+
+.sd-name-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  max-width: 340px;
+  min-height: 32px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.sd-name-button:hover .sd-name {
+  text-decoration: underline;
+}
+
+.sd-name-button .sd-name {
+  flex: 0 1 auto;
+  min-width: 3.5em;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* „Eingelesen um …“ gives way first, the card's name last (Prüfrunde 1, bastler 15). */
+.sd-name-button .sd-more {
+  flex: 0 1000 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* What waits for the card (the Paket) stays readable; the card's name gives way (Prüfrunde 2, eltern 3). */
+.sd-name-button .sd-more.sd-wartet {
+  flex: none;
+}
+
+/* While something waits for the card, the tasks take their short names, so the bar has room to say it. */
+@media (max-width: 1599px) {
+  .kopf:has(.sd-wartet) .tab-long {
+    display: none;
+  }
+
+  .kopf:has(.sd-wartet) .tab-short {
+    display: inline;
+  }
+}
+
+.sd-more,
+.sd-none {
+  color: var(--text-muted);
+}
+
+/* „Suche Cover …“ over the free space, in the room that takes: the bar keeps its width (Kopf.tsx SdMore). */
+.sd-statt {
+  position: relative;
+}
+
+.sd-statt > [aria-hidden] {
+  visibility: hidden;
+}
+
+/* Holding the room of the problem's words in their weight (the rule below). */
+.sd-statt > .sd-problem {
+  font-weight: 600;
+}
+
+.sd-statt > .sd-suche {
+  position: absolute;
+  inset: 0 auto 0 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* What the red mark means, in place of the free space (Prüfrunde 1 B1). */
+.sd-name-button .sd-more.sd-problem,
+.sd-oben .sd-problem {
+  color: var(--danger-text, var(--danger));
+  font-weight: 600;
+}
+
+.sd-mark-wrap {
+  display: inline-flex;
+  flex: none;
+}
+
+.sd-mark {
+  flex: none;
+}
+
+.sd-mark.error {
+  color: var(--danger);
+}
+
+.sd-mark.warning {
+  color: var(--warning-text);
+}
+
+/* Keeps the room of „Auswerfen“ while the card is looked for, so nothing moves when it comes. */
+.sd-room {
+  display: inline-block;
+  width: 96px;
+  height: 32px;
+}
+
+.kopf .trenn {
+  flex: none;
+  width: 2px;
+  height: 28px;
+  margin: 0 4px 0 10px;
+  background: var(--border);
+}
+
+/* „Hilfe“ before „Werkstatt“: a word, quieter than the Werkstatt (Prüfrunde 1 B6). */
+.kopf .hilfe-kopf {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 10px;
+  margin-right: 4px;
+  border-radius: 4px;
+  font-weight: 600;
+  color: var(--text-soft);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.kopf .hilfe-kopf:hover {
+  color: var(--text);
+  text-decoration: underline;
+}
+
+.kopf .hilfe-kopf[aria-current='page'] {
+  color: var(--text);
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-color: var(--primary);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 6px;
+}
+
+.kopf .werkstatt {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 8px;
+  border-radius: 4px;
+  font-weight: 600;
+  color: var(--text-soft);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.kopf .werkstatt:hover {
+  color: var(--text);
+  text-decoration: none;
+}
+
+.kopf .werkstatt[aria-current='page'] {
+  color: var(--text);
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-color: var(--primary);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 6px;
+}
+
+/* „Neue Version da“ in the bar: one small line. */
+.kopf > .update-notice {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Narrower windows: the short names, then without the app's name. */
+/* Below 1440 px the long names of the tasks would crowd the card: the short ones, as on the phone. */
+@media (max-width: 1439px) {
+  .kopf .tab-long {
+    display: none;
+  }
+
+  .kopf .tab-short {
+    display: inline;
+  }
+
+  .kopf .tab {
+    gap: 10px;
+    padding: 0 12px 0 10px;
+  }
+
+  .sd-name-button {
+    max-width: 320px;
+  }
+}
+
+@media (max-width: 1099px) {
+  .kopf .marke b {
+    display: none;
+  }
+
+  .kopf .marke {
+    margin-right: 8px;
+  }
+
+  .sd-more {
+    display: none;
+  }
+}
+
+@media (min-width: 1800px) {
+  .kopf {
+    height: 72px;
+    padding: 0 32px 0 28px;
+  }
+
+  .kopf .marke {
+    margin-right: 24px;
+  }
+
+  .kopf .aufgaben {
+    gap: 12px;
+  }
+
+  .kopf .tab {
+    gap: 12px;
+    padding: 0 16px 0 14px;
+  }
+}
+
+/* ------------------------------------------------------------------ the bar at the bottom of a phone */
+
+.leiste {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .app.schlank > .kopf {
+    display: none;
+  }
+
+  .leiste {
+    position: relative;
+    z-index: 3;
+    display: flex;
+    height: calc(64px + env(safe-area-inset-bottom));
+    padding-bottom: env(safe-area-inset-bottom);
+    background: var(--surface) var(--paper-grain);
+  }
+
+  .leiste > a {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.15;
+    color: var(--text-soft);
+    text-decoration: none;
+  }
+
+  .leiste > a:hover {
+    text-decoration: none;
+  }
+
+  .leiste > a[aria-current='page'] {
+    color: var(--text);
+    font-weight: 700;
+  }
+
+  .leiste > a[aria-current='page'] > span:last-of-type {
+    box-shadow: 0 2px 0 var(--primary);
+  }
+
+  .leiste > a:focus-visible {
+    outline-offset: -3px;
+  }
+
+  /* A dot on the cap's shoulder: the SD card waits on „Musik“ (the Android app). */
+  .leiste-dot {
+    position: absolute;
+    top: 6px;
+    left: calc(50% + 10px);
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--primary);
+    box-shadow: 0 0 0 2px var(--surface);
+  }
+
+  /* The page ends at the bar: it is part of the grid, not laid over the page. */
+  .app.schlank .main {
+    padding-bottom: 0;
+  }
+
+  .app.schlank ~ .toasts,
+  .app.schlank .toasts {
+    bottom: calc(76px + env(safe-area-inset-bottom));
+  }
+
+  /* An action bar or a dialog sends them to the top (layout.css, components.css): never both edges, or the
+     empty list would stretch over the page and catch every tap. */
+  :root:is([data-import-bar], [data-dialog]) :is(.app.schlank ~ .toasts, .app.schlank .toasts) {
+    bottom: auto;
+  }
+}
+
+/* ------------------------------------------------------------------ a screen */
+
+.schirm {
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.schirm .arbeit {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  gap: 48px;
+  padding: 32px 40px;
+}
+
+.schirm .gross {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.schirm .spalte {
+  width: 360px;
+  flex: none;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.schirm .spalte > h1 {
+  margin: 0 0 24px;
+  font-size: 32px;
+  line-height: 1.15;
+  font-weight: 700;
+}
+
+.schirm .fragen {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-height: 0;
+}
+
+.schirm .frage > h2 {
+  margin: 0 0 10px;
+  font-size: 20px;
+  line-height: 1.25;
+  font-weight: 700;
+}
+
+.schirm .unten {
+  margin-top: auto;
+  padding-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.schirm .satz {
+  margin: 10px 0 0;
+  font-size: 16px;
+}
+
+.schirm .satz .muted {
+  color: var(--text-muted);
+}
+
+.schirm .zeile-klein {
+  margin: 0;
+  font-size: 15px;
+  color: var(--text-soft);
+}
+
+.schirm .zeile-klein .link-button,
+.schirm .mehr-link {
+  font-size: inherit;
+  min-height: 32px;
+  padding: 0;
+}
+
+.schirm .mehr-link {
+  margin-top: 4px;
+  font-size: 16px;
+}
+
+.schirm .btn.xl {
+  height: 56px;
+  padding: 0 24px;
+  font-size: 18px;
+}
+
+.schirm .btn.wide {
+  width: 100%;
+}
+
+.schirm .btn.primary {
+  box-shadow:
+    inset 0 3px 0 rgb(255 255 255 / 0.22),
+    0 3px 0 var(--frame-color);
+}
+
+/* Grey until there is something to do (Imager 2.0): the button stays where it is, half as strong (06-entwuerfe). */
+:root .schirm .btn.primary:disabled,
+:root:where([data-stil='holz']) .schirm .btn.primary:disabled {
+  --frame-style: solid;
+  --frame-color: var(--ink);
+  background: var(--btn-bg, var(--primary));
+  color: var(--btn-fg, #fff);
+  opacity: 0.5;
+}
+
+.schirm .ablage .link-button,
+.schirm .knopfzeile .link-button {
+  font-size: 16px;
+}
+
+/* The progress runs in the button (Etcher, hörbert): the part that is done a shade darker. */
+.btn .done {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  border-radius: inherit;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  background: var(--brand-800);
+  pointer-events: none;
+}
+
+.btn .lbl {
+  position: relative;
+}
+
+@media (min-width: 1800px) {
+  .schirm .arbeit {
+    padding: 48px 64px;
+    gap: 64px;
+  }
+
+  .schirm .spalte {
+    width: 400px;
+  }
+
+  .schirm .spalte > h1 {
+    font-size: 36px;
+  }
+
+  .schirm .frage > h2 {
+    font-size: 22px;
+  }
+}
+
+/* A phone (and a tablet held upright): one column, the button fixed above the bar. */
+@media (max-width: 900px) {
+  .schirm .arbeit {
+    flex-direction: column;
+    gap: 0;
+    /* 20 px as on every other page, so the title does not jump (Prüfrunde 1, aussehen 12). */
+    padding: 20px 16px 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .schirm .spalte {
+    display: contents;
+  }
+
+  .schirm .spalte > h1 {
+    order: 0;
+    margin-bottom: 18px;
+    font-size: 28px;
+  }
+
+  .schirm .fragen {
+    order: 1;
+    /* Its full height: in a low window (the keyboard open) it shrank, and the list below lay over its number field. The page scrolls instead. */
+    flex: none;
+  }
+
+  .schirm .gross {
+    order: 2;
+  }
+
+  .schirm.gross-zuerst .gross {
+    order: 1;
+  }
+
+  .schirm.gross-zuerst .fragen {
+    order: 2;
+  }
+
+  .schirm .unten {
+    order: 3;
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+    margin: auto -16px 0;
+    padding: 14px 16px 16px;
+    background: var(--surface) var(--paper-grain);
+  }
+
+  .schirm .unten::after {
+    top: 0;
+    border-top: var(--line) solid var(--ink);
+  }
+
+  .schirm .nur-rechner {
+    display: none !important;
+  }
+
+  /* „Hilfe“ beside the title, at its right end (Prüfrunde 1 B6). */
+  .schirm .arbeit {
+    position: relative;
+  }
+
+  .schirm .spalte > h1 {
+    padding-right: 52px;
+  }
+
+  /* A small phone: the longest title („Musik auf die SD-Karte“) stays on one line beside „Hilfe“. */
+  @media (max-width: 380px) {
+    .schirm .spalte > h1 {
+      font-size: 26px;
+    }
+  }
+
+  .schirm .hilfe-handy {
+    position: absolute;
+    top: 20px;
+    right: 12px;
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    margin-top: -6px;
+    padding: 0 4px;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-soft);
+  }
+}
+
+@media (min-width: 901px) {
+  .schirm .hilfe-handy {
+    display: none;
+  }
+}
+
+@media (min-width: 901px) {
+  .schirm .nur-handy {
+    display: none !important;
+  }
+
+  /*
+   * The questions never run under the button at the bottom (Prüfrunde 1 B2, B4): in a low window
+   * they give way and scroll on their own as the last resort, the button stays where it is. The
+   * padding keeps the pen frames and shadows of their rows inside the part that scrolls.
+   */
+  .schirm .fragen {
+    flex: 0 1 auto;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    margin: -6px -8px 0;
+    padding: 6px 8px 4px;
+  }
+}
+
+/* A laptop's window (1366 × 768, 1280 × 720): everything a little closer, so it all fits without scrolling. */
+@media (min-width: 901px) and (max-height: 820px) {
+  .schirm .arbeit {
+    padding-top: 20px;
+    padding-bottom: 20px;
+  }
+
+  .schirm .spalte > h1 {
+    margin-bottom: 14px;
+    font-size: 28px;
+  }
+
+  .schirm .fragen {
+    gap: 16px;
+  }
+
+  .schirm .frage > h2 {
+    margin-bottom: 6px;
+    font-size: 18px;
+  }
+
+  .schirm .unten {
+    padding-top: 10px;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 900px) and (max-height: 800px) {
+  .schirm .spalte > h1 {
+    margin-bottom: 12px;
+  }
+}
+
+/* ------------------------------------------------------------------ the number with − and + */
+
+.zahl {
+  display: flex;
+  align-items: stretch;
+  gap: 12px;
+}
+
+.zahl .btn.pm {
+  width: 64px;
+  height: 72px;
+  padding: 0;
+  flex: none;
+  font-size: 40px;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.zahl .wert {
+  flex: 1;
+  min-width: 128px;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: 3px;
+  background: var(--surface-raised);
+  color: var(--text);
+  font: inherit;
+  font-size: 54px;
+  font-weight: 400;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  cursor: text;
+}
+
+.zahl input.wert {
+  width: 100%;
+  outline: none;
+}
+
+.zahl .wert[aria-invalid] {
+  --frame-color: var(--danger);
+}
+
+.zahl-fehler {
+  margin: 8px 0 0;
+  font-weight: 700;
+  color: var(--danger);
+}
+
+@media (max-width: 900px) {
+  .zahl .btn.pm {
+    width: 72px;
+    height: 80px;
+    font-size: 44px;
+  }
+
+  .zahl .wert {
+    height: 80px;
+    font-size: 64px;
+  }
+}
+
+@media (max-width: 900px) and (max-height: 800px) {
+  .zahl .btn.pm,
+  .zahl .wert {
+    height: 72px;
+  }
+
+  .zahl .wert {
+    font-size: 56px;
+  }
+}
+
+/* ------------------------------------------------------------------ one of a few, as rows */
+
+.liste {
+  border-radius: 3px;
+  background: var(--surface);
+}
+
+.liste .opt {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 52px;
+  padding: 0 16px;
+  border-top: 1.5px solid var(--border);
+  cursor: pointer;
+}
+
+.liste .opt:first-child {
+  border-top: 0;
+}
+
+.liste .opt b {
+  min-width: 76px;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.liste .opt .opt-text {
+  color: var(--text-soft);
+}
+
+.liste .opt[aria-checked='true'] {
+  background: var(--primary-soft);
+}
+
+.liste .opt[aria-disabled] {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.liste .opt:focus-visible {
+  outline-offset: -3px;
+}
+
+.radio {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--surface-raised);
+  box-shadow: inset 0 0 0 2px var(--ink);
+}
+
+.opt[aria-checked='true'] .radio {
+  background: var(--primary);
+  box-shadow:
+    inset 0 0 0 2px var(--brand-800),
+    inset 0 0 0 5px var(--surface-raised);
+}
+
+@media (max-width: 900px) {
+  .liste .opt {
+    min-height: 54px;
+  }
+}
+
+/* „Andere Arten“: long names; on a narrow screen the sentence goes under the name. */
+.liste-arten .opt {
+  padding-block: 8px;
+}
+
+@media (min-width: 561px) {
+  .liste-arten .opt b {
+    flex: none;
+    width: 220px;
+  }
+}
+
+@media (max-width: 560px) {
+  .liste-arten .opt {
+    display: grid;
+    grid-template-columns: 22px 1fr;
+    column-gap: 14px;
+    row-gap: 2px;
+  }
+
+  .liste-arten .opt .radio {
+    grid-row: span 2;
+  }
+
+  .liste-arten .opt b {
+    min-width: 0;
+  }
+}
+
+@media (max-width: 900px) and (max-height: 800px) {
+  .liste .opt {
+    min-height: 48px;
+  }
+}
+
+/* ------------------------------------------------------------------ Werkstatt: the list of everything else */
+
+.ws-overview .page-header {
+  margin-bottom: 0;
+}
+
+/* On a computer all of it shows without scrolling, also at 1440 × 900; the title stays as high as on the other pages. */
+@media (min-width: 901px) {
+  .page.ws-overview {
+    padding-bottom: 16px;
+  }
+}
+
+/* The groups flow into as many columns as fit, each group in one piece. */
+.ws-gruppen {
+  columns: 3 300px;
+  column-gap: 40px;
+}
+
+.ws-gruppe {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 28px;
+  break-inside: avoid;
+  /* Room for the pen frame of the list, which reaches a little beyond it. */
+  padding: 0 4px 6px;
+}
+
+.ws-gruppe > h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.ws-liste {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-radius: 3px;
+  background: var(--surface);
+}
+
+.ws-liste > li + li {
+  border-top: 1.5px solid var(--border);
+}
+
+.ws-zeile {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  width: 100%;
+  min-height: 52px;
+  padding: 8px 14px;
+  border: 0;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.ws-zeile:hover {
+  background: var(--primary-soft);
+  text-decoration: none;
+}
+
+.ws-zeile:hover .ws-zeile-titel {
+  text-decoration: underline;
+}
+
+.ws-zeile:focus-visible {
+  outline-offset: -3px;
+}
+
+.ws-zeile-titel {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--primary-text);
+}
+
+.ws-zeile-text {
+  font-size: 15px;
+  line-height: 1.35;
+  color: var(--text-soft);
+}
+
+.ws-zeile .ws-tool-note {
+  margin: 0;
+  padding: 0;
+  font-size: 14px;
+}
+
+.ws-gruppe > .update-notice {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+}
+
+/* ------------------------------------------------------------------ Karte beschreiben */
+
+.schirm .karte-platz {
+  align-items: center;
+  justify-content: center;
+}
+
+.karte-ort {
+  flex: 1;
+  align-self: stretch;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+}
+
+/* The card in its real shape: 85,6 × 54 mm, corners 3,2 mm, lying like paper on the table (a hard shadow). */
+.karte-gross {
+  position: relative;
+  flex: none;
+  background: #fffdf9;
+  box-shadow: 6px 7px 0 rgb(31 26 22 / 0.18);
+}
+
+.karte-sticker {
+  position: absolute;
+  display: block;
+  line-height: 0;
+}
+
+.sticker-bild {
+  display: block;
+  height: auto;
+}
+
+.karte-ort .zustand {
+  margin: 0;
+  max-width: 60ch;
+  text-align: center;
+  font-size: 17px;
+  color: var(--text-soft);
+}
+
+/* The quiet way to the help, right under the sentence about the card (Prüfrunde 1 B6). */
+/* A purple link like every other link of the page (Prüfrunde 2, eltern 8). */
+.karte-ort .karte-hilfe {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  align-self: center;
+  margin-top: -20px;
+  padding: 0;
+  font-size: 15px;
+}
+
+.ansagen-fehlen .knopfzeile {
+  margin-top: 10px;
+}
+
+/* „Noch kein Cover. Cover suchen …“ or „Cover ändern …“, and „Aus der Box wählen …“, in one line where it fits. */
+.schirm .karte-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 18px;
+  margin: 2px 0 0;
+  font-size: 15px;
+  color: var(--text-soft);
+}
+
+.schirm .karte-links .link-button {
+  min-height: 32px;
+  padding: 0;
+  font-size: 15px;
+}
+
+.schirm .zeile-warn,
+.blatt .zeile-warn {
+  margin: 0;
+  font-size: 15px;
+  color: var(--danger-text, var(--danger));
+}
+
+/* No reader, or NFC switched off: a note that stays until it is fixed, beside the work. */
+.karte-setup {
+  position: fixed;
+  z-index: 50;
+  left: 40px;
+  bottom: 24px;
+  max-width: min(520px, calc(100vw - 32px));
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+  border: var(--line) solid var(--ink);
+  border-radius: var(--radius);
+  background: var(--surface-raised);
+  box-shadow: 4px 5px 0 rgb(31 26 22 / 0.16);
+}
+
+.karte-setup p {
+  margin: 0;
+}
+
+/* After the tap: a sheet from below on a phone, in the middle on a computer. */
+.blatt-schleier {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgb(20 15 10 / 0.38);
+  animation: fade-in 0.15s var(--ease);
+}
+
+.blatt {
+  position: relative;
+  width: min(460px, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 28px 24px 22px;
+  background: var(--surface-raised) var(--paper-grain);
+  border-radius: var(--radius-lg);
+}
+
+.blatt h2 {
+  margin: 0;
+  font-size: 24px;
+  line-height: 1.2;
+}
+
+.blatt h2.fertig {
+  font-size: 28px;
+}
+
+.blatt p {
+  margin: 0;
+}
+
+.blatt .was {
+  font-size: 17px;
+}
+
+.blatt .was-gross {
+  font-size: 22px;
+}
+
+.blatt .blatt-bildzeile {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 4px;
+}
+
+.blatt-nr {
+  font-family: var(--font-sticker-stamp);
+}
+
+.blatt .kopfzeile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.blatt .knoepfe {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 8px;
+}
+
+.blatt .btn.xl {
+  height: 56px;
+  font-size: 18px;
+}
+
+.blatt .btn.wide {
+  width: 100%;
+}
+
+.blatt .reader-swap {
+  margin: 0;
+}
+
+:root:where([data-stil='holz']) .blatt::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border: var(--line) solid var(--ink);
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+@media (max-width: 900px) {
+  .blatt-schleier {
+    place-items: end stretch;
+    padding: 0 0 calc(64px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .blatt {
+    width: 100%;
+    padding: 28px 20px 20px;
+    border-radius: 0;
+    background: var(--surface) var(--paper-grain);
+    animation: none;
+  }
+
+  :root:where([data-stil='holz']) .blatt::before {
+    inset: 0 0 auto;
+    height: 0;
+    border-width: var(--line) 0 0;
+    border-radius: 0;
+  }
+
+  /* Only the top edge, drawn like the edge over the fixed button (drawnFrames.ts: one side is an edge). */
+  :root:where([data-stil='holz']) .blatt[data-fc-before]::before {
+    inset: -6px 0 auto !important;
+    height: 12px;
+  }
+
+  .karte-setup {
+    left: 16px;
+    right: 16px;
+    bottom: calc(64px + 96px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* „Aus der Box wählen …“: the folders with their numbers. */
+.ordner-wahl {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.ordner-wahl li + li {
+  border-top: 1px solid var(--border);
+}
+
+.ordner-wahl button {
+  width: 100%;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 6px 8px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ordner-wahl button:hover {
+  background: var(--surface-sunken, var(--primary-soft));
+}
+
+.ordner-wahl .num {
+  flex: none;
+  width: 2.2em;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ------------------------------------------------------------------ Musik auf die SD-Karte */
+
+/* The SD card as the first line on a phone (hörbert): name, room, „Auswerfen“, always in the same place. */
+.sd-oben {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 60px;
+  padding: 6px 16px 10px;
+  border-bottom: 1.5px solid var(--border);
+  background: var(--bg);
+}
+
+.sd-oben .sd-wer {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+}
+
+.sd-oben .sd-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  overflow: hidden;
+  font-weight: 700;
+  color: var(--text);
+  text-decoration: none;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.sd-oben .btn {
+  flex: none;
+  min-height: 44px;
+}
+
+/* The field: empty it takes files, with files in it it is their list (Etcher, Tonies). */
+.schirm .ablage {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  border-radius: 3px;
+  background: var(--surface);
+}
+
+.schirm .ablage.over {
+  background: var(--primary-soft);
+}
+
+.ablage.leer {
+  position: relative;
+  padding: 40px 48px;
+}
+
+.ablage.leer .gross-satz {
+  margin: 0;
+  max-width: 14em;
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.ablage.leer p {
+  margin: 12px 0 0;
+  max-width: 30em;
+  color: var(--text-soft);
+}
+
+.ablage.leer .knopfzeile {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 20px;
+  margin-top: 24px;
+  position: relative;
+  z-index: 1;
+}
+
+.ablage.leer .kiste {
+  position: absolute;
+  right: 48px;
+  bottom: 36px;
+  line-height: 0;
+  pointer-events: none;
+}
+
+.ablage .liste-kopf {
+  flex: none;
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  min-width: 0;
+  padding: 18px 24px 14px;
+  border-bottom: 2px solid var(--border);
+}
+
+.ablage .liste-kopf .name {
+  min-width: 0;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.ablage .liste-kopf .muted {
+  flex: none;
+}
+
+.ablage .liste-kopf .rest {
+  flex: 1;
+}
+
+.ablage .liste-kopf .link-button {
+  flex: none;
+  min-height: 32px;
+  padding: 0;
+  font-size: 16px;
+}
+
+.ablage .fertig-kopf {
+  align-items: center;
+}
+
+.ablage .fertig-kopf .muted {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.ablage .ablage-zeile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 24px 0;
+}
+
+.ablage .titel {
+  flex: 1;
+  min-height: 0;
+  margin: 0;
+  padding: 4px 0;
+  list-style: none;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.ablage .tz {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  height: 46px;
+  padding: 0 12px 0 20px;
+  border-top: 1.5px solid var(--border);
+}
+
+.ablage .tz:first-child {
+  border-top: 0;
+}
+
+.ablage .tz.neu {
+  background: var(--note-paper);
+}
+
+.ablage .tz[draggable='true'] .griff {
+  cursor: grab;
+}
+
+.ablage .griff {
+  flex: none;
+  width: 14px;
+  color: var(--text-muted);
+  font-weight: 700;
+  text-align: center;
+}
+
+.ablage .tn {
+  flex: none;
+  width: 34px;
+  color: var(--text-muted);
+  font-size: 15px;
+}
+
+.ablage .tname {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.ablage .td {
+  flex: none;
+  width: 58px;
+  color: var(--text-soft);
+  text-align: right;
+}
+
+/* After several albums: the number of titles of each folder instead of a duration. */
+.ablage .alben .td {
+  width: auto;
+}
+
+.ablage .ok {
+  flex: none;
+  width: 18px;
+  line-height: 0;
+}
+
+.ablage .mehr {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  border-radius: 3px;
+  background: none;
+  color: var(--text-soft);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ablage .mehr:hover {
+  background: var(--primary-soft);
+}
+
+.ablage .neu-mark {
+  flex: none;
+  padding: 1px 8px;
+  border: 1.5px solid var(--ink);
+  border-radius: 3px;
+  background: var(--surface-raised);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.ablage .war {
+  flex: none;
+  color: var(--text-muted);
+  font-size: 15px;
+}
+
+/* „Nach [Titel]“ in the row of the place (#126). */
+.liste .stelle-wahl {
+  min-width: 0;
+  max-width: 100%;
+  flex: 0 1 auto;
+  height: 36px;
+  padding: 0 8px;
+  border: 1.5px solid var(--ink);
+  border-radius: 3px;
+  background: var(--surface-raised);
+  color: var(--text);
+  font: inherit;
+  font-size: 15px;
+}
+
+.schirm .ruhig {
+  margin: 12px 0 0;
+  font-weight: 600;
+}
+
+.schirm .unten .unter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: -4px;
+  font-size: 15px;
+}
+
+.schirm .unten .unter .link-button {
+  min-height: 44px;
+  padding: 0;
+  font-size: 15px;
+}
+
+.schirm .btn.laeuft {
+  position: relative;
+  overflow: hidden;
+  cursor: default;
+}
+
+.schirm .knopf-paar {
+  display: flex;
+  gap: 12px;
+}
+
+.schirm .knopf-paar > .btn {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 0 12px;
+}
+
+.schirm a.btn {
+  text-decoration: none;
+}
+
+@media (min-width: 1800px) {
+  .ablage .tz {
+    height: 52px;
+  }
+
+  .ablage.leer {
+    padding: 56px 64px;
+  }
+}
+
+@media (max-width: 900px) {
+  .schirm-musik .gross {
+    margin-top: 18px;
+    min-height: 220px;
+  }
+
+  .ablage.leer {
+    padding: 20px;
+  }
+
+  .ablage.leer .gross-satz {
+    font-size: 20px;
+  }
+
+  .ablage.leer p {
+    font-size: 15px;
+  }
+
+  .ablage.leer .knopfzeile {
+    margin-top: 16px;
+  }
+
+  .ablage .liste-kopf {
+    display: block;
+    padding: 12px 14px 10px;
+  }
+
+  .ablage .liste-kopf .name {
+    font-size: 19px;
+  }
+
+  .ablage .liste-kopf .muted::before {
+    content: ' · ';
+  }
+
+  .ablage .liste-kopf .link-button,
+  .ablage .liste-kopf .rest {
+    display: none;
+  }
+
+  .ablage .tz {
+    gap: 10px;
+    height: 48px;
+    padding: 0 6px 0 14px;
+  }
+
+  .ablage .griff {
+    display: none;
+  }
+
+  .ablage .tn {
+    width: 30px;
+    font-size: 14px;
+  }
+
+  .ablage .td {
+    width: auto;
+  }
+}
+
+/* ------------------------------------------------------------------ Sticker drucken */
+
+/* The sheet and the questions stand together in the middle (06-entwuerfe). */
+.schirm-sticker .arbeit {
+  justify-content: center;
+  gap: 40px;
+}
+
+.schirm-sticker .spalte {
+  width: 320px;
+}
+
+.schirm-sticker .gross {
+  flex: 0 1 auto;
+  align-items: flex-start;
+}
+
+.schirm-sticker .bogen-ort {
+  height: 100%;
+  width: var(--bogen-w, 100%);
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.bogen-ort .bogen-blatt {
+  flex: none;
+  max-width: 100%;
+  box-shadow:
+    4px 5px 0 rgb(31 26 22 / 0.16),
+    0 0 0 1px #d9d0bf;
+}
+
+.bogen-ort .bogen-blatt .sheet-preview-wrap {
+  margin: 0;
+}
+
+.bogen-ort .bogen-wahl {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 40px;
+  margin: 0;
+}
+
+.bogen-ort .bogen-wahl .link-button {
+  min-width: 32px;
+  min-height: 32px;
+  justify-content: center;
+  font-size: 22px;
+  text-decoration: none;
+}
+
+/* The empty fields of the sheet say what they are: a click marks a label as used up. */
+.schirm-sticker .sheet-hit.empty::after {
+  content: 'frei';
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: #6b6358;
+  font-size: clamp(11px, 1.2vw, 16px);
+}
+
+.schirm-sticker .sheet-hit.empty.used::after {
+  content: 'schon benutzt';
+}
+
+.schirm .wert-zeile {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+  margin: 0;
+}
+
+.schirm .wert-zeile b {
+  font-size: 17px;
+}
+
+.schirm .wert-zeile .link-button {
+  min-height: 32px;
+  padding: 0;
+  font-size: 16px;
+}
+
+/* A link with a tall tap area sits on the line of its words, not above it (Prüfrunde 1 Aussehen 14). */
+:is(.schirm, .schirm-fragen) :is(.wert-zeile, .gefaltet) {
+  align-items: center;
+}
+
+:is(.schirm, .schirm-fragen) :is(.wert-zeile, .gefaltet) > .link-button {
+  align-self: center;
+}
+
+.schirm .start {
+  margin: 6px 0 0;
+  color: var(--text-soft);
+}
+
+.schirm .start .link-button {
+  padding: 0;
+  font-size: inherit;
+}
+
+.schirm .frage > .soft {
+  margin: 4px 0 0;
+}
+
+.schirm .stile,
+.schirm-fragen .stile {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.stil-wahl {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 6px 4px;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.stil-wahl .mini {
+  line-height: 0;
+}
+
+.stil-wahl .stil-name {
+  font-weight: 600;
+}
+
+.stil-wahl[aria-checked='true'] {
+  --frame-color: var(--brand-800);
+  --frame-w: 2.5px;
+  background: var(--primary-soft);
+}
+
+.stil-wahl[aria-checked='true'] .stil-name {
+  font-weight: 700;
+}
+
+.stil-wahl:focus-visible {
+  outline: 3px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.schirm .druck {
+  display: flex;
+  gap: 12px;
+}
+
+.schirm .druck > .btn {
+  flex: 1 1 auto;
+}
+
+.schirm .druck > .btn.primary {
+  flex: 1 1 0;
+}
+
+.schirm .hinweis {
+  margin: 0;
+  color: var(--text-soft);
+}
+
+.schirm .link-button.probe {
+  align-self: flex-start;
+  min-height: 32px;
+  padding: 0;
+  font-size: 16px;
+}
+
+.schirm .unten-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 20px;
+}
+
+.schirm .unten-links .mehr-link {
+  margin-top: 0;
+}
+
+.schirm-fragen {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.schirm-fragen .frage > h2 {
+  margin: 0 0 8px;
+  font-size: 18px;
+}
+
+.schirm-fragen .wert-zeile {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  align-items: baseline;
+  margin: 0;
+}
+
+/* „Cover suchen … Bilder hinzufügen … Spezialkarte …“ without a card: one line where it fits. */
+:is(.schirm, .schirm-fragen) .wert-zeile.links-dicht {
+  gap: 2px 12px;
+  margin-top: 6px;
+}
+
+/* At least 32 px to click on a computer, 44 px for a finger (Prüfrunde 1 B8). */
+:is(.schirm, .schirm-fragen) .wert-zeile.links-dicht .link-button {
+  min-height: 32px;
+}
+
+@media (max-width: 900px), (pointer: coarse) {
+  :is(.schirm, .schirm-fragen) .wert-zeile .link-button,
+  :is(.schirm, .schirm-fragen) .wert-zeile.links-dicht .link-button,
+  :is(.schirm, .schirm-fragen) .erst-schritt .btn {
+    min-height: 44px;
+  }
+}
+
+/* Nothing to print yet: the first step is a button (Prüfrunde 1 B8). */
+:is(.schirm, .schirm-fragen) .erst-schritt {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 18px;
+  margin-top: 8px;
+}
+
+.schirm .erst-schritt .link-button {
+  min-height: 44px;
+}
+
+/* A window of about 900 px: the three questions without a card need every line beside the sheet. */
+/* The top edge stays that of the other screens, so the title does not jump (Prüfrunde 2, eltern 12). */
+@media (min-width: 901px) and (max-height: 940px) {
+  .schirm-sticker .arbeit {
+    padding-bottom: 20px !important;
+  }
+
+  .schirm-sticker .fragen {
+    gap: 16px !important;
+  }
+}
+
+/* Only on a computer: on a phone the title stays where it is on the other screens. */
+@media (min-width: 901px) and (max-width: 1799px) {
+  .schirm-sticker .arbeit {
+    padding-bottom: 28px;
+  }
+
+  .schirm-sticker .spalte > h1 {
+    margin-bottom: 18px;
+  }
+
+  .schirm-sticker .fragen {
+    gap: 20px;
+  }
+
+  .schirm-sticker .frage > h2 {
+    margin-bottom: 8px;
+  }
+}
+
+@media (min-width: 1800px) {
+  .schirm-sticker .spalte {
+    width: 400px;
+  }
+}
+
+/*
+ * A laptop's low window (1366 × 768, 1280 × 720) and the common 1440 × 900: the sheet is as high as
+ * the window and leaves room at the side. The column takes it, the four looks stand in one row, and
+ * nothing runs under „Drucken“ (Prüfrunde 1 B2; by the height, Prüfrunde 2 eltern 2; from 901 px
+ * wide, Prüfrunde 3 M1). As LOW_QUERY in StickerScreen.tsx.
+ */
+@media (min-width: 901px) and (max-height: 940px) {
+  .schirm-sticker .spalte {
+    width: 440px;
+  }
+
+  .schirm-sticker .stile {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+
+  .schirm-sticker .stil-wahl {
+    padding: 5px 4px 3px;
+  }
+
+  .schirm-sticker .stil-wahl .stil-name {
+    font-size: 15px;
+  }
+}
+
+/* Under 1000 px wide the column is narrower and the four looks smaller (NARROW_QUERY in StickerScreen.tsx). */
+@media (min-width: 901px) and (max-width: 999px) and (max-height: 940px) {
+  .schirm-sticker .spalte {
+    width: 380px;
+  }
+
+  .schirm-sticker .stile {
+    gap: 6px;
+  }
+
+  .schirm-sticker .stil-wahl .stil-name {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 900px) {
+  .schirm-sticker .gross {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  .schirm-sticker .bogen-ort {
+    width: 100%;
+  }
+
+  .schirm-sticker .arbeit {
+    justify-content: flex-start;
+    gap: 0;
+    overflow: hidden;
+  }
+
+  .schirm-sticker .gefaltet {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 52px;
+    margin: 12px 0 8px;
+  }
+
+  .schirm-sticker .gefaltet-leer {
+    margin: 10px 0 16px;
+  }
+
+  .schirm-sticker .gefaltet-leer p {
+    margin: 0;
+  }
+
+  .schirm-sticker .gefaltet > span {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .schirm-sticker .gefaltet .link-button {
+    min-height: 44px;
+    padding: 0 4px;
+    font-size: 16px;
+  }
+}
+
+/* A title cut before it goes to the card (Zuschneiden …, TrimPendingDialog.tsx). */
+.ablage .geschnitten {
+  flex: none;
+  line-height: 0;
+  color: var(--text-soft);
+}
+
+/* „Musik genauer hinzufügen“: the field of „Musik auf die SD-Karte“, calm and on the left (Prüfrunde 1 Aussehen 8). */
+.add-page .add-ablage {
+  min-height: 280px;
+  border-radius: 3px;
+  background: var(--surface);
+}
+
+.add-page .add-ablage.over {
+  background: var(--primary-soft);
+}
+
+.add-page .add-ablage > p.small {
+  margin-top: 10px;
+}
+
+.add-page .add-tipps {
+  margin: 0;
+  max-width: 70ch;
+}
+
+/* The drawn box sits beside the text; where there is no room beside it, it would lie over the text and the buttons (Prüfrunde 2, eltern 1). */
+@media (max-width: 980px) {
+  .add-page .add-ablage .kiste {
+    display: none;
+  }
+}
+
+@media (max-width: 900px) {
+  .add-page .add-ablage {
+    min-height: 0;
+    padding: 24px 20px;
+  }
+
+  .add-page .add-ablage .gross-satz {
+    font-size: 22px;
+  }
+}
+
+/* ------------------------------------------------------------------ one size for page titles */
+
+/* Every page title as large as on the three main screens (.schirm .spalte > h1): one size per device (Prüfrunde 1, aussehen 12). */
+:root {
+  --titel-groesse: 32px;
+}
+
+@media (min-width: 1800px) {
+  :root {
+    --titel-groesse: 36px;
+  }
+}
+
+@media (max-width: 900px) {
+  :root {
+    --titel-groesse: 28px;
+  }
+}
+
+@media (max-width: 380px) {
+  :root {
+    --titel-groesse: 26px;
+  }
+}
+
+.page-header h1,
+.bench-head h1,
+.box-name > h1 {
+  font-size: var(--titel-groesse);
+  line-height: 1.15;
+}
+
+/* „← Werkstatt“ inside the title block sits where it sits above the workshop tools (ToolHeader). */
+.page-header .titles > .back-link {
+  margin-bottom: 4px;
+}
+
+.bench-head > .back-link {
+  margin-bottom: 0;
+}

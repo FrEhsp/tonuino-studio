@@ -7,10 +7,10 @@
  * the tracks keep their names. Everything here is pure; the add page asks
  * the internet and measures the file.
  */
-import { findPauses, snapCutsToPauses, type TrackCut } from '../audio/silence';
+import { findPauses, snapCutsToPauses, type Pause, type TrackCut } from '../audio/silence';
 import type { ContentKind } from '../tonuino/catalog';
 import type { AlbumCuts, DraftTrack } from './grouping';
-import { tracksTotal, type LookupAlbum, type LookupTrack } from './tracklookup';
+import { tracksTotal, wholeAlbumParts, wholeTolerance, type LookupAlbum, type LookupTrack, type WholeAlbumPart } from './tracklookup';
 import { cleanDownloadName, parseReleaseName } from './releasename';
 import { tidyName } from './tidy';
 
@@ -227,6 +227,189 @@ export function kindOfAlbum(found: Pick<LookupAlbum, 'album' | 'artist' | 'genre
 export function cutsForStarts(starts: readonly number[], audio: MeasuredAudio, searchSec: number): TrackCut[] {
   const pauses = findPauses(audio.power, audio.windowSec, { minPauseSec: 0.3 });
   return snapCutsToPauses(starts.slice(1), pauses, { durationSec: audio.durationSec, searchSec, minGapSec: 2, power: audio.power, windowSec: audio.windowSec });
+}
+
+/* ------------------------------------------------------------ which tracks the file holds (#129) */
+
+/**
+ * A pause this good (silence.ts scores 0..1; half a second of silence
+ * scores about 0.4, a second 0.6, a short breath in speech less) counts as
+ * a place where a track may begin.
+ */
+const HIT_SCORE = 0.35;
+
+/**
+ * How far from where the list puts a boundary a pause may lie to count as
+ * a hit: the first boundary is looked for widely (a few seconds more in
+ * front of a copy from a video site), each next one close to where the one
+ * before was found plus the track's length.
+ */
+const FIRST_SEARCH_SEC = SEARCH_SEC.shop;
+const HIT_SEARCH_SEC = 1.5;
+
+/** A part counts as sure with this share of hits, and this much more than at places nearby (the file's pauses at random). */
+const SURE_HITS = 0.75;
+const SURE_ABOVE_CHANCE = 0.4;
+
+/** Places nearby for the chance of a hit: every boundary moved by these many seconds. */
+const CHANCE_SHIFTS = [-29, -17, -7, 7, 17, 29];
+
+/** How the tracks of a part of the list line up with the file's pauses. */
+interface Alignment {
+  /** Where each track but the first begins: in the pause found, else where the list says (with the shift of the boundary before). */
+  placed: number[];
+  /** Boundaries with a pause close by. */
+  hits: number;
+  /** Whether the first and the last boundary have one. */
+  firstHit: boolean;
+  lastHit: boolean;
+}
+
+/**
+ * Lines up the boundaries of `lengths` from the start of the file (or from
+ * its end): each boundary is looked for where the one before was found plus
+ * the track's length, so a few seconds more in front do not move every
+ * cut. The lengths are taken as they are, or times `scale` (a copy played a
+ * little faster). With
+ * `shiftSec` every boundary is looked for that far off, each on its own:
+ * how often a pause lies there by chance. No hits when the first or last
+ * track would come out less than half as long as the list says (the list
+ * holds a piece the file lacks).
+ */
+function align(lengths: readonly number[], totalSec: number, pauses: readonly Pause[], fromEnd: boolean, scale: number, shiftSec?: number): Alignment {
+  const n = lengths.length;
+  const placed = new Array<number>(n - 1);
+  let hits = 0;
+  const hit = new Array<boolean>(n - 1).fill(false);
+  let carry = 0;
+  let anchored = false;
+  const look = (at: number, i: number): number => {
+    const chance = shiftSec !== undefined;
+    const found = pauseNear(pauses, at + (chance ? shiftSec : carry), chance || anchored ? HIT_SEARCH_SEC : FIRST_SEARCH_SEC);
+    if (!found) return at + carry;
+    hits++;
+    hit[i] = true;
+    if (!chance) {
+      carry = found.cutSec - at;
+      anchored = true;
+    }
+    return found.cutSec;
+  };
+  let at = fromEnd ? totalSec : 0;
+  for (let k = 1; k < n; k++) {
+    const i = fromEnd ? n - k : k;
+    at += fromEnd ? -lengths[i] * scale : lengths[i - 1] * scale;
+    placed[i - 1] = look(at, i - 1);
+  }
+  const firstOk = placed[0] >= lengths[0] / 2;
+  const lastOk = totalSec - placed[n - 2] >= lengths[n - 1] / 2;
+  const ok = firstOk && lastOk;
+  return { placed, hits: ok ? hits : 0, firstHit: ok && hit[0], lastHit: ok && hit[n - 2] };
+}
+
+/** The best pause of HIT_SCORE or more within `searchSec` of `t` (closer counts more), if any. `pauses` sorted by cutSec. */
+function pauseNear(pauses: readonly Pause[], t: number, searchSec: number): Pause | undefined {
+  let lo = 0;
+  let hi = pauses.length;
+  while (lo < hi) {
+    const mid = (lo + hi) >> 1;
+    if (pauses[mid].cutSec < t - searchSec) lo = mid + 1;
+    else hi = mid;
+  }
+  let best: Pause | undefined;
+  let bestValue = -Infinity;
+  for (let k = lo; k < pauses.length && pauses[k].cutSec <= t + searchSec; k++) {
+    const p = pauses[k];
+    if (p.score < HIT_SCORE) continue;
+    const value = p.score - (0.6 * Math.abs(p.cutSec - t)) / searchSec;
+    if (value > bestValue) {
+      bestValue = value;
+      best = p;
+    }
+  }
+  return best;
+}
+
+/** What the file holds of a shop's track list, once its pauses are known (planShopCuts). */
+export interface ShopCutPlan {
+  /** The part of the list in the file: `tracks.slice(from, to)`. */
+  from: number;
+  to: number;
+  /** Where these tracks begin (the first at 0). */
+  starts: number[];
+  /** How far a cut may still move to reach a pause. */
+  searchSec: number;
+  /** Boundaries with a good pause close by, of `to - from - 1`. */
+  hits: number;
+  /** True when the list fits by its lengths alone (the whole list, within about a percent, no pauses to go by). */
+  byLength: boolean;
+}
+
+/**
+ * Which tracks of a shop's list the file holds and where they begin
+ * (TODO 0.3 #129). Tries the whole list and the list without its first or
+ * last piece (wholeAlbumParts), each lined up from the start and from the
+ * end of the file, and counts the boundaries that land in a real pause.
+ * Takes the part whose length fits best among those that hit the pauses
+ * clearly more often than places nearby do. When none does, the whole list
+ * stretched to the file, as before 0.6, but only when it fits within about
+ * a percent and no shorter part fits better. Otherwise null: better not
+ * cut at the tracks than cut wrongly.
+ */
+export function planShopCuts(tracks: readonly LookupTrack[], audio: MeasuredAudio): ShopCutPlan | null {
+  const total = audio.durationSec;
+  const parts = wholeAlbumParts(total, tracks, true);
+  if (!parts.length) return null;
+  const pauses = findPauses(audio.power, audio.windowSec, { minPauseSec: 0.3 }).sort((a, b) => a.cutSec - b.cutSec);
+  const good: { part: WholeAlbumPart; a: Alignment }[] = [];
+  for (const part of parts) {
+    let best: Alignment | null = null;
+    const lengths = tracks.slice(part.from, part.to).map((t) => t.durationSec!);
+    const boundaries = lengths.length - 1;
+    // As listed, or stretched to the file within 3 % (a faster copy): never so far that a missing piece is spread over all tracks.
+    const ratio = Math.min(1.03, Math.max(0.97, total / lengths.reduce((x, y) => x + y, 0)));
+    for (const scale of ratio === 1 ? [1] : [1, ratio]) {
+      for (const fromEnd of [false, true]) {
+        const a = align(lengths, total, pauses, fromEnd, scale);
+        if (a.hits < SURE_HITS * boundaries) continue;
+        let chance = 0;
+        for (const shift of CHANCE_SHIFTS) chance += align(lengths, total, pauses, fromEnd, scale, shift).hits;
+        chance /= CHANCE_SHIFTS.length;
+        if (a.hits - chance < SURE_ABOVE_CHANCE * boundaries) continue;
+        if (!best || a.hits > best.hits) best = a;
+      }
+    }
+    if (best) good.push({ part, a: best });
+  }
+  // The best fitting length first (parts come sorted so). A first or last piece the file may lack is kept only
+  // when a pause marks its end (or its start): a jingle in front is no intro.
+  const chosen = good.find(
+    ({ part, a }) =>
+      (part.from > 0 || a.firstHit || !good.some((o) => o.part.from > 0 && o.part.to === part.to)) &&
+      (part.to < tracks.length || a.lastHit || !good.some((o) => o.part.to < tracks.length && o.part.from === part.from)),
+  );
+  if (chosen) {
+    const { part, a } = chosen;
+    // The cuts sit in the pauses found already; where none was, they look close by.
+    return { from: part.from, to: part.to, starts: [0, ...a.placed], searchSec: SEARCH_SEC.cue, hits: a.hits, byLength: false };
+  }
+  const whole = parts[0];
+  if (whole.from !== 0 || whole.to !== tracks.length || whole.misfit > wholeTolerance(total, false)) return null;
+  return { from: 0, to: tracks.length, starts: startsFromLengths(tracks, total), searchSec: shopSearchSec(tracks, total), hits: 0, byLength: true };
+}
+
+/**
+ * The sentence that says which pieces of the list the file lacks, or
+ * undefined when it holds them all: "„Intro“ fehlt in deiner Datei,
+ * deshalb beginnt Titel 1 mit „Der Zoo“."
+ */
+export function missingPiecesNote(tracks: readonly LookupTrack[], plan: Pick<ShopCutPlan, 'from' | 'to'>): string | undefined {
+  const first = plan.from > 0 ? `„${tracks[0].title.trim() || 'Titel 1'}“` : '';
+  const last = plan.to < tracks.length ? `„${tracks[tracks.length - 1].title.trim() || `Titel ${tracks.length}`}“` : '';
+  if (first && last) return `${first} am Anfang und ${last} am Ende fehlen in deiner Datei. Deshalb habe ich beide weggelassen.`;
+  if (first) return `${first} fehlt in deiner Datei. Deshalb beginnt Titel 1 mit „${tracks[plan.from].title.trim() || `Titel ${plan.from + 1}`}“.`;
+  if (last) return `${last} am Ende fehlt in deiner Datei. Deshalb habe ich es weggelassen.`;
+  return undefined;
 }
 
 /** Steps of "früher" and "später" in the preview. */

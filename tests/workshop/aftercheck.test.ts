@@ -31,6 +31,22 @@ describe('settings after a firmware update', () => {
     expect(v.findings).toEqual([{ tone: 'info', text: expect.stringContaining('ab Werk') }]);
   });
 
+  it('knows the factory state of the keys from the buttons and the firmware', () => {
+    const settings = (ib: boolean) => ({ speakerVolume: { max: 25, min: 5, init: 15 }, standbyTimerMinutes: 0, invertVolumeButtons: ib, adminLock: { kind: 'none' as const, raw: 0 }, pauseWhenCardRemoved: false });
+    const box = (ib: boolean, versionDate: string) => read(settings(ib), { info: { settings: settings(ib), folderTracks: {}, buttons: '5', version: versionDate === '2026-10-26' ? '3.3.4' : '3.3.3', versionDate } });
+    // TNG from 26.10.2026: 5 keys come as printed (IB 0), and the setting swaps them.
+    const fresh = judgeSettings(box(false, '2026-10-26'), 'classic');
+    expect(fresh.facts.find((f) => f.label === 'Tasten')?.value).toBe('wie beschriftet');
+    expect(fresh.findings).toEqual([{ tone: 'info', text: expect.stringContaining('ab Werk') }]);
+    expect(judgeSettings(box(true, '2026-10-26'), 'classic').facts.find((f) => f.label === 'Tasten')?.value).toContain('getauscht');
+    expect(judgeSettings(box(true, '2026-10-26'), 'classic').findings.map((f) => f.tone)).toEqual(['ok']);
+    // Older TNG: the setting does nothing with 5 keys, the factory value is 1.
+    const old = judgeSettings(box(true, '2026-09-17'), 'classic');
+    expect(old.facts.map((f) => f.label)).not.toContain('Tasten');
+    expect(old.facts.map((f) => f.label)).not.toContain('Kurz drücken');
+    expect(old.findings).toEqual([{ tone: 'info', text: expect.stringContaining('ab Werk') }]);
+  });
+
   it('warns about a timer that is off on a box with a battery', () => {
     const v = judgeSettings(read({ speakerVolume: { max: 20, min: 3, init: 10 }, standbyTimerMinutes: 0 }), 'aioplus');
     expect(v.findings.map((f) => f.tone)).toEqual(['warning']);

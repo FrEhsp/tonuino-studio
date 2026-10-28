@@ -6,7 +6,7 @@
 import { describe, expect, it } from 'vitest';
 import { contrast, fromHex, luminance } from '../../src/core/stickers/color';
 import { recognizeWork, workColors, workColorsByTitle, WORKS } from '../../src/core/stickers/works';
-import type { FolderFacts } from '../../src/core/covers/recognize';
+import { factsKey, type FolderFacts } from '../../src/core/covers/recognize';
 
 const HEX = /^#[0-9a-f]{6}$/;
 const id = (f: FolderFacts | string) => recognizeWork(typeof f === 'string' ? { title: f } : f)?.id ?? null;
@@ -121,5 +121,38 @@ describe('the colours a sticker carries', () => {
     expect(workColorsByTitle('Bibi Blocksberg')).toBe(workColorsByTitle('Bibi Blocksberg'));
     expect(workColors(undefined)).toBeUndefined();
     expect(workColorsByTitle('Urlaub 2024')).toBeUndefined();
+  });
+
+  it('keeps its answer for a copy of the entry, as every change of the catalog makes one (Tempo #121)', () => {
+    const entry: FolderFacts = { title: 'Bibi Blocksberg 12', artist: 'Bibi Blocksberg', tracks: [{ title: 'Teil 1', file: '001.mp3' }] };
+    const first = workColors(entry);
+    expect(first).toBeDefined();
+    expect(workColors(structuredClone(entry))).toBe(first);
+    // Other names: worked out anew.
+    expect(workColors({ ...structuredClone(entry), title: 'TKKG 1', artist: 'TKKG' })?.id).toBe('tkkg');
+  });
+});
+
+describe('the key of what a folder is known by', () => {
+  const base: FolderFacts = { title: 'Benjamin Blümchen 7', artist: 'Benjamin Blümchen', tracks: [{ title: 'Teil 1', file: '001.mp3', artist: 'X' }] };
+
+  it('is the same for a copy and changes with every name recognising looks at', () => {
+    expect(factsKey(structuredClone(base))).toBe(factsKey(base));
+    const changed: FolderFacts[] = [
+      { ...base, title: 'Benjamin Blümchen 8' },
+      { ...base, artist: 'Elefant' },
+      { ...base, series: 'Benjamin' },
+      { ...base, episode: 7 },
+      { ...base, tracks: [{ title: 'Teil 2', file: '001.mp3', artist: 'X' }] },
+      { ...base, tracks: [{ title: 'Teil 1', file: '002.mp3', artist: 'X' }] },
+      { ...base, tracks: [{ title: 'Teil 1', file: '001.mp3', artist: 'Y' }] },
+      { ...base, origins: [{ entry: 'e1', series: 'Benjamin Blümchen', title: 'Folge 7' }] },
+    ];
+    const keys = new Set([factsKey(base), ...changed.map(factsKey)]);
+    expect(keys.size).toBe(changed.length + 1);
+  });
+
+  it('does not mix up a name that is cut in two places', () => {
+    expect(factsKey({ title: 'a', artist: 'b c', tracks: [] })).not.toBe(factsKey({ title: 'a b', artist: 'c', tracks: [] }));
   });
 });

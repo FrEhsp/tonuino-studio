@@ -27,6 +27,17 @@
       "csp": null
     }
   },
+  "plugins": {
+    "updater": {
+      "pubkey": "PLATZHALTER: öffentlicher Schlüssel aus `npx tauri signer generate`, siehe docs/BUILD.md „Automatische Updates“",
+      "endpoints": [
+        "https://github.com/FrEhsp/tonuino-studio/releases/latest/download/latest.json"
+      ],
+      "windows": {
+        "installMode": "passive"
+      }
+    }
+  },
   "bundle": {
     "active": true,
     "targets": [

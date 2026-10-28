@@ -4,7 +4,7 @@
  * in the origin private file system, filled like a card.
  */
 import { readFileSync } from 'node:fs';
-import { check, failed, folderPage, launch, MP3, noErrors, openApp, shot, shown } from './lib.mjs';
+import { check, failed, folderPage, go, launch, MP3, noErrors, openApp, shot, shown } from './lib.mjs';
 
 const PICKER = () => {
   window.showDirectoryPicker = async () => {
@@ -72,7 +72,7 @@ export async function directMode(browser) {
   check((await shown(page).locator('.page-header').getByRole('button', { name: 'Paket' }).count()) === 0, 'no Paket button');
   await shot(page, 'direct-01-shelf');
 
-  await page.getByRole('link', { name: 'Hinzufügen' }).first().click();
+  await go(page, '#/hinzufuegen');
   check((await page.getByText(/Fragt der Browser nach „Hochladen“/).filter({ visible: true }).count()) === 0, 'no "Hochladen" hint');
   await fillCard(page, { '01 Anfang.mp3': mp3, '02 Ende.mp3': mp3 }, 'ALBUM');
   await page.getByRole('button', { name: 'Dateien auswählen' }).click();

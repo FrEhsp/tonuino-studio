@@ -6,7 +6,7 @@
  */
 import { join } from 'node:path';
 import { mkdirSync, rmSync } from 'node:fs';
-import { check, chooseFiles, chooseFolder, downloadFrom, failed, launch, makeCard, MP3, noErrors, openApp, OUT, paths, same, shot, shown, testZip, treeOf, unpackOnto } from './lib.mjs';
+import { check, chooseFiles, chooseFolder, downloadFrom, failed, go, launch, makeCard, MP3, noErrors, openApp, OUT, paths, same, shot, shown, testZip, treeOf, unpackOnto } from './lib.mjs';
 
 export async function packageFlow(browser) {
   console.log('package flow');
@@ -21,13 +21,20 @@ export async function packageFlow(browser) {
   mkdirSync(album, { recursive: true });
   makeCard(album, { '01 Anfang.mp3': MP3, '02 Mitte.mp3': MP3, '03 Ende.mp3': MP3 });
 
+  // 0.6: the bare address opens „Musik auf die SD-Karte“; "#/" (below) stays Meine Box.
+  {
+    const bare = await openApp(browser, { hash: '' });
+    await bare.page.getByRole('heading', { name: 'Musik auf die SD-Karte' }).waitFor();
+    check(bare.page.url().endsWith('#/musik'), 'the bare address opens „Musik auf die SD-Karte“', bare.page.url());
+    await bare.context.close();
+  }
   const { page, errors } = await openApp(browser);
 
   // Welcome: what this browser can do, and the way in.
   await page.getByRole('heading', { name: 'Hallo! Stecke die SD-Karte deiner Box in den Computer.' }).waitFor();
   check(await page.getByText('Mit der Desktop-App oder Chrome geht alles direkt.').isVisible(), 'welcome names the desktop app and Chrome before the button');
-  // The sidebar shows the card box of 0.3 with what is missing (no drawn card reader any more).
-  check(await page.locator('.sidebar .sd-status').getByText('Keine SD-Karte eingelesen').isVisible(), 'sidebar: no card read in');
+  // The bar on top shows the card with what is missing.
+  check(await page.locator('.kopf .sd-zeile').getByText('Keine SD-Karte eingelesen').isVisible(), 'bar on top: no card read in');
   await shot(page, 'flow-01-welcome');
 
   // Read the card in.
@@ -35,12 +42,12 @@ export async function packageFlow(browser) {
   await shown(page).locator('.page-header h1').waitFor();
   const meta = await shown(page).locator('.page-header p').first().textContent();
   check(/eingelesen um \d\d:\d\d/.test(meta ?? ''), 'shelf says when the card was read', meta);
-  check(await page.getByText(/Eingelesen um \d\d:\d\d/).isVisible(), 'sidebar says when the card was read');
+  check(await page.locator('.kopf .sd-zeile').getByText(/Eingelesen um \d\d:\d\d/).isVisible(), 'the bar on top says when the card was read');
   check((await shown(page).locator('.package-banner').count()) === 0, 'nothing waits for a card just read');
   await shot(page, 'flow-02-shelf');
 
   // Add an album.
-  await page.getByRole('link', { name: 'Hinzufügen' }).first().click();
+  await go(page, '#/hinzufuegen');
   await page.getByRole('button', { name: 'Dateien auswählen' }).waitFor();
   check(await page.getByText('Fragt der Browser nach „Hochladen“? Keine Sorge, die Dateien bleiben auf deinem Computer.').isVisible(), 'add page explains the Hochladen question');
   await chooseFiles(page, [join(album, '01 Anfang.mp3'), join(album, '02 Mitte.mp3'), join(album, '03 Ende.mp3')], page.getByRole('button', { name: 'Dateien auswählen' }));
@@ -96,7 +103,7 @@ export async function packageFlow(browser) {
     'tonuino-studio-covers.zip',
     'tonuino-studio.json',
   ], 'the card has the new album');
-  await page.getByRole('link', { name: 'Meine Box' }).click();
+  await go(page, '#/');
   check((await shown(page).locator('.package-banner').count()) === 0, 'after the check nothing waits any more');
 
   // Titles for folder 01: the whole folder is replaced, so the guide first asks for the downloaded Paket.
@@ -133,7 +140,7 @@ export async function packageFlow(browser) {
 
   // The whole card as a Paket: format, unpack, check.
   console.log('package flow: the whole card');
-  await page.getByRole('link', { name: 'Meine Box' }).click();
+  await go(page, '#/');
   await shown(page).locator('.page-header').getByRole('button', { name: 'Paket' }).click();
   await dialog.getByText(/Alles, was ich auf der Karte lesen konnte, kommt sauber sortiert in ein Paket/).waitFor();
   await shot(page, 'flow-10-full');

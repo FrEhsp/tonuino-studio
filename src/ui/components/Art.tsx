@@ -174,3 +174,43 @@ function HolzBoxSlot() {
     </svg>
   );
 }
+
+/**
+ * The box with a card dropping in, beside the field for the music
+ * (06-entwuerfe, „Musik auf die SD-Karte“): the one drawing of that screen.
+ * The card carries a star, not a folder number, as in 0.5.
+ */
+export function KisteArt({ width = 300 }: { width?: number }) {
+  return (
+    <svg width={width} viewBox="40 20 310 295" aria-hidden="true" class="kiste-art">
+      <g stroke-linejoin="round" stroke-linecap="round">
+        <path d="M44 305 C118 300 262 307 340 300" fill="none" stroke={B_INK} stroke-width="3" opacity="0.6" />
+        <g stroke={B_INK} stroke-width="3.6">
+          <path d="M70 173.5 L277 169.5 L280.5 299 L68.5 301.5 Z" fill="#c98c50" />
+          <path d="M70.5 173 L121 131.5 L326 129 L277.5 170 Z" fill="#ddb07a" />
+          <path d="M277 170 L326.5 129.5 L330 257 L280.5 299 Z" fill="#a8723e" />
+        </g>
+        <g fill="none" stroke="#8c6238" stroke-width="1.8" opacity="0.75">
+          <path d="M80 185 C120 181 160 189 200 184 S250 187 268 183" />
+          <path d="M150 292 C180 288 220 294 270 289" />
+          <path d="M110 153 C150 149 200 155 250 150 S290 151 306 147" />
+          <path d="M292 182 C296 196 293 208 296 222" />
+        </g>
+        <g fill={B_INK}>{drilledHoles(128, 237, [[13, 7], [25, 13], [37, 19]], 3)}</g>
+        {arcade(199, 239, 9.5, '#e5483b', 3)}
+        {arcade(229, 239, 11, '#f6c12c', 3)}
+        {arcade(259, 239, 9.5, '#3f8fd6', 3)}
+        <g transform="translate(204 70) rotate(-11)">
+          <rect x="-33" y="-50" width="66" height="100" rx="7" fill="#fffcf5" stroke={B_INK} stroke-width="3.5" />
+          <rect x="-26" y="-43" width="52" height="52" rx="3" fill="#12a89d" stroke={B_INK} stroke-width="2.5" />
+          <path d="M-2 -32 L4 -20 L17 -19 L7 -10 L10 3 L-2 -4 L-14 3 L-11 -10 L-21 -19 L-8 -20 Z" fill="#fdd459" stroke={B_INK} stroke-width="2.2" />
+          <path d="M12 23c2.6 3 2.6 7 0 10 M18 20c4 4.5 4 11.5 0 16" fill="none" stroke={B_INK} stroke-width="2.2" opacity="0.6" />
+        </g>
+        <g fill="none" stroke={B_INK} stroke-width="2.6">
+          <path d="M158 96 C154 108 154 116 158 126" />
+          <path d="M250 88 C256 100 256 110 252 122" />
+        </g>
+      </g>
+    </svg>
+  );
+}

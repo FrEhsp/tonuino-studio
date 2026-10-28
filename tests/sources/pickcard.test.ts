@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { VNode } from 'preact';
 import { recommendations } from '../../src/core/sources/filter';
-import { PickCard } from '../../src/features/sources/Picks';
+import { LeadPick } from '../../src/features/sources/Picks';
 import { buildSample } from './sample';
 
 const { sample } = buildSample();
@@ -19,19 +19,20 @@ function walk(node: unknown, out: VNode[] = []): VNode[] {
   return out;
 }
 
-describe('a pick on "Entdecken"', () => {
-  it('opens from the whole card through one link: the title, with "Ansehen" only as a sign', () => {
+describe('the tip on top of "Entdecken"', () => {
+  it('is the one big thing: its cover large, why it is recommended, and the one filled button', () => {
     const idx = JSON.parse(JSON.stringify(sample)) as typeof sample;
     idx.entries[0].featured = { rank: 1, why: 'Schön.' };
     const [r] = recommendations(idx, {});
-    const nodes = walk(PickCard({ r }));
-    const links = nodes.filter((n) => n.type === 'a' || (n.props as { href?: string }).href !== undefined);
-    expect(links).toHaveLength(1);
-    expect((links[0].props as { class?: string }).class).toBe('source-pick-link');
-    const sign = nodes.find((n) => String((n.props as { class?: string }).class ?? '').includes('source-pick-action'))!;
-    expect(sign.type).toBe('span');
-    expect((sign.props as Record<string, unknown>)['aria-hidden']).toBe('true');
-    // No button or other target inside the card that the link would cover.
-    expect(nodes.some((n) => n.type === 'button')).toBe(false);
+    const nodes = walk(LeadPick({ r }));
+    const cover = nodes.find((n) => (n.props as { size?: string }).size !== undefined)!;
+    expect((cover.props as { size?: string }).size).toBe('xl');
+    const links = nodes.filter((n) => n.type === 'a');
+    // The button is the one stop for the keyboard; the picture opens it for the mouse only.
+    const focusable = links.filter((n) => (n.props as { tabIndex?: number }).tabIndex !== -1);
+    expect(focusable).toHaveLength(1);
+    expect((focusable[0].props as { class?: string }).class).toContain('btn primary');
+    expect(links.every((n) => (n.props as { href?: string }).href === (links[0].props as { href?: string }).href)).toBe(true);
+    expect(JSON.stringify(nodes.map((n) => (n.props as { children?: unknown }).children).filter((c) => typeof c === 'string'))).toContain('Schön.');
   });
 });

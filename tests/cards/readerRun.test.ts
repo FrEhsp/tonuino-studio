@@ -194,3 +194,46 @@ describe('writing cards with the reader', () => {
     expect(log.slice(0, 2)).toEqual(['waiting f7', 'written f7']);
   });
 });
+
+describe('reading the card back after writing (0.6, „Karte beschreiben“)', () => {
+  it('says the card holds what was written, before it waits for the card to go', async () => {
+    const r = reader(['A']);
+    const { log, events } = recorder();
+    events.verified = (key, ok) => log.push(`verified ${key} ${ok}`);
+    expect(await writeCards(ITEMS.slice(0, 1), 0, r.port, newRunMemory(), events, new AbortController().signal)).toEqual({ kind: 'done' });
+    expect(log).toEqual(['waiting f7', 'verified f7 true', 'written f7']);
+  });
+
+  it('says so when the card holds something else afterwards, or could not be read', async () => {
+    const r = reader(['A', 'B']);
+    // A card that keeps its old content (the write did not take).
+    r.port.write = async () => {};
+    const { log, events } = recorder();
+    events.verified = (key, ok) => log.push(`verified ${key} ${ok}`);
+    await writeCards(ITEMS.slice(0, 1), 0, r.port, newRunMemory(), events, new AbortController().signal);
+    expect(log).toContain('verified f7 false');
+    const gone = reader(['C']);
+    let reads = 0;
+    const read = gone.port.read;
+    gone.port.read = async () => {
+      if (++reads > 1) throw Object.assign(new Error('weg'), { code: 'tag-lost' });
+      return read();
+    };
+    const second = recorder();
+    second.events.verified = (key, ok) => second.log.push(`verified ${key} ${ok}`);
+    await writeCards(ITEMS.slice(0, 1), 0, gone.port, newRunMemory(), second.events, new AbortController().signal);
+    expect(second.log).toContain('verified f7 false');
+  });
+
+  it('does not read again when nobody listens (the list of many cards)', async () => {
+    const r = reader(['A']);
+    let reads = 0;
+    const read = r.port.read;
+    r.port.read = async () => {
+      reads++;
+      return read();
+    };
+    await writeCards(ITEMS.slice(0, 1), 0, r.port, newRunMemory(), recorder().events, new AbortController().signal);
+    expect(reads).toBe(1);
+  });
+});

@@ -70,6 +70,19 @@ describe('templateFromForm', () => {
     expect(t.notes).toBe('');
   });
 
+  it('places a sheet on Letter paper, with its own id (Prüfrunde 1, bastler 26)', () => {
+    // Avery 5163 / 8163 by its maker's figures: 2 × 5 labels of 4 × 2 in.
+    const { template: t, params } = built(form({ page: 'letter', width: '101,6', height: '50,8', cols: '2', rows: '5', marginLeft: '3,97', marginTop: '12,7', gapX: '4,76', gapY: '0' }));
+    expect(t.page).toEqual({ widthMm: 215.9, heightMm: 279.4 });
+    expect(t.id).toBe('custom-101_6x50_8-2x5-letter-bogen');
+    expect(t.description).toContain('pro Letter-Seite');
+    expect(slotRects(t).every((r) => r.x + r.width <= 215.9 && r.y + r.height <= 279.4)).toBe(true);
+    expect(formFromParams(params).page).toBe('letter');
+    expect(cleanCustomParams(JSON.parse(JSON.stringify(params)))?.page).toEqual({ widthMm: 215.9, heightMm: 279.4 });
+    // On A4, 5.9 mm narrower, the same sheet does not fit.
+    expect(problem(form({ width: '101,6', height: '50,8', cols: '2', rows: '5', marginLeft: '3,97', marginTop: '12,7', gapX: '4,76', gapY: '0' }))).toContain('ragt über den Seitenrand');
+  });
+
   it('works out empty fields: as many as fit, centred', () => {
     const { template: t, params } = built(form({ paper: 'cut', width: '50', height: '30' }));
     expect(t.kind).toBe('cut-yourself');

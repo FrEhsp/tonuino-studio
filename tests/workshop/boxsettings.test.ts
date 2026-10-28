@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { analyzeBootLog } from '../../src/core/firmware/bootlog';
 import { settingsGuide } from '../../src/core/tonuino/settingsguide';
-import { basisOf, currentValues, lockOf, pinUnusable, standbyOffText, valuesFromInfo, type Applied } from '../../src/features/workshop/BoxSettingsTool';
+import { basisOf, buttonsOptions, currentValues, lockOf, pinUnusable, standbyOffText, valuesFromInfo, type Applied } from '../../src/features/workshop/BoxSettingsTool';
 import { Logbook } from '../../src/features/workshop/logbook';
 import { AIOPLUS_BROKEN_LOG, CLASSIC_LOG } from './fakes';
 
@@ -94,5 +94,18 @@ describe('Box einstellen with a Steckbrief', () => {
     expect(standbyOffText('tng')).toContain('Halte die Play/Pause-Taste lang gedrückt, während nichts läuft');
     expect(standbyOffText('tng')).not.toContain('nur mit ihrem Schalter');
     expect(standbyOffText('classic21')).toBe('Dann geht die Box nur mit ihrem Schalter aus. Hat sie keinen, ist der Akku irgendwann leer.');
+  });
+});
+
+describe('Box einstellen: the key setting', () => {
+  it('offers what „Tasten umdrehen“ does on the box, with the factory choice named', () => {
+    const five = buttonsOptions('five');
+    expect(five.label).toBe('Tasten bei 5 Tasten');
+    expect(five.options.find((o) => o.text.includes('ab Werk'))?.value).toBe(false);
+    expect(five.now(true)).toContain('getauscht');
+    const three = buttonsOptions('three');
+    expect(three.label).toBe('Kurz drücken');
+    expect(three.options.find((o) => o.text.includes('ab Werk'))?.value).toBe(true);
+    expect(buttonsOptions(undefined)).toMatchObject({ label: 'Kurz drücken' });
   });
 });

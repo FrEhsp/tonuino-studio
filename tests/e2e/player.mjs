@@ -10,7 +10,7 @@
  */
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { check, FIXTURES, MP3, noErrors, openApp, shot, shown } from './lib.mjs';
+import { check, FIXTURES, MP3, noDeezer, noErrors, openApp, shot, shown } from './lib.mjs';
 
 const VBR = join(FIXTURES, 'vbr-no-xing.mp3');
 
@@ -73,6 +73,7 @@ export async function player(browser) {
   await page.context().route(/itunes\.apple\.com\/|musicbrainz\.org\/|coverartarchive\.org\/|mzstatic\.com\//, (route) =>
     route.fulfill({ status: 200, contentType: 'application/json', headers: { 'Access-Control-Allow-Origin': '*' }, body: '{"results":[],"releases":[]}' }),
   );
+  await noDeezer(page.context());
   await fill(page, { mp3: { '0001.mp3': mp3 }, '01': { '001.mp3': vbr, '002.mp3': mp3, '003.mp3': vbr } }, 'TONUINO');
   await page.getByRole('button', { name: 'SD-Karte auswählen' }).first().click();
   await shown(page).locator('.page-header h1').waitFor();

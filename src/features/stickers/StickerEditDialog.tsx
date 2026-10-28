@@ -11,10 +11,12 @@ import { changeLookWithoutCard } from '../../app/waiting';
 import { isSnapshotCard } from '../../app/pending';
 import { CoverDialog } from '../box/CoverDialog';
 import { extras, updateExtraSticker } from '../cards/items';
-import { IMAGE_EXTENSIONS, imageBlobOf, looseIdOf, picturePalette, pictureSizeOf, replaceLoosePicture, stickerItems, updateLooseSticker, type StickerItem } from './content';
+import { IMAGE_EXTENSIONS, imageBlobOf, looseIdOf, picturePalette, pictureSizeOf, removeFromSheet, replaceLoosePicture, stickerItems, updateLooseSticker, type StickerItem } from './content';
+import { Kreuz } from '../../ui/icons';
 import { StickerThumb } from './Preview';
 import { PictogramPicker } from './PictogramPicker';
 import { motifOf } from './bildkarte';
+import { pictogramWord } from './pictogramWord';
 import { blurryHint } from './blurry';
 import { updateDesign } from './design';
 import { pictogramInstead, stickerDpi, type RenderSetup } from './pipeline';
@@ -32,6 +34,8 @@ export function StickerEditDialog({ item: opened, setup, onClose }: { item: Stic
   // One of several cards of a folder (an episode, tracks 13 to 15): a sticker of its own, its picture the folder's.
   const extra = item.folder !== undefined && item.key.startsWith('x:') ? extras.value.find((x) => `x:${x.id}` === item.key) : undefined;
   const looseId = looseIdOf(item);
+  // A special card (Schlummerkarte, Stopptanz …): its text and colour stay, a Bildkarte can show a pictogram (TODO 0.3 #103).
+  const special = item.folder === undefined && item.key.startsWith('x:') ? extras.value.find((x) => `x:${x.id}` === item.key) : undefined;
   const editable = !!folder || !!extra || !!looseId;
   // "Anderes Bild" for a folder (its cover) or for a sticker from an own picture.
   const canChange = (folderNumber !== undefined && (!!folder || (!!extra && !!folderEntry))) || !!looseId;
@@ -66,7 +70,7 @@ export function StickerEditDialog({ item: opened, setup, onClose }: { item: Stic
   const draft = useDebounced<StickerItem>({ ...item, title: title.trim() || item.title, color, zoom: ownZoom, orientation, focusX: fx, focusY: fy, pictogram }, 90);
   // "Bildkarte" without a cover: the own motif or an ARASAAC pictogram, for folders and their further cards.
   // A sticker from an own picture (no SD card) can swap its picture for a pictogram.
-  const picksPictogram = (((!!folder || !!extra) && !item.picture) || !!looseId) && setup.design.style === 'bild' && !compact;
+  const picksPictogram = (((!!folder || !!extra || !!special) && !item.picture) || !!looseId) && setup.design.style === 'bild' && !compact;
   // The pictogram stands where the picture was: its section and sharpness do not matter then.
   const showsPicture = !!item.picture && !pictogramInstead({ loose: item.loose, pictogram }, setup);
   // Print resolution with the section as the preview shows it: the hint follows the
@@ -113,7 +117,11 @@ export function StickerEditDialog({ item: opened, setup, onClose }: { item: Stic
   const save = async () => {
     setBusy(true);
     try {
-      if (looseId) {
+      if (special) {
+        const tweaks = { ...special.sticker, pictogram };
+        const own = Object.fromEntries(Object.entries(tweaks).filter(([, v]) => v !== undefined));
+        await updateExtraSticker(special.id, Object.keys(own).length ? own : undefined, special.color);
+      } else if (looseId) {
         updateLooseSticker(looseId, { title: title.trim() || item.title, color, focusX: fx, focusY: fy, zoom: ownZoom, orientation, pictogram });
       } else if (extra) {
         // Only what differs from the folder's sticker: the rest keeps following it.
@@ -170,20 +178,33 @@ export function StickerEditDialog({ item: opened, setup, onClose }: { item: Stic
       top
       onClose={onClose}
       footer={
-        editable ? (
-          <>
-            <Button variant="ghost" onClick={onClose}>
-              Abbrechen
-            </Button>
-            <Button variant="primary" onClick={save} loading={busy}>
-              Übernehmen
-            </Button>
-          </>
-        ) : (
-          <Button variant="primary" onClick={onClose}>
-            Schließen
+        <>
+          <Button
+            variant="ghost"
+            icon={Kreuz}
+            disabled={busy}
+            onClick={() => {
+              removeFromSheet(opened);
+              onClose();
+            }}
+          >
+            Vom Bogen nehmen
           </Button>
-        )
+          {editable || picksPictogram ? (
+            <>
+              <Button variant="ghost" onClick={onClose}>
+                Abbrechen
+              </Button>
+              <Button variant="primary" onClick={save} loading={busy}>
+                Übernehmen
+              </Button>
+            </>
+          ) : (
+            <Button variant="primary" onClick={onClose}>
+              Schließen
+            </Button>
+          )}
+        </>
       }
     >
       <div class="sticker-edit">
@@ -201,7 +222,7 @@ export function StickerEditDialog({ item: opened, setup, onClose }: { item: Stic
                 setCoverOpen(true);
               }}
             >
-              {item.picture ? 'Anderes Bild' : 'Cover hinzufügen'}
+              {item.picture ? 'Anderes Bild oder Piktogramm' : 'Cover oder Piktogramm'}
             </Button>
           ) : null}
           {extra && canChange ? <p class="soft small center">Das Bild gehört zu Ordner {pad2(extra.folder)} und gilt für alle seine Karten.</p> : null}
@@ -253,7 +274,7 @@ export function StickerEditDialog({ item: opened, setup, onClose }: { item: Stic
               </div>
             </Field>
             {picksPictogram ? (
-              <PictogramPicker word={(title.trim() || item.title).split(/\s+/).slice(0, 3).join(' ')} value={pictogram} own={looseId ? 'picture' : motifOf(item) ? 'motif' : 'word'} onChange={setPictogram} />
+              <PictogramPicker word={pictogramWord(title.trim() || item.title)} value={pictogram} own={looseId ? 'picture' : motifOf(item) ? 'motif' : 'word'} onChange={setPictogram} />
             ) : null}
             {!compact ? (
               <Field label="Format">
@@ -297,7 +318,21 @@ export function StickerEditDialog({ item: opened, setup, onClose }: { item: Stic
             {(folder || extra) && isSnapshotCard() ? <p class="soft small">Wird mit den Namen und Bildern deiner Box gespeichert und kommt mit dem nächsten Paket auf die Karte.</p> : null}
           </div>
         ) : (
-          <p class="soft">Spezialkarten sehen immer gleich aus, damit man sie auf einen Blick erkennt. Den Text änderst du über Stil, Schrift und „Titel zeigen“.</p>
+          <div class="stack">
+            <p class="soft">
+              Spezialkarten behalten ihren Text und ihre Farbe, damit man sie auf einen Blick erkennt. {picksPictogram ? 'Statt des gezeichneten Bilds kann ein Piktogramm draufkommen.' : 'Die Schrift änderst du über Stil, Schrift und „Titel zeigen“.'}
+            </p>
+            {picksPictogram ? (
+              <PictogramPicker word={pictogramWord(item.title, true)} value={pictogram} own={motifOf(item) ? 'motif' : 'word'} onChange={setPictogram} />
+            ) : special && !compact ? (
+              <p class="soft">
+                Ein Piktogramm statt des Bilds gibt es im Stil „Bildkarte“.{' '}
+                <button type="button" class="inline-link" onClick={() => updateDesign({ style: 'bild' })}>
+                  Bogen auf „Bildkarte“ stellen
+                </button>
+              </p>
+            ) : null}
+          </div>
         )}
       </div>
     </Dialog>

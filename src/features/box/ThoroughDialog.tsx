@@ -11,7 +11,7 @@ import { Button, Callout, Progress } from '../../ui/components/controls';
 import { formatBytes, plural } from '../../app/format';
 import { routeToHash } from '../../app/router';
 import { card } from '../../app/state';
-import { openRebuildDialog } from './RebuildDialog';
+import { openRebuildDialog } from './openDialogs';
 import { openPackageDialog } from './PackageDialog';
 import '../../ui/styles/thorough.css';
 

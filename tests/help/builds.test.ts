@@ -85,7 +85,7 @@ describe('the check for new versions in the privacy text', () => {
   it('is named, with its server, only in a desktop build that has a release list', async () => {
     vi.stubEnv('VITE_RELEASES_URL', 'https://api.github.com/repos/beispiel/tonuino-studio/releases/latest');
     const desktop = (await helpOf({ __DESKTOP_BUILD__: true })).topics;
-    expect(privacy(desktop)).toContain('fragt die Desktop-App höchstens einmal am Tag bei api.github.com nach');
+    expect(privacy(desktop)).toContain('fragt die App höchstens einmal am Tag bei api.github.com nach');
     expect(privacy(desktop)).toContain('Ab Werk ist das aus.');
     expect(privacy(desktop)).toContain('Die Desktop-App sucht nur dann nach neuen Versionen, wenn du es einschaltest.');
     expect(privacy(desktop)).not.toContain('sucht auch nicht von selbst');

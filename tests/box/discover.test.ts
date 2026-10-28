@@ -31,6 +31,16 @@ describe('entryFromTags', () => {
     expect(e.kind).toBe('hoerspiel');
   });
 
+  it('takes the folder name given in Tonuino-Manager before the album, from the first track', () => {
+    const tracks = infos(4);
+    tracks[0] = { ...tracks[0], folderName: ' Lieder  zum Einschlafen ' };
+    expect(entryFromTags(folder(4), tracks).title).toBe('Lieder zum Einschlafen');
+    // Only the first track counts, as in Tonuino-Manager.
+    const later = infos(4);
+    later[2] = { ...later[2], folderName: 'Anderer Name' };
+    expect(entryFromTags(folder(4), later).title).toBe('Kinderlieder');
+  });
+
   it('without an album the folder number names it', () => {
     const e = entryFromTags(folder(2), [{}, {}]);
     expect(e.title).toBe('Ordner 04');

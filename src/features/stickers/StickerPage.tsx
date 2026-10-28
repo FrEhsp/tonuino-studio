@@ -29,11 +29,13 @@ import type { BulkTarget } from '../../core/stickers/bulkcover';
 import { BulkCoverDialog, useCoverless } from './BulkCoverDialog';
 import { CoverSearch } from '../box/CoverSearch';
 import { CalibrationDialog } from './CalibrationDialog';
+import { FitCheckDialog, fitQuestion, fitQuestionAfterPrint, type FitQuestion } from './FitCheckDialog';
+import { PaperCodeSearch } from './PaperCodeSearch';
 import { CustomSizeDialog } from './CustomSizeDialog';
-import { addLooseStickers, folderSticker, IMAGE_EXTENSIONS, imageBlobOf, looseStickers, measurePictures, removeAllLooseStickers, removeLooseSticker, setLooseSelected, stickerFromCard, stickerItems, type LooseSticker, type StickerItem } from './content';
+import { addLooseStickers, folderSticker, IMAGE_EXTENSIONS, imageBlobOf, isWordSticker, looseStickers, measurePictures, removeAllLooseStickers, removeFromSheet, removeLooseSticker, setLooseSelected, stickerFromCard, stickerItems, type LooseSticker, type StickerItem } from './content';
 import { restoreLooseStickers } from './looseStore';
 import { loadPrinted, markPrinted, neverPrinted, printedRecord } from './printedStore';
-import { calibration, design, loadLogoImage, logoImage, ownTemplate, printOptions, printSetup, setLogoImage, setMargin, template, toggleUsedSlot, updateDesign, updatePrint, usedSlots, type StickerDesign } from './design';
+import { calibration, changedDesign, design, loadLogoImage, logoImage, ownTemplate, printOptions, printSetup, setLogoImage, setMargin, template, toggleUsedSlot, updateDesign, updatePrint, usedSlots, type StickerDesign } from './design';
 import { loadAllTitleFaces, STICKER_FONTS } from './fonts';
 import { buildPdf, buildPhotoSheets, buildZip, printsBlurry, type Progress as JobProgress, type RenderSetup, type SheetSetup } from './pipeline';
 import { canPrint, printDocument } from './print';
@@ -41,6 +43,7 @@ import { PrintChecklist, printedOnce, TrialDialog } from './PrintNotes';
 import { SheetPreview, StickerThumb } from './Preview';
 import { SheetDiagram } from './SheetDiagram';
 import { StickerEditDialog } from './StickerEditDialog';
+import { WordCardDialog } from './WordCardDialog';
 import { backMode } from './backside';
 import { BackSheetPreview } from './BackPreview';
 import { placeSticker, placement, printPins, resetPlacement } from './placement';
@@ -48,6 +51,7 @@ import { keyHint, type CarryVia } from './sheetMove';
 import { folderRuns, paperName, paperSize } from './summary';
 import { motifOf } from './bildkarte';
 import '../../ui/styles/stickers.css';
+import { BackToWorkshop } from '../../ui/components/BackToWorkshop';
 
 // In the order of STICKER_STYLES: "Kassette" right after "Klassisch".
 const STYLES: { id: StickerStyle; name: string; text: string }[] = [
@@ -67,7 +71,7 @@ const PAPER_GROUPS: { label: string; ids: string[] }[] = [
 const MAX_MINIS = 8;
 
 /** Shown in the style picker while nothing is selected and no card with covers is in. */
-const SAMPLE: StickerItem = {
+export const SAMPLE: StickerItem = {
   key: 'sample',
   title: 'Mein Hörspiel',
   subtitle: 'Folge 1',
@@ -77,7 +81,7 @@ const SAMPLE: StickerItem = {
 };
 
 /** With a card in and nothing chosen yet, its first folder with a cover shows the styles. */
-function cardSample(): StickerItem | undefined {
+export function cardSample(): StickerItem | undefined {
   const folders = catalog.value?.folders;
   if (!folders) return undefined;
   for (const name of Object.keys(folders).sort()) {
@@ -112,8 +116,11 @@ export function StickerPage() {
   // Also for the remembered box: what is changed without the card goes onto it when it is open again (app/remembered.ts).
   const edit = (i: StickerItem) => setEditing(i);
   const [calibrating, setCalibrating] = useState(false);
+  // „Sitzt es?“ (#128): asked once per printer and paper, right after the first print.
+  const [fit, setFit] = useState<FitQuestion | null>(null);
   const [ownSize, setOwnSize] = useState(false);
   const [addSpecial, setAddSpecial] = useState(false);
+  const [addWord, setAddWord] = useState(false);
   const [searchCover, setSearchCover] = useState(false);
   // "Welche Sticker?": the list of everything to choose from, in a dialog. Dialogs opened from it
   // (adjusting a sticker, covers, a special card) take its place for a while, then it comes back.
@@ -186,7 +193,8 @@ export function StickerPage() {
     ...setup,
     usedSlots: used,
     pins: printPins.value,
-    calibration: calibration.value,
+    // Read when the file is made: the desktop app's print dialog chooses the printer first (TODO #128).
+    calibration: () => calibration.value,
     cutMarks: print.cutMarks,
     cutLines: print.cutLines,
     title: catalog.value?.name ? `Sticker für ${catalog.value.name}` : 'TonUINO-Sticker',
@@ -229,6 +237,7 @@ export function StickerPage() {
       if (!(await sendToPrinter(sheetSetup(), progress))) return;
       printedNow();
       printedOnce();
+      setFit(fitQuestionAfterPrint(template.value));
     }, 'Drucken hat nicht geklappt');
 
   /**
@@ -298,11 +307,12 @@ export function StickerPage() {
   // While a sticker is carried, the line in the print bar says how to put it down.
   const carryNote =
     carrying === 'keys' ? keyHint(pages.length) : carrying && pages.length > 1 ? 'Zu einem anderen Bogen? Halte den Sticker kurz über einen der kleinen Bögen oben.' : null;
-  const childOpen = !!editing || !!findCovers || addSpecial || confirmRemove;
+  const childOpen = !!editing || !!findCovers || addSpecial || addWord || confirmRemove;
 
   return (
     <div class={`page sticker-bench ${items.length ? '' : 'is-empty'} ${over ? 'drop-over' : ''}`} {...handlers}>
       <header class="bench-head">
+        <BackToWorkshop />
         <h1>Sticker drucken</h1>
         <p>Drei Fragen, dann drucken. Der Bogen zeigt genau, was aus dem Drucker kommt.</p>
       </header>
@@ -319,12 +329,13 @@ export function StickerPage() {
             onAddImages={() => void pickImages()}
             onSearchCover={() => setSearchCover(true)}
             onAddSpecial={() => setAddSpecial(true)}
+            onAddWord={() => setAddWord(true)}
           />
           <LookFold>
             <StyleQuestion setup={setup} sample={items[0] ?? cardSample() ?? SAMPLE} coverless={items.find((i) => !i.picture && motifOf(i))} />
             <TextQuestion />
           </LookFold>
-          <MoreTools open={more} onToggle={setMore} onCalibrate={() => setCalibrating(true)} onOwnSize={() => setOwnSize(true)} />
+          <MoreTools open={more} onToggle={setMore} onCalibrate={() => setCalibrating(true)} onOwnSize={() => setOwnSize(true)} onFitCheck={() => setFit(fitQuestion(template.value))} />
         </div>
         {items.length ? (
           <p class="bench-tip soft">
@@ -387,6 +398,7 @@ export function StickerPage() {
                 used={used}
                 setup={setup}
                 onEdit={edit}
+                onRemove={removeFromSheet}
                 onToggleUsed={sheet === 0 && perSheet > 1 ? toggleUsedSlot : undefined}
                 onPlace={images ? undefined : placeSticker}
                 onSheet={setSheet}
@@ -441,6 +453,7 @@ export function StickerPage() {
           onRemoveAll={() => setConfirmRemove(true)}
           onAddSpecial={() => setAddSpecial(true)}
           onAddImages={() => void pickImages()}
+          onAddWord={() => setAddWord(true)}
         />
       ) : null}
       {editing ? <StickerEditDialog item={editing} setup={setup} onClose={() => setEditing(null)} /> : null}
@@ -486,14 +499,16 @@ export function StickerPage() {
           }}
         />
       ) : null}
+      {fit ? <FitCheckDialog question={fit} onClose={() => setFit(null)} onAlign={() => setCalibrating(true)} /> : null}
       {calibrating ? <CalibrationDialog onClose={() => setCalibrating(false)} /> : null}
       {ownSize ? <CustomSizeDialog onClose={() => setOwnSize(false)} /> : null}
       {addSpecial ? <SpecialCardDialog onClose={() => setAddSpecial(false)} /> : null}
+      {addWord ? <WordCardDialog onClose={() => setAddWord(false)} /> : null}
     </div>
   );
 }
 
-async function pickImages() {
+export async function pickImages() {
   try {
     const files = await plat().pickFiles({ multiple: true, extensions: IMAGE_EXTENSIONS });
     await addImages(files);
@@ -502,7 +517,7 @@ async function pickImages() {
   }
 }
 
-async function addImages(sources: ByteSource[]) {
+export async function addImages(sources: ByteSource[]) {
   const images = sources.filter((s) => IMAGE_EXTENSIONS.includes(s.name.split('.').pop()?.toLowerCase() ?? ''));
   if (!images.length) {
     if (sources.length) toast.info('Keine Bilder dabei', 'Sticker gehen aus JPG-, PNG- oder WebP-Bildern.');
@@ -513,7 +528,7 @@ async function addImages(sources: ByteSource[]) {
   if (skipped) toast.info(skipped === 1 ? 'Ein Bild war schon da' : `${skipped} Bilder waren schon da`, 'Sie stehen schon in der Liste.');
 }
 
-function fileBase(name: string | undefined, t: LabelTemplate): string {
+export function fileBase(name: string | undefined, t: LabelTemplate): string {
   const box = (name ?? 'TonUINO').replace(/[\\/:*?"<>|]+/g, ' ').trim();
   return `Sticker ${box} (${t.name.replace(/\s*\(.*\)$/, '').replace(/[\\/:*?"<>|]+/g, ' ')})`;
 }
@@ -607,6 +622,7 @@ function WhichQuestion({
   onAddImages,
   onSearchCover,
   onAddSpecial,
+  onAddWord,
 }: {
   pages: number;
   blurry: StickerItem[];
@@ -616,6 +632,7 @@ function WhichQuestion({
   onAddImages: () => void;
   onSearchCover: () => void;
   onAddSpecial: () => void;
+  onAddWord: () => void;
 }) {
   const items = cardItems.value;
   const loose = looseStickers.value;
@@ -637,7 +654,9 @@ function WhichQuestion({
   const what: string[] = [];
   if (chosenFolders.length) what.push(chosenFolders.length === folders.length && folders.length > 1 ? `Alle ${folders.length} Ordner` : plural(chosenFolders.length, 'Ordner', 'Ordner'));
   if (chosenSpecial) what.push(plural(chosenSpecial, 'Spezialkarte', 'Spezialkarten'));
-  if (chosenLoose.length) what.push(plural(chosenLoose.length, 'eigenes Bild', 'eigene Bilder'));
+  const chosenWords = chosenLoose.filter(isWordSticker).length;
+  if (chosenLoose.length > chosenWords) what.push(plural(chosenLoose.length - chosenWords, 'eigenes Bild', 'eigene Bilder'));
+  if (chosenWords) what.push(plural(chosenWords, 'Wortkarte', 'Wortkarten'));
   const which = chosenFolders.length ? folderRuns(chosenFolders.map((i) => i.folder!)) : chosenLoose.length ? chosenLoose.slice(0, 2).map((l) => l.title).join(', ') + (chosenLoose.length > 2 ? ' …' : '') : '';
   const amount = images ? plural(count, 'Bild', 'Bilder') : plural(Math.max(1, pages), 'Bogen', 'Bögen');
 
@@ -700,6 +719,9 @@ function WhichQuestion({
           <Button icon={Plus} onClick={onAddSpecial}>
             Spezialkarte
           </Button>
+          <Button icon={Stift} onClick={onAddWord}>
+            Wort + Piktogramm
+          </Button>
         </div>
       ) : null}
       {coverTargets.length ? (
@@ -752,7 +774,7 @@ function BlurryBadge({ title, onClick }: { title: string; onClick: () => void })
 }
 
 /** "Welche Sticker?" in full: every folder, special card and own picture to tick. */
-function PickDialog({
+export function PickDialog({
   blurry,
   onClose,
   onEdit,
@@ -760,6 +782,7 @@ function PickDialog({
   onRemoveAll,
   onAddSpecial,
   onAddImages,
+  onAddWord,
 }: {
   /** Keys of stickers whose pictures are too small to print sharply. */
   blurry: ReadonlySet<string>;
@@ -769,6 +792,7 @@ function PickDialog({
   onRemoveAll: () => void;
   onAddSpecial: () => void;
   onAddImages: () => void;
+  onAddWord: () => void;
 }) {
   const items = cardItems.value;
   const loose = looseStickers.value;
@@ -832,7 +856,7 @@ function PickDialog({
           ))}
           {loose.length ? (
             <li class="pick-group row">
-              <span>Eigene Bilder</span>
+              <span>{loose.every(isWordSticker) ? 'Wortkarten' : loose.some(isWordSticker) ? 'Eigene Bilder und Wortkarten' : 'Eigene Bilder'}</span>
               <div class="spacer" />
               <button type="button" class="link-button danger-link" onClick={onRemoveAll}>
                 Alle entfernen
@@ -866,6 +890,9 @@ function PickDialog({
         <Button icon={Plus} onClick={onAddSpecial}>
           Spezialkarte
         </Button>
+        <Button icon={Stift} onClick={onAddWord}>
+          Wort + Piktogramm
+        </Button>
         {/* The same examples as under „Karten beschreiben“: the word alone said nothing (audit 0.4 #12). */}
         <span class="soft small">Schlummerkarte, Stopptanz, Kita-Modus, Admin-Karte …</span>
       </div>
@@ -873,7 +900,7 @@ function PickDialog({
   );
 }
 
-function RemoveLooseDialog({ count, onClose }: { count: number; onClose: () => void }) {
+export function RemoveLooseDialog({ count, onClose }: { count: number; onClose: () => void }) {
   return (
     <Dialog
       title={`${plural(count, 'eigenes Bild', 'eigene Bilder')} entfernen?`}
@@ -996,7 +1023,7 @@ function StyleQuestion({ setup, sample, coverless }: { setup: RenderSetup; sampl
         <div class="style-grid" role="radiogroup" aria-label="Stil">
           {STYLES.map((s) => (
             <button type="button" role="radio" aria-checked={d.style === s.id} class="style-choice" key={s.id} title={s.text} onClick={() => updateDesign({ style: s.id })}>
-              <StickerThumb item={s.id === 'bild' && coverless ? coverless : sample} setup={{ ...setup, design: { ...d, style: s.id } }} size={136} fluid label={`Beispiel: ${s.name}`} />
+              <StickerThumb item={s.id === 'bild' && coverless ? coverless : sample} setup={{ ...setup, design: changedDesign(d, { style: s.id }) }} size={136} fluid label={`Beispiel: ${s.name}`} />
               <span class="style-name">{s.name}</span>
             </button>
           ))}
@@ -1059,7 +1086,7 @@ function TextQuestion() {
  * the paper, labels already gone, aligning the printer and the backs. In
  * the controls of 0.3.1 (switches of two or three, tiles, ticks).
  */
-function MoreTools({ open, onToggle, onCalibrate, onOwnSize }: { open: boolean; onToggle: (open: boolean) => void; onCalibrate: () => void; onOwnSize: () => void }) {
+function MoreTools({ open, onToggle, onCalibrate, onOwnSize, onFitCheck }: { open: boolean; onToggle: (open: boolean) => void; onCalibrate: () => void; onOwnSize: () => void; onFitCheck: () => void }) {
   const t = template.value;
   const cal = calibration.value;
   const calibrated = !isIdentityCalibration(cal);
@@ -1079,7 +1106,7 @@ function MoreTools({ open, onToggle, onCalibrate, onOwnSize }: { open: boolean; 
       {open ? (
         <div class="bench-more-body" id="st-more">
           <LookMore />
-          <PaperMore onCalibrate={onCalibrate} onOwnSize={onOwnSize} />
+          <PaperMore onCalibrate={onCalibrate} onOwnSize={onOwnSize} onFitCheck={onFitCheck} />
         </div>
       ) : null}
     </div>
@@ -1213,7 +1240,7 @@ function LookMore() {
   );
 }
 
-function PaperMore({ onCalibrate, onOwnSize }: { onCalibrate: () => void; onOwnSize: () => void }) {
+export function PaperMore({ onCalibrate, onOwnSize, onFitCheck }: { onCalibrate: () => void; onOwnSize: () => void; onFitCheck?: () => void }) {
   const t = template.value;
   const own = ownTemplate.value;
   const print = printOptions.value;
@@ -1255,6 +1282,7 @@ function PaperMore({ onCalibrate, onOwnSize }: { onCalibrate: () => void; onOwnS
           </Button>
           <span class="soft small">Für Etiketten und Fotosticker, die oben fehlen.</span>
         </div>
+        <PaperCodeSearch onOwnSize={onOwnSize} />
       </div>
 
       {t.notes ? <Callout tone="neutral">{t.notes}</Callout> : null}
@@ -1306,6 +1334,14 @@ function PaperMore({ onCalibrate, onOwnSize }: { onCalibrate: () => void; onOwnS
             <Button onClick={onCalibrate}>Drucker ausrichten</Button>
             <span class="soft small">{calibrated ? `Korrektur aktiv: ${describeCalibration(cal)}.` : 'Druckt dein Drucker etwas daneben? Mit einer Testseite gleichst du das aus.'}</span>
           </div>
+          {onFitCheck && t.output === 'pdf' ? (
+            <p class="soft small">
+              Sitzen die gedruckten Sticker nicht auf den Etiketten?{' '}
+              <button type="button" class="link-button" onClick={onFitCheck}>
+                Beschreiben, was nicht passt
+              </button>
+            </p>
+          ) : null}
         </Field>
       )}
 
@@ -1362,7 +1398,7 @@ function PaperOption({ template: p, checked }: { template: LabelTemplate; checke
  * picture named after the album, as if it had been dragged in. The dialog
  * stays open, so a series is found one cover after the other.
  */
-function LooseCoverDialog({ onClose }: { onClose: () => void }) {
+export function LooseCoverDialog({ onClose }: { onClose: () => void }) {
   const [added, setAdded] = useState<string[]>([]);
   return (
     <Dialog title="Cover suchen" width="wide" bodyClass="cover-dialog-body" onClose={onClose} footer={<Button onClick={onClose}>{added.length ? 'Fertig' : 'Schließen'}</Button>}>

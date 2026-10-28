@@ -7,6 +7,10 @@
 //   npm run test:boxsim                 all of tests/boxsim
 //   npm run test:boxsim -- start        only files matching "start"
 //   BOXSIM_KEEP=1 npm run test:boxsim   keep the folder (its path is printed)
+//   BOXSIM_BAUKASTEN=DIR npm run test:boxsim
+//                                       test a new TNG state before it is taken over: DIR
+//                                       from `build_baukasten.py --tng "<version>" --candidate DIR`
+//                                       (docs/FIRMWARE-BAUKASTEN.md, "Geprüfter Stand")
 //
 // Needs gcc and simavr (Debian/Ubuntu: apt-get install gcc simavr libsimavr-dev).
 // simavr elsewhere (macOS with Homebrew): SIMAVR_PREFIX=<prefix with include/simavr
@@ -19,7 +23,7 @@ import { fileURLToPath } from 'node:url';
 import { gunzipSync } from 'node:zlib';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
-const BAUKASTEN = join(ROOT, 'public', 'firmware', 'baukasten');
+const BAUKASTEN = process.env.BOXSIM_BAUKASTEN || join(ROOT, 'public', 'firmware', 'baukasten');
 
 // The builds tests/boxsim starts (BoxSim.start({ build })). Keep this list short: every
 // build costs a simulator run of its own.
@@ -44,6 +48,11 @@ try {
   execFileSync('gcc', ['-O2', '-o', join(dir, 'boxsim'), join(ROOT, 'scripts', 'firmware', 'boxsim.c'), `-I${join(prefix, 'include', 'simavr')}`, ...where, ...libs], { stdio: 'inherit' });
 
   const manifest = JSON.parse(readFileSync(join(BAUKASTEN, 'manifest.json'), 'utf8'));
+  // The TNG state under test, for the tests that check what the box says about itself.
+  const tng = manifest.tng;
+  const date = tng.date ?? `20${tng.versionString.slice(-2)}-${tng.versionString.slice(-5, -3)}-${tng.versionString.slice(-8, -6)}`;
+  writeFileSync(join(dir, 'tng.json'), JSON.stringify({ version: tng.version, versionString: tng.versionString, date }));
+  console.log(`boxsim: TonUINO TNG ${tng.versionString} (${tng.commit.slice(0, 7)}) aus ${BAUKASTEN}`);
   const packs = new Map();
   for (const id of BUILDS) {
     const build = manifest.builds.find((b) => b.id === id);

@@ -1,6 +1,6 @@
 {
   "name": "tonuino-studio",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "TonUINO Studio: SD-Karte, Karten, Sticker und Firmware für TonUINO-Boxen",
   "scripts": {
     "dev": "vite",

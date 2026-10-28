@@ -131,28 +131,31 @@ describe('the Android app with its bridges does what the desktop app does', () =
 });
 
 describe('the Android app opens at the cards', () => {
-  it('marks Meine Box with a dot while an SD card waits there, until it is opened', async () => {
+  it('marks „Musik“ with a dot while an SD card waits there, until it is opened', async () => {
     // A test above leaves a made-up window behind.
     vi.unstubAllGlobals();
     const { card, platform } = await import('../../src/app/state');
     const { route } = await import('../../src/app/router');
-    const { cardWaitsInBox } = await import('../../src/app/Sidebar');
+    const { cardWaits } = await import('../../src/app/Kopf');
     const sd = (id: string) => ({ status: 'ready', volume: { id } }) as unknown as NonNullable<typeof card.value>;
-    route.value = { page: 'cards' };
+    route.value = { page: 'karte' };
     platform.value = { mobile: true } as Platform;
     card.value = sd('leser-1');
-    expect(cardWaitsInBox.value).toBe(true);
-    route.value = { page: 'box' };
-    expect(cardWaitsInBox.value).toBe(false);
+    expect(cardWaits.value).toBe(true);
+    route.value = { page: 'musik' };
+    expect(cardWaits.value).toBe(false);
     // Back at the cards, the same card has been seen.
-    route.value = { page: 'cards' };
-    expect(cardWaitsInBox.value).toBe(false);
-    // Another card comes: the dot again.
+    route.value = { page: 'karte' };
+    expect(cardWaits.value).toBe(false);
+    // Another card comes: the dot again; Meine Box counts as seen too.
     card.value = sd('leser-2');
-    expect(cardWaitsInBox.value).toBe(true);
-    // The computer starts at Meine Box anyway: never a dot.
+    expect(cardWaits.value).toBe(true);
+    route.value = { page: 'box' };
+    expect(cardWaits.value).toBe(false);
+    // The computer starts at the music anyway: never a dot.
+    card.value = sd('leser-3');
     platform.value = { mobile: false } as Platform;
-    expect(cardWaitsInBox.value).toBe(false);
+    expect(cardWaits.value).toBe(false);
     card.value = null;
     platform.value = null;
   });

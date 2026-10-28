@@ -459,7 +459,7 @@ export function exportText(entries: readonly LogEntry[], info: BoxInfo, issues: 
 /** For a forum post: the summary as text and the log in a code block, which Discourse shows unchanged. */
 export function forumText(entries: readonly LogEntry[], info: BoxInfo, issues: readonly LogIssue[], meta: ExportMeta): string {
   const head = meta.source ? [`${FORUM_TITLE} (${meta.source})`, ''] : [FORUM_TITLE, ''];
-  return [...head, ...summaryLines(info, issues), '', '```', logText(entries), '```', ''].join('\n');
+  return [...head, ...summaryLines(info, issues, true), '', '```', logText(entries), '```', ''].join('\n');
 }
 
 /** "TonUINO-Logbuch-2026-10-05-1540.txt" */

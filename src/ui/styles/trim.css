@@ -1,0 +1,244 @@
+/* Zuschneiden (src/features/trim/TrimEditor.tsx): wave, grips in their own lane, tools. */
+
+.trim-editor {
+  --trim-wave-h: 176px;
+  --trim-lane-h: 48px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.trim-editor canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.trim-overview {
+  height: 30px;
+  border: var(--line) solid var(--ink);
+  border-radius: 3px;
+  overflow: hidden;
+  cursor: pointer;
+  touch-action: none;
+}
+
+.trim-stage {
+  position: relative;
+  padding-bottom: var(--trim-lane-h);
+}
+
+.trim-wave {
+  position: relative;
+  height: var(--trim-wave-h);
+  border: var(--line) solid var(--ink);
+  border-radius: 3px;
+  overflow: hidden;
+  cursor: grab;
+  touch-action: none;
+  background: var(--surface);
+}
+
+.trim-wave:active {
+  cursor: grabbing;
+}
+
+.trim-wave-note {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: var(--space-4);
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.trim-error {
+  color: var(--danger-text);
+}
+
+/* The grips stand on the lane under the wave; their line reaches up through it. */
+.trim-lane {
+  position: absolute;
+  inset: auto 0 0;
+  height: var(--trim-lane-h);
+}
+
+.trim-grip {
+  position: absolute;
+  top: 0;
+  width: 0;
+  height: var(--trim-lane-h);
+  z-index: 1;
+}
+
+.trim-grip.active,
+.trim-grip:focus-within {
+  z-index: 2;
+}
+
+.trim-grip-line {
+  position: absolute;
+  left: -11px;
+  width: 22px;
+  top: calc(-1 * var(--trim-wave-h));
+  height: calc(var(--trim-wave-h) + 22px);
+  cursor: ew-resize;
+  touch-action: none;
+}
+
+.trim-grip-line::before {
+  content: '';
+  position: absolute;
+  left: 9.5px;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--ink);
+}
+
+.trim-grip.cut .trim-grip-line::before {
+  background: var(--danger);
+}
+
+.trim-knob {
+  position: absolute;
+  top: 3px;
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border: var(--line) solid var(--ink);
+  background: var(--highlight);
+  color: var(--ink);
+  box-shadow: 2px 2px 0 var(--ink);
+  cursor: ew-resize;
+  touch-action: none;
+}
+
+.trim-grip.right .trim-knob {
+  left: -1.5px;
+  border-radius: 2px 12px 12px 2px;
+}
+
+.trim-grip.left .trim-knob {
+  left: -40.5px;
+  border-radius: 12px 2px 2px 12px;
+}
+
+.trim-grip.cut .trim-knob {
+  width: 38px;
+  background: var(--danger-soft);
+}
+
+.trim-grip.cut.left .trim-knob {
+  left: -36.5px;
+}
+
+.trim-grip.snapped .trim-knob {
+  background: var(--success-soft);
+}
+
+.trim-grip.active .trim-knob {
+  transform: translateY(1px);
+  box-shadow: 1px 1px 0 var(--ink);
+}
+
+.trim-knob:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.trim-knob-ridges {
+  width: 12px;
+  height: 18px;
+  background: repeating-linear-gradient(90deg, var(--ink) 0 2px, transparent 2px 5px);
+}
+
+/* "Doch behalten" over a piece cut out. */
+.trim-keep {
+  position: absolute;
+  top: 6px;
+  width: 32px;
+  height: 32px;
+  transform: translateX(-50%);
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: var(--line) solid var(--ink);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.trim-keep:hover {
+  background: var(--surface-hover);
+}
+
+.trim-tools {
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.trim-tool-group {
+  gap: 2px;
+}
+
+.trim-summary {
+  margin: 0;
+  min-height: 1.5em;
+}
+
+.trim-scan {
+  display: block;
+  max-width: 320px;
+}
+
+.trim-exact summary {
+  cursor: pointer;
+  color: var(--text-soft);
+  font-size: var(--text-sm);
+  width: max-content;
+}
+
+.trim-exact-body {
+  padding-top: var(--space-2);
+}
+
+.trim-fields {
+  gap: var(--space-4);
+}
+
+.trim-fields > .trim-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 0 1 13em;
+  min-width: 0;
+}
+
+.trim-editor[data-disabled] .trim-wave,
+.trim-editor[data-disabled] .trim-lane {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+@media (max-width: 560px) {
+  .trim-editor {
+    --trim-wave-h: 128px;
+  }
+
+  .trim-tools .btn {
+    flex: 1 1 auto;
+  }
+}
+
+/* „Ab hier abschneiden“ under the player of a title that plays (src/features/trim/CutFromHere.tsx). */
+.link-button.ab-hier {
+  min-height: 32px;
+  padding: 2px 0 2px 8px;
+}

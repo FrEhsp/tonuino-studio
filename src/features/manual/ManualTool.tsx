@@ -5,7 +5,7 @@
  * the box does not tell them.
  */
 import { useState } from 'preact/hooks';
-import { CircleCheck, FileDown } from 'lucide-preact';
+import { CircleCheck, FileDown, Printer } from 'lucide-preact';
 import { manualSections, shortcutKeys } from '../../core/tonuino/manual';
 import type { FirmwareProfile } from '../../core/tonuino/card';
 import { Button, Field, Segmented } from '../../ui/components/controls';
@@ -13,6 +13,7 @@ import { toastError, toastSaved } from '../../ui/components/Toast';
 import { catalog, plat, profile } from '../../app/state';
 import { extras } from '../cards/items';
 import { ToolHeader } from '../workshop/common';
+import { printDocument, printWay } from '../stickers/print';
 import { knownBuild } from '../workshop/boxbuild';
 import { logSession } from '../workshop/logsession';
 import { manualAbout, manualFacts, manualTitle, type ManualChoice, type ManualFact } from './manualbox';
@@ -26,7 +27,7 @@ export function ManualTool() {
   const [choice, setChoice] = useState<ManualChoice>({});
   const [shortcuts, setShortcuts] = useState<Partial<Record<1 | 2 | 3 | 4, string>>>({});
   const [contact, setContact] = useState('');
-  const [busy, setBusy] = useState(false);
+  const [busy, setBusy] = useState<'pdf' | 'print' | null>(null);
   const facts = manualFacts({ info, profile: profile.value, build: knownBuild.value, specials: extras.value, choice });
   const box = { ...facts.box, shortcuts };
   const sections = manualSections(box);
@@ -36,7 +37,7 @@ export function ManualTool() {
   const folderTitles = Object.values(catalog.value?.folders ?? {}).map((f) => f.title);
 
   const save = async () => {
-    setBusy(true);
+    setBusy('pdf');
     try {
       const { manualPdf } = await import('./manualpdf');
       const blob = await manualPdf(sections, { title, about, contact });
@@ -44,7 +45,23 @@ export function ManualTool() {
     } catch (e) {
       toastError('Das PDF ließ sich nicht erstellen', e);
     } finally {
-      setBusy(false);
+      setBusy(null);
+    }
+  };
+  // Printing straight away where the app prints the PDF itself (desktop and Android app, Prüfrunde 1, bastler 25).
+  // The browser's print dialog would need the card as a picture; there the PDF stays the way.
+  const way = printWay(plat());
+  const printing = way === 'pdf' || way === 'system';
+  const printNow = async () => {
+    setBusy('print');
+    try {
+      const { manualPdf } = await import('./manualpdf');
+      const pdf = () => manualPdf(sections, { title, about, contact });
+      await printDocument(plat(), { name: 'Bedienkarte.pdf', page: { widthMm: 297, heightMm: 210 }, pages: 1, pdf, pictures: async () => [] });
+    } catch (e) {
+      toastError('Drucken hat nicht geklappt', e);
+    } finally {
+      setBusy(null);
     }
   };
 
@@ -116,8 +133,13 @@ export function ManualTool() {
           <Field label="Fragen an" id="manual-contact" hint="Steht unten auf der Karte. Leer bleibt eine Linie zum Ausfüllen.">
             <input id="manual-contact" class="input" maxLength={100} placeholder="z. B. Onkel Tom, 0170 …" value={contact} onInput={(e) => setContact((e.currentTarget as HTMLInputElement).value)} />
           </Field>
-          <div>
-            <Button variant="primary" icon={FileDown} onClick={save} loading={busy}>
+          <div class="row wrap">
+            {printing ? (
+              <Button variant="primary" icon={Printer} onClick={printNow} loading={busy === 'print'} disabled={!!busy}>
+                Drucken
+              </Button>
+            ) : null}
+            <Button variant={printing ? 'default' : 'primary'} icon={FileDown} onClick={save} loading={busy === 'pdf'} disabled={!!busy}>
               Als PDF speichern
             </Button>
           </div>

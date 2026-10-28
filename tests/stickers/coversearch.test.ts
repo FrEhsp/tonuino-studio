@@ -1,5 +1,7 @@
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { noteUnreachable, resetNet, type Limiter } from '../../src/core/covers/net';
 import {
+  buildDeezerUrl,
   buildItunesUrl,
   buildMusicBrainzQuery,
   buildMusicBrainzUrl,
@@ -8,7 +10,10 @@ import {
   episodeNumbers,
   itunesArtworkUrl,
   keepShownOrder,
+  NO_CASSETTE_PHOTO,
+  NO_CASSETTE_SEARCH,
   normalizeForMatch,
+  parseDeezerResults,
   parseItunesResults,
   parseMusicBrainzResults,
   pickFolderImage,
@@ -18,6 +23,7 @@ import {
   searchCovers,
   type CoverCandidate,
   type CoverQuery,
+  type CoverSource,
 } from '../../src/core/stickers/coversearch';
 import { tinyJpeg, tinyPng } from './fixtures';
 
@@ -152,10 +158,34 @@ const jsonResponse = (body: unknown, status = 200) =>
 
 type FetchFn = (url: string, init?: RequestInit) => Promise<Response>;
 
-/** fetch stand-in answering the two APIs; `override` replaces one of them. */
-function mockFetch(override: { itunes?: FetchFn; musicbrainz?: FetchFn } = {}) {
+const DEEZER_DDF = {
+  data: [
+    {
+      id: 302127,
+      title: 'Folge 12: Der seltsame Wecker',
+      cover_medium: 'https://e-cdns-images.dzcdn.net/images/cover/2e018122cb56986277102d2041a592c8/250x250-000000-80-0-0.jpg',
+      cover_big: 'https://e-cdns-images.dzcdn.net/images/cover/2e018122cb56986277102d2041a592c8/500x500-000000-80-0-0.jpg',
+      cover_xl: 'https://e-cdns-images.dzcdn.net/images/cover/2e018122cb56986277102d2041a592c8/1000x1000-000000-80-0-0.jpg',
+      artist: { id: 5352, name: 'Die drei ???' },
+      type: 'album',
+    },
+    {
+      id: 302128,
+      title: 'Folge 12: Der seltsame Wecker (Hörprobe)',
+      cover_medium: 'https://e-cdns-images.dzcdn.net/images/cover/aa/250x250-000000-80-0-0.jpg',
+      artist: { id: 99, name: 'Hörbuch Hamburg' },
+      type: 'album',
+    },
+    { id: 1, title: 'Ohne Bild', artist: { name: 'X' } },
+  ],
+  total: 3,
+};
+
+/** fetch stand-in answering the three APIs; `override` replaces one of them. */
+function mockFetch(override: { itunes?: FetchFn; deezer?: FetchFn; musicbrainz?: FetchFn } = {}) {
   return vi.fn<FetchFn>(async (url, init) => {
     if (url.startsWith('https://itunes.apple.com/search?')) return override.itunes ? override.itunes(url, init) : jsonResponse(ITUNES_DDF);
+    if (url.startsWith('https://api.deezer.com/search/album?')) return override.deezer ? override.deezer(url, init) : jsonResponse(DEEZER_DDF);
     if (url.startsWith('https://musicbrainz.org/ws/2/release/?')) {
       return override.musicbrainz ? override.musicbrainz(url, init) : jsonResponse(MUSICBRAINZ_DDF);
     }
@@ -163,7 +193,11 @@ function mockFetch(override: { itunes?: FetchFn; musicbrainz?: FetchFn } = {}) {
   });
 }
 
-const noWait = () => new RateLimiter(0);
+/** A queue that gives every turn at once. */
+const instant = (): Limiter => ({ wait: async (signal) => void signal?.throwIfAborted() });
+const quick = () => ({ itunes: instant(), deezer: instant(), musicbrainz: instant() });
+
+beforeEach(() => resetNet());
 const DDF_12: CoverQuery = { query: 'Die drei ??? Folge 12' };
 
 // ---------------------------------------------------------------------------
@@ -231,6 +265,38 @@ describe('parsing', () => {
     expect(list[2].fullUrl).toBe('https://coverartarchive.org/release/e5f6a7b8-c9d0-4e1f-a2b3-c4d5e6f7a8b9/front-1200');
     expect(list[2].year).toBeUndefined();
     expect(() => parseMusicBrainzResults({ error: 'Invalid query' })).toThrow();
+  });
+});
+
+describe('Deezer', () => {
+  it('turns Deezer albums into candidates with pictures up to 1000 px', () => {
+    const list = parseDeezerResults(DEEZER_DDF);
+    expect(list).toHaveLength(2);
+    expect(list[0]).toEqual({
+      id: 'deezer:302127',
+      source: 'deezer',
+      title: 'Folge 12: Der seltsame Wecker',
+      artist: 'Die drei ???',
+      year: undefined,
+      thumbUrl: DEEZER_DDF.data[0].cover_medium,
+      mediumUrl: DEEZER_DDF.data[0].cover_big,
+      fullUrl: DEEZER_DDF.data[0].cover_xl,
+      sizeHint: 1000,
+      score: 0,
+    });
+    // Only a small picture: no size promised.
+    expect(list[1]).toMatchObject({ fullUrl: DEEZER_DDF.data[1].cover_medium, sizeHint: undefined });
+    expect(parseDeezerResults({ data: [], total: 0 })).toEqual([]);
+    // Too many requests: as busy as a 429; anything else is an error.
+    expect(() => parseDeezerResults({ error: { type: 'Exception', message: 'Quota limit exceeded', code: 4 } })).toThrow('HTTP 429');
+    expect(() => parseDeezerResults({ error: { type: 'DataException', message: 'no data', code: 800 } })).toThrow('HTTP 500');
+    expect(() => parseDeezerResults('<html>')).toThrow();
+  });
+
+  it('asks Deezer for the cleaned name', () => {
+    expect(buildDeezerUrl({ query: 'SpotiDownloader.com - Die drei ??? Folge 12 (Remastered 2009)' })).toBe(
+      'https://api.deezer.com/search/album?q=Die+drei+%3F%3F%3F+Folge+12&limit=12',
+    );
   });
 });
 
@@ -350,16 +416,19 @@ describe('tiles while a search runs', () => {
 });
 
 describe('searchCovers', () => {
-  it('asks both services in parallel and merges the ranked results', async () => {
+  it('asks the three services in parallel and merges the ranked results', async () => {
     const fetchFn = mockFetch();
-    const limiter = noWait();
-    const wait = vi.spyOn(limiter, 'wait');
-    const result = await searchCovers(DDF_12, { fetchFn, rateLimiter: limiter });
+    const limiters = quick();
+    const wait = vi.spyOn(limiters.musicbrainz, 'wait');
+    const result = await searchCovers(DDF_12, { fetchFn, limiters });
     expect(result.warnings).toEqual([]);
-    expect(fetchFn).toHaveBeenCalledTimes(2);
+    expect(result.asked).toEqual(['itunes', 'deezer', 'musicbrainz']);
+    expect(result.failed).toEqual([]);
+    expect(fetchFn).toHaveBeenCalledTimes(3);
     expect(wait).toHaveBeenCalledTimes(1);
     const urls = fetchFn.mock.calls.map(([url]) => url);
     expect(urls).toContain(buildItunesUrl(DDF_12));
+    expect(urls).toContain(buildDeezerUrl(DDF_12));
     expect(urls).toContain(buildMusicBrainzUrl(DDF_12));
     for (const [, init] of fetchFn.mock.calls) {
       expect(init?.signal).toBeInstanceOf(AbortSignal);
@@ -368,6 +437,8 @@ describe('searchCovers', () => {
     const top = result.candidates[0];
     expect(top).toMatchObject({ id: 'itunes:1440729154', title: 'Folge 12: Der seltsame Wecker', artist: 'Die drei ???' });
     expect(top.fullUrl).toMatch(/\/1200x1200bb\.jpg$/);
+    // Deezer has the same album: it is no second tile, but counts as a second source.
+    expect(top.alsoFrom).toEqual(['deezer']);
     expect(result.candidates.map((c) => c.source)).toContain('musicbrainz');
     // Right episode first (from both services; the second has another artist credit, so it is no
     // duplicate), then the box with the episode, the right series without a number, the wrong
@@ -383,52 +454,52 @@ describe('searchCovers', () => {
     ]);
   });
 
-  it('returns what worked and a German warning when one service fails', async () => {
-    const busy = await searchCovers(DDF_12, {
-      fetchFn: mockFetch({ itunes: async () => new Response('Service Unavailable', { status: 503 }) }),
-      rateLimiter: noWait(),
-    });
-    expect(busy.warnings).toEqual([
-      'iTunes ist gerade ausgelastet. Warte ein paar Sekunden und suche noch einmal. Es werden nur Treffer von MusicBrainz gezeigt.',
-    ]);
+  it('leaves a service that fails out without a word while another answers', async () => {
+    const opts = { limiters: quick(), cache: false, retries: 0 };
+    const busy = await searchCovers(DDF_12, { ...opts, fetchFn: mockFetch({ itunes: async () => new Response('Service Unavailable', { status: 503 }) }) });
+    expect(busy.warnings).toEqual([]);
+    expect(busy.failed).toEqual(['itunes']);
     expect(busy.candidates.length).toBeGreaterThan(0);
-    expect(busy.candidates.every((c) => c.source === 'musicbrainz')).toBe(true);
+    expect(busy.candidates.some((c) => c.source === 'itunes')).toBe(false);
 
-    const offline = await searchCovers(DDF_12, {
-      fetchFn: mockFetch({ musicbrainz: async () => Promise.reject(new TypeError('Failed to fetch')) }),
-      rateLimiter: noWait(),
-    });
-    expect(offline.warnings).toEqual([
-      'Die Suche bei MusicBrainz hat nicht geklappt. Prüfe die Internetverbindung und versuche es noch einmal. Es werden nur Treffer von iTunes gezeigt.',
-    ]);
-    expect(offline.candidates.every((c) => c.source === 'itunes')).toBe(true);
+    const offline = await searchCovers(DDF_12, { ...opts, fetchFn: mockFetch({ musicbrainz: async () => Promise.reject(new TypeError('Failed to fetch')) }) });
+    expect(offline.warnings).toEqual([]);
+    expect(offline.failed).toEqual(['musicbrainz']);
+    expect(offline.candidates.some((c) => c.source === 'musicbrainz')).toBe(false);
 
-    const html = await searchCovers(DDF_12, {
-      fetchFn: mockFetch({ itunes: async () => new Response('<html>Wartung</html>', { status: 200 }) }),
-      rateLimiter: noWait(),
-    });
-    expect(html.warnings[0]).toMatch(/^iTunes hat eine unerwartete Antwort geschickt\./);
-
-    const wrongShape = await searchCovers(DDF_12, {
-      fetchFn: mockFetch({ musicbrainz: async () => jsonResponse({ error: 'Invalid query' }) }),
-      rateLimiter: noWait(),
-    });
-    expect(wrongShape.warnings[0]).toMatch(/^MusicBrainz hat eine unerwartete Antwort geschickt\./);
-
-    const http = await searchCovers(DDF_12, {
-      fetchFn: mockFetch({ musicbrainz: async () => new Response('', { status: 500 }) }),
-      rateLimiter: noWait(),
-    });
-    expect(http.warnings[0]).toMatch(/^MusicBrainz hat mit einem Fehler geantwortet \(500\)\./);
+    const html = await searchCovers(DDF_12, { ...opts, fetchFn: mockFetch({ deezer: async () => new Response('<html>Gesperrt</html>', { status: 200 }) }) });
+    expect(html.warnings).toEqual([]);
+    expect(html.failed).toEqual(['deezer']);
+    expect(html.candidates[0].id).toBe('itunes:1440729154');
   });
 
-  it('reports both failures without results', async () => {
+  it('says what went wrong only when no service answers', async () => {
     const down: FetchFn = async () => Promise.reject(new TypeError('NetworkError when attempting to fetch resource.'));
-    const result = await searchCovers(DDF_12, { fetchFn: mockFetch({ itunes: down, musicbrainz: down }), rateLimiter: noWait() });
+    const result = await searchCovers(DDF_12, { fetchFn: mockFetch({ itunes: down, deezer: down, musicbrainz: down }), limiters: quick() });
     expect(result.candidates).toEqual([]);
+    expect(result.failed).toEqual(['itunes', 'deezer', 'musicbrainz']);
     expect(result.warnings).toEqual([
-      'Die Suche bei iTunes hat nicht geklappt. Prüfe die Internetverbindung und versuche es noch einmal.',
-      'Die Suche bei MusicBrainz hat nicht geklappt. Prüfe die Internetverbindung und versuche es noch einmal.',
+      'Die Suche bei iTunes hat nicht geklappt. Prüfe die Internetverbindung. Blockiert vielleicht ein Filter? Dann gib dort itunes.apple.com, is1-ssl.mzstatic.com, is2-ssl.mzstatic.com, is3-ssl.mzstatic.com, is4-ssl.mzstatic.com, is5-ssl.mzstatic.com frei.',
+      'Die Suche bei Deezer hat nicht geklappt. Prüfe die Internetverbindung. Blockiert vielleicht ein Filter? Dann gib dort api.deezer.com, cdn-images.dzcdn.net, e-cdns-images.dzcdn.net frei.',
+      'Die Suche bei MusicBrainz hat nicht geklappt. Prüfe die Internetverbindung. Blockiert vielleicht ein Filter? Dann gib dort musicbrainz.org frei.',
+    ]);
+
+    const opts = { limiters: quick(), cache: false, retries: 0 };
+    const busy = await searchCovers(DDF_12, { ...opts, fetchFn: mockFetch({ itunes: async () => new Response('', { status: 503 }), deezer: async () => new Response('', { status: 429 }), musicbrainz: async () => new Response('', { status: 500 }) }) });
+    expect(busy.warnings).toEqual([
+      'iTunes ist gerade ausgelastet. Warte ein paar Minuten und suche noch einmal.',
+      'Deezer ist gerade ausgelastet. Warte ein paar Minuten und suche noch einmal.',
+      'MusicBrainz hat mit einem Fehler geantwortet (500). Versuche es später noch einmal.',
+    ]);
+
+    const odd = await searchCovers(DDF_12, {
+      ...opts,
+      sources: ['itunes', 'musicbrainz'],
+      fetchFn: mockFetch({ itunes: async () => new Response('<html>Wartung</html>', { status: 200 }), musicbrainz: async () => jsonResponse({ error: 'Invalid query' }) }),
+    });
+    expect(odd.warnings).toEqual([
+      'iTunes hat eine unerwartete Antwort geschickt. Versuche es später noch einmal.',
+      'MusicBrainz hat eine unerwartete Antwort geschickt. Versuche es später noch einmal.',
     ]);
   });
 
@@ -437,11 +508,13 @@ describe('searchCovers', () => {
       new Promise((_resolve, reject) => {
         init?.signal?.addEventListener('abort', () => reject(new DOMException('The operation was aborted.', 'AbortError')));
       });
-    const result = await searchCovers(DDF_12, { fetchFn: mockFetch({ musicbrainz: hang }), rateLimiter: noWait(), timeoutMs: 20 });
-    expect(result.warnings).toEqual([
-      'MusicBrainz antwortet gerade nicht. Versuche es später noch einmal. Es werden nur Treffer von iTunes gezeigt.',
-    ]);
+    const result = await searchCovers(DDF_12, { fetchFn: mockFetch({ musicbrainz: hang }), limiters: quick(), timeoutMs: 20 });
+    expect(result.warnings).toEqual([]);
+    expect(result.failed).toEqual(['musicbrainz']);
     expect(result.candidates.length).toBeGreaterThan(0);
+
+    const alone = await searchCovers(DDF_12, { fetchFn: mockFetch({ musicbrainz: hang }), limiters: quick(), timeoutMs: 20, sources: ['musicbrainz'], cache: false });
+    expect(alone.warnings).toEqual(['MusicBrainz antwortet gerade nicht. Blockiert vielleicht ein Filter? Dann gib dort musicbrainz.org frei. Sonst versuche es später noch einmal.']);
   });
 
   it('stops when the caller aborts', async () => {
@@ -450,49 +523,100 @@ describe('searchCovers', () => {
       new Promise((_resolve, reject) => {
         init?.signal?.addEventListener('abort', () => reject(new DOMException('The operation was aborted.', 'AbortError')));
       });
-    const search = searchCovers(DDF_12, { fetchFn: mockFetch({ itunes: hang, musicbrainz: hang }), rateLimiter: noWait(), signal: controller.signal });
+    const search = searchCovers(DDF_12, { fetchFn: mockFetch({ itunes: hang, deezer: hang, musicbrainz: hang }), limiters: quick(), signal: controller.signal });
     controller.abort();
     await expect(search).rejects.toMatchObject({ name: 'AbortError' });
     await expect(searchCovers(DDF_12, { fetchFn: mockFetch(), signal: AbortSignal.abort() })).rejects.toMatchObject({ name: 'AbortError' });
+    // Also while MusicBrainz waits for the others in "rest" mode.
+    const later = new AbortController();
+    const rest = searchCovers(DDF_12, { fetchFn: mockFetch({ itunes: hang, deezer: hang }), limiters: quick(), signal: later.signal, musicBrainz: 'rest' });
+    later.abort();
+    await expect(rest).rejects.toMatchObject({ name: 'AbortError' });
   });
 
-  it('shows the hits of the first service while the other is still searching', async () => {
+  it('shows the hits of the first services while another is still searching', async () => {
     let answerMusicBrainz: (r: Response) => void = () => undefined;
     const slow: FetchFn = () => new Promise((resolve) => (answerMusicBrainz = resolve));
     const progress: { ids: string[]; warnings: string[] }[] = [];
     const search = searchCovers(DDF_12, {
       fetchFn: mockFetch({ musicbrainz: slow }),
-      rateLimiter: noWait(),
+      limiters: quick(),
       onProgress: (partial) => progress.push({ ids: partial.candidates.map((c) => c.id), warnings: partial.warnings }),
     });
-    await vi.waitFor(() => expect(progress).toHaveLength(1));
-    // Only iTunes so far, already ranked; MusicBrainz is still open.
-    expect(progress[0].warnings).toEqual([]);
-    expect(progress[0].ids).toEqual(['itunes:1440729154', 'itunes:1441100045', 'itunes:1442368873', 'itunes:1440806591']);
+    await vi.waitFor(() => expect(progress).toHaveLength(2));
+    // iTunes and Deezer so far, already ranked; MusicBrainz is still open.
+    expect(progress[1].warnings).toEqual([]);
+    expect(progress[1].ids).toEqual(['itunes:1440729154', 'itunes:1441100045', 'itunes:1442368873', 'itunes:1440806591']);
     answerMusicBrainz(jsonResponse(MUSICBRAINZ_DDF));
     const result = await search;
-    expect(progress).toHaveLength(1);
+    expect(progress).toHaveLength(2);
     expect(result.candidates.map((c) => c.source)).toContain('musicbrainz');
     expect(result.candidates[0].id).toBe('itunes:1440729154');
   });
 
-  it('reports a failed service early and the full warning at the end', async () => {
-    let answerMusicBrainz: (r: Response) => void = () => undefined;
-    const progress: string[][] = [];
-    const search = searchCovers(DDF_12, {
-      fetchFn: mockFetch({
-        itunes: async () => new Response('', { status: 503 }),
-        musicbrainz: () => new Promise((resolve) => (answerMusicBrainz = resolve)),
-      }),
-      rateLimiter: noWait(),
-      onProgress: (partial) => progress.push(partial.warnings),
+  it('asks MusicBrainz only for what iTunes and Deezer did not find, in "rest" mode', async () => {
+    const fetchFn = mockFetch();
+    const found = await searchCovers(DDF_12, { fetchFn, limiters: quick(), musicBrainz: 'rest' });
+    expect(found.asked).toEqual(['itunes', 'deezer']);
+    expect(fetchFn.mock.calls.map(([url]) => url).some((u) => u.includes('musicbrainz'))).toBe(false);
+    expect(found.candidates[0].id).toBe('itunes:1440729154');
+
+    const progress: CoverSource[][] = [];
+    const notEnough = await searchCovers(DDF_12, {
+      fetchFn: mockFetch(),
+      limiters: quick(),
+      musicBrainz: 'rest',
+      enough: () => false,
+      onProgress: (p) => progress.push([...new Set(p.candidates.map((c) => c.source))]),
     });
-    await vi.waitFor(() => expect(progress).toHaveLength(1));
-    expect(progress[0]).toEqual(['iTunes ist gerade ausgelastet. Warte ein paar Sekunden und suche noch einmal.']);
-    answerMusicBrainz(jsonResponse(MUSICBRAINZ_DDF));
-    expect((await search).warnings).toEqual([
-      'iTunes ist gerade ausgelastet. Warte ein paar Sekunden und suche noch einmal. Es werden nur Treffer von MusicBrainz gezeigt.',
-    ]);
+    expect(notEnough.asked).toEqual(['itunes', 'deezer', 'musicbrainz']);
+    // The hits of the fast two show while MusicBrainz searches (Deezer's are the same albums as iTunes').
+    expect(progress.at(-1)).toEqual(['itunes']);
+    expect(progress).toHaveLength(2);
+  });
+
+  it('frees the turn of a service that is not needed any more', async () => {
+    // Deezer's queue is full: its turn would only come after a long wait.
+    const stuck: Limiter = {
+      wait: (signal) => new Promise((_resolve, reject) => signal?.addEventListener('abort', () => reject(new DOMException('aborted', 'AbortError')))),
+    };
+    const fetchFn = mockFetch();
+    const r = await searchCovers(DDF_12, { fetchFn, limiters: { ...quick(), deezer: stuck }, musicBrainz: 'rest' });
+    expect(r.asked).toEqual(['itunes']);
+    expect(r.failed).toEqual([]);
+    expect(fetchFn).toHaveBeenCalledTimes(1);
+  });
+
+  it('lets MusicBrainz in at once when a fast service did not answer the last times', async () => {
+    noteUnreachable('deezer');
+    noteUnreachable('deezer');
+    const fetchFn = mockFetch();
+    const r = await searchCovers(DDF_12, { fetchFn, limiters: quick(), musicBrainz: 'rest' });
+    const urls = fetchFn.mock.calls.map(([url]) => url);
+    expect(urls.some((u) => u.includes('deezer'))).toBe(false);
+    expect(urls.some((u) => u.includes('musicbrainz'))).toBe(true);
+    expect(r.failed).toEqual(['deezer']);
+    expect(r.warnings).toEqual([]);
+  });
+
+  it('asks again without the artist when the artist tag finds nothing', async () => {
+    const fetchFn = vi.fn<FetchFn>(async (url) => {
+      const term = new URL(url).searchParams.get('term') ?? '';
+      return jsonResponse(term.startsWith('Track 1') ? { resultCount: 0, results: [] } : ITUNES_DDF);
+    });
+    const r = await searchCovers({ artist: 'Track 1', album: 'Die drei ??? Folge 12' }, { fetchFn, limiters: quick(), sources: ['itunes'] });
+    expect(fetchFn).toHaveBeenCalledTimes(2);
+    expect(new URL(fetchFn.mock.calls[1][0]).searchParams.get('term')).toBe('Die drei ??? Folge 12');
+    expect(r.candidates[0].id).toBe('itunes:1440729154');
+  });
+
+  it('reuses an answer given a little earlier', async () => {
+    const fetchFn = mockFetch();
+    await searchCovers(DDF_12, { fetchFn, limiters: quick() });
+    await searchCovers(DDF_12, { fetchFn, limiters: quick() });
+    expect(fetchFn).toHaveBeenCalledTimes(3);
+    await searchCovers(DDF_12, { fetchFn, limiters: quick(), cache: false });
+    expect(fetchFn).toHaveBeenCalledTimes(6);
   });
 
   it('needs a search text and can ask a single service', async () => {
@@ -611,7 +735,7 @@ describe('downloadCoverImage', () => {
       'Der Server gibt das Bild nicht heraus. Speichere es selbst auf deinem Computer und wähle es dann unter „Eigenes Bild“ aus.',
     );
     await expect(downloadCoverImage(candidate, { fetchFn: hang, timeoutMs: 10 })).rejects.toThrow(
-      'Der Server antwortet gerade nicht. Versuche es gleich noch einmal oder nimm ein anderes Bild.',
+      'Der Server antwortet gerade nicht. Blockiert vielleicht ein Filter? Versuche es gleich noch einmal oder nimm ein anderes Bild.',
     );
   });
 
@@ -784,25 +908,53 @@ describe('cassette covers', () => {
     expect(cd[0].edition).toBeUndefined();
   });
 
-  it('searches only MusicBrainz and keeps the editions of one album apart', async () => {
+  it('puts the cassette editions first and keeps them apart, the CD covers after them', async () => {
     const fetchFn = mockFetch({ musicbrainz: async () => jsonResponse(MUSICBRAINZ_DDF_MC) });
-    const result = await searchCovers({ query: 'Die drei ??? Der seltsame Wecker' }, { fetchFn, rateLimiter: noWait(), kind: 'cassette' });
+    const result = await searchCovers({ query: 'Die drei ??? Der seltsame Wecker' }, { fetchFn, limiters: quick(), kind: 'cassette' });
     expect(result.warnings).toEqual([]);
-    expect(fetchFn).toHaveBeenCalledTimes(1);
-    expect(fetchFn.mock.calls[0][0]).toContain('format%3Acassette');
-    expect(result.candidates.filter((c) => c.title === 'Der seltsame Wecker').map((c) => c.year)).toEqual([1980, 1993, 1997]);
-    expect(result.candidates.every((c) => c.source === 'musicbrainz')).toBe(true);
+    expect(result.notes).toBeUndefined();
+    const mb = fetchFn.mock.calls.map(([url]) => url).filter((u) => u.includes('musicbrainz'));
+    expect(mb).toHaveLength(1);
+    expect(mb[0]).toContain('format%3Acassette');
+    const tapes = result.candidates.filter((c) => c.source === 'musicbrainz');
+    expect(tapes.filter((c) => c.title === 'Der seltsame Wecker').map((c) => c.year)).toEqual([1980, 1993, 1997]);
+    // The cassettes first, then the CD covers as a fallback.
+    const firstCd = result.candidates.findIndex((c) => c.source !== 'musicbrainz');
+    expect(firstCd).toBe(tapes.length);
     // Tiles already on the screen are not merged either.
     expect(keepShownOrder(result.candidates.slice(0, 1), result.candidates)).toHaveLength(result.candidates.length);
   });
 
-  it('says when MusicBrainz cannot be reached, without mentioning iTunes', async () => {
+  it('learns the title of a numbered episode before it looks for cassettes', async () => {
+    const fetchFn = mockFetch({ musicbrainz: async () => jsonResponse({ releases: [] }) });
+    const result = await searchCovers(DDF_12, { fetchFn, limiters: quick(), kind: 'cassette' });
+    const mb = decodeURIComponent(fetchFn.mock.calls.map(([url]) => url).find((u) => u.includes('musicbrainz'))!);
+    expect(mb).toContain('artist:"Die drei ???" AND release:(der seltsame wecker)');
+    // No cassette there: the CD covers, with a word why.
+    expect(result.notes).toEqual([NO_CASSETTE_PHOTO]);
+    expect(result.candidates[0].id).toBe('itunes:1440729154');
+  });
+
+  it('shows the CD covers with a note when MusicBrainz cannot be reached', async () => {
     const r = await searchCovers(DDF_12, {
       fetchFn: mockFetch({ musicbrainz: async () => new Response('', { status: 503 }) }),
-      rateLimiter: noWait(),
+      limiters: quick(),
+      retries: 0,
       kind: 'cassette',
     });
-    expect(r.candidates).toEqual([]);
-    expect(r.warnings).toEqual(['MusicBrainz ist gerade ausgelastet. Warte ein paar Sekunden und suche noch einmal.']);
+    expect(r.warnings).toEqual([]);
+    expect(r.notes).toEqual([NO_CASSETTE_SEARCH]);
+    expect(r.candidates[0].id).toBe('itunes:1440729154');
+
+    const only = await searchCovers(DDF_12, {
+      fetchFn: mockFetch({ musicbrainz: async () => new Response('', { status: 503 }) }),
+      limiters: quick(),
+      retries: 0,
+      cache: false,
+      sources: ['musicbrainz'],
+      kind: 'cassette',
+    });
+    expect(only.candidates).toEqual([]);
+    expect(only.warnings).toEqual(['MusicBrainz ist gerade ausgelastet. Warte ein paar Minuten und suche noch einmal.']);
   });
 });

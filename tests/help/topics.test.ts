@@ -734,12 +734,13 @@ describe('things of 0.3 the help names', () => {
     expect(textOf('firmware-extras')).toContain('„Alte Firmware vorher sichern“');
   });
 
-  it('the shelf looks for covers by itself, and the privacy text says so', () => {
+  it('the app gets missing covers by itself, and the privacy text says so', () => {
     const privacy = textOf('datenschutz');
-    expect(privacy).toContain('**Cover fürs Regal:**');
-    expect(privacy).toContain('bis auf die Cover fürs Regal immer erst');
+    expect(privacy).toContain('**Fehlende Cover:**');
+    expect(privacy).toContain('bis auf fehlende Cover immer erst');
+    expect(privacy).toContain('Deezer');
     expect(privacy).not.toContain('Nur bei der Cover-Suche geht der Suchbegriff hinaus, den du im Suchfeld siehst');
-    expect(textOf('cover-finden')).toContain('„Cover automatisch gefunden“');
+    expect(textOf('cover-finden')).toContain('Ein Cover, das schon da ist, ersetze ich nie.');
   });
 });
 
@@ -776,5 +777,18 @@ describe('figures instead of cards', () => {
     expect(text()).toContain('**Tonies** liest die Box nicht');
     // "Karte wegnehmen" is a TNG setting of the box (BoxSettingsTool, box-einstellen).
     expect(text()).toContain('mit TNG unter [Box einstellen](#/hilfe/box-einstellen) ein: „Karte wegnehmen“');
+  });
+});
+
+describe('NFC reader on Linux', () => {
+  it('locks the driver with the same command the desktop app offers, and says how to undo it', async () => {
+    const { hintInfo } = await import('../../src/platform/tauri/errors');
+    const { LINUX_NFC_BLACKLIST } = await import('../../src/features/help/topics');
+    expect(LINUX_NFC_BLACKLIST).toBe(hintInfo({ id: 'linux-blacklist-pn533' }).command);
+    const file = /tee (\S+)/.exec(LINUX_NFC_BLACKLIST)![1];
+    const topic = HELP_TOPICS.find((t) => t.sections.some((s) => s.blocks.some((b) => b.kind === 'mehr' && b.id === 'nfc-linux')))!;
+    const commands = topic.sections.flatMap((s) => s.blocks).flatMap((b) => (b.kind === 'command' ? [b.command] : []));
+    expect(commands).toContain('pcsc_scan');
+    expect(commands).toContain(`sudo rm ${file}`);
   });
 });

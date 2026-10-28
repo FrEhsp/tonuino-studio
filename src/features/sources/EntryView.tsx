@@ -13,7 +13,7 @@ import type { IndexEntry, IndexItem } from '../../core/sources/types';
 import { AUDIO_EXTENSIONS, isAudioFile, readTrackInfo } from '../../core/library/tags';
 import type { ByteSource } from '../../platform/types';
 import { navigate } from '../../app/router';
-import { plat } from '../../app/state';
+import { plat, platform } from '../../app/state';
 import { formatBytes, plural } from '../../app/format';
 import { Badge, Button, Callout, EmptyState, Field, IconButton, Segmented } from '../../ui/components/controls';
 import { Dialog } from '../../ui/components/Dialog';
@@ -491,9 +491,10 @@ function SaveSteps({ entry, note }: { entry: IndexEntry; note?: string }) {
   const watchable = canWatchDownloads() && !isWholeWork(entry);
   const watching = downloadWatch.value?.entry === entry.id;
   return (
-    <Callout tone="info">
+    // Numbered steps without a box around them (Prüfrunde 1 Aussehen 4).
+    <div class="save-steps">
       <div class="stack tight">
-        <strong>{saveHeading(entry)}</strong>
+        <h3>{saveHeading(entry)}</h3>
         {note ? <p>{note}</p> : null}
         <ol class="source-steps">
           {saveSteps(entry, { watch: watchable }).map((step) => (
@@ -509,7 +510,7 @@ function SaveSteps({ entry, note }: { entry: IndexEntry; note?: string }) {
           </div>
         ) : null}
       </div>
-    </Callout>
+    </div>
   );
 }
 
@@ -577,14 +578,14 @@ function SaveAndDrop({ entry, bar, children }: { entry: IndexEntry; bar: boolean
   const steps = (
     <>
       {folded ? <SaveSteps entry={entry} /> : null}
-      <div ref={bigDrop} class={`dropzone source-drop ${over ? 'over' : ''}`} {...handlers}>
-        <div class="dropzone-icon">
-          <Download size={26} strokeWidth={2} />
+      {/* The calm field of „Musik auf die SD-Karte“, not the old dashed one with its own cap (Prüfrunde 2, eltern 6). */}
+      <div ref={bigDrop} class={`ablage leer source-drop ${over ? 'over' : ''}`} {...handlers}>
+        <p class="gross-satz">{platform.value?.handheld ? 'Suche die heruntergeladene Datei aus.' : 'Ziehe die heruntergeladene Datei hier hinein.'}</p>
+        <div class="knopfzeile">
+          <Button disabled={!!b} loading={reading} onClick={pick}>
+            Datei auswählen …
+          </Button>
         </div>
-        <h2>Heruntergeladene Datei hierher ziehen</h2>
-        <Button icon={FileAudio} disabled={!!b} loading={reading} onClick={pick}>
-          Datei auswählen
-        </Button>
         <Hold blocker={b} />
       </div>
     </>

@@ -44,8 +44,14 @@ export const ADDED_03: readonly string[] = ['kakadu-kinderhoerspiel', ...SHOWS_0
 /** Shows on ARD Sounds added (or made active) in 0.4 on the owner's wish for more picks, as links, without listening. */
 export const ADDED_04: readonly string[] = ['wdr-kleiner-prinz', 'rbb-ohrenbaer', 'rbb-dr-brumm', 'wdr-maushoerspiel-kurz'];
 
+/**
+ * Shows on ARD Sounds added in 0.6 from the weekly round of 27.10.2026, as links, without listening.
+ * Krümelgeschichten (MDR) came in the same round but waits as 'check': its age group is unclear.
+ */
+export const ADDED_06: readonly string[] = ['rbb-mimi-sandmaedchen'];
+
 /** Every entry that lists episodes on ARD Sounds: links with ARD's player, the family saves on the page. */
-export const ARD_LINKS: readonly string[] = [...OWNER_PICKS, ...LINKS_02, ...ADDED_04];
+export const ARD_LINKS: readonly string[] = [...OWNER_PICKS, ...LINKS_02, ...ADDED_04, ...ADDED_06];
 
 export function realCatalog(): SourceCatalog {
   return JSON.parse(readFileSync(new URL('../../sources/catalog.json', import.meta.url), 'utf8')) as SourceCatalog;

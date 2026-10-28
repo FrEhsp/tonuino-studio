@@ -110,7 +110,18 @@ export interface ScanOptions {
   onProgress?: (fraction: number) => void;
   /** Read size (default 1 MiB). */
   chunkSize?: number;
+  /**
+   * Called for every audio frame of the index, in order, with the bytes
+   * around it: the frame starts at `buf[at]` with the 32 header bits `header`,
+   * and its first FRAME_PEEK_BYTES (or the whole frame, when shorter) are in
+   * `buf`. Lets a caller read the side information in the same pass
+   * (mp3levels.ts) instead of reading the file twice.
+   */
+  onFrame?: (buf: Uint8Array, at: number, header: number) => void;
 }
+
+/** Bytes of each frame onFrame can look at: header, CRC and the largest side information. */
+export const FRAME_PEEK_BYTES = 4 + 2 + 32;
 
 /* ------------------------------------------------------------ tables */
 
@@ -456,7 +467,7 @@ async function findSync(reader: WindowReader, from: number, sig: number, chain: 
  * Throws AudioError 'not-mp3', 'free-format' or 'mixed-format'.
  */
 export async function scanMp3(source: ByteSource, opts: ScanOptions = {}): Promise<Mp3Index> {
-  const { signal, onProgress } = opts;
+  const { signal, onProgress, onFrame } = opts;
   const tags = await measureTags(source);
   checkAborted(signal);
   const start = tags.audioStart;
@@ -497,9 +508,11 @@ export async function scanMp3(source: ByteSource, opts: ScanOptions = {}): Promi
   let lastEnd = p;
   let firstAudio = -1;
 
+  // With onFrame, a frame is only taken when its first bytes are in the window (or the window reaches the end).
+  const peek = onFrame ? FRAME_PEEK_BYTES : 4;
   for (;;) {
     if (p + 4 > end) break;
-    if (p < reader.base || p + 4 > reader.limit) {
+    if (p < reader.base || p + Math.min(peek, end - p) > reader.limit) {
       await reader.ensure(p, reader.chunkSize);
       checkAborted(signal);
       onProgress?.(Math.min(1, (p - start) / span));
@@ -509,6 +522,7 @@ export async function scanMp3(source: ByteSource, opts: ScanOptions = {}): Promi
     const base = reader.base;
     const lim = reader.limit;
     let stop = false;
+    let refill = false;
     while (p + 4 <= lim) {
       const i = p - base;
       const h = ((buf[i] << 24) | (buf[i + 1] << 16) | (buf[i + 2] << 8) | buf[i + 3]) >>> 0;
@@ -517,6 +531,13 @@ export async function scanMp3(source: ByteSource, opts: ScanOptions = {}): Promi
       if (p + len > end) {
         stop = true; // truncated last frame
         break;
+      }
+      if (onFrame) {
+        if (p + peek > lim && lim < end) {
+          refill = true;
+          break;
+        }
+        onFrame(buf, i, h);
       }
       if (firstAudio < 0) firstAudio = h;
       offsets.push(p);
@@ -528,7 +549,7 @@ export async function scanMp3(source: ByteSource, opts: ScanOptions = {}): Promi
       lastEnd = p;
     }
     if (stop) break;
-    if (p + 4 > lim) continue; // window used up: the top of the loop loads more or ends
+    if (refill || p + 4 > lim) continue; // window used up: the top of the loop loads more or ends
     // Damage or junk ends a run; the stream goes on at the next run of frames. A run in another
     // format (a mono intro before stereo chapters) is a second stream that one index cannot hold.
     const tagsBefore = state.tags;

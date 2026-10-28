@@ -66,7 +66,8 @@ async function screens(browser, theme, width) {
   await page.getByRole('heading', { name: 'Ein Paket auf die Karte bringen' }).waitFor();
   await snap('11-help');
 
-  noErrors(errors, `${tag}: no errors on the page`);
+  // The cover lookup for the new album may go out (setting „Fehlende Cover selbst suchen“); without a network that fails, as in page-edges.mjs.
+  noErrors(errors, `${tag}: no errors on the page`, [/ERR_TUNNEL|ERR_INTERNET_DISCONNECTED|Failed to load resource/]);
   await page.context().close();
 }
 

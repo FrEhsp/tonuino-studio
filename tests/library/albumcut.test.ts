@@ -4,15 +4,18 @@
  * go once the pauses between the songs are known.
  */
 import { readFileSync } from 'node:fs';
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
+import { resetNet } from '../../src/core/covers/net';
 import { findPauses, snapCutsToPauses } from '../../src/core/audio/silence';
 import {
   albumCutsOf,
   cueTracksFor,
   cutsForStarts,
   decodeCueText,
+  missingPiecesNote,
   nudgeCut,
   parseCue,
+  planShopCuts,
   SEARCH_SEC,
   startsFromLengths,
   wholeAlbumCandidate,
@@ -21,8 +24,11 @@ import {
 } from '../../src/core/library/albumcut';
 import { estimateTrackCount, isSplit, type DraftTrack } from '../../src/core/library/grouping';
 import { RateLimiter } from '../../src/core/stickers/coversearch';
-import { lookupWholeAlbum, parseItunesTracks, parseMusicBrainzTracks, wholeAlbumFits } from '../../src/core/library/tracklookup';
+import { lookupWholeAlbum, parseItunesTracks, parseMusicBrainzTracks, wholeAlbumFits, wholeAlbumMisfit, wholeAlbumParts, type LookupTrack } from '../../src/core/library/tracklookup';
 import { memSource } from '../../src/platform/memory';
+
+// Each test its own answers: nothing kept from the one before, every service reachable.
+beforeEach(() => resetNet());
 
 const fixture = (name: string) => new URL(`../fixtures/library/${name}`, import.meta.url);
 const json = (name: string) => JSON.parse(readFileSync(fixture(name), 'utf8')) as unknown;
@@ -350,5 +356,172 @@ describe('an album cut at its tracks in the review', () => {
     // A long file without a track list in the same album is cut at pauses.
     const long = file(45 * 60);
     expect(estimateTrackCount({ ...album, tracks: [t, long] })).toBe(3 + 9);
+  });
+});
+
+/* ------------------------------------------------------------ a piece the file lacks (#129) */
+
+interface Part {
+  /** Speech, then `gap` seconds of silence (0: the next track goes straight on). */
+  sec: number;
+  gap: number;
+}
+
+/**
+ * Power envelope (10 ms windows) of a Hörspiel: speech in runs of one and a
+ * half to six seconds with short pauses in room tone between them, now and
+ * then a longer, dramatic pause, and digital silence in the gaps between the
+ * tracks. A lead-in and a lead-out of silence (a copy from a video site).
+ */
+function hoerspielEnvelope(parts: Part[], opts: { leadSec?: number; tailSec?: number; seed?: number } = {}) {
+  const rand = rng(opts.seed ?? 7);
+  const out: number[] = [];
+  const push = (sec: number, db: () => number) => {
+    const n = Math.round(sec / WS);
+    for (let i = 0; i < n; i++) out.push(10 ** ((db() + 0.691) / 10));
+  };
+  const silence = () => -95 + rand() * 3;
+  push(opts.leadSec ?? 0, silence);
+  const boundaries: number[] = [];
+  for (const [k, p] of parts.entries()) {
+    const end = out.length + Math.round(p.sec / WS);
+    while (out.length < end) {
+      const words = Math.min((end - out.length) * WS, 1.5 + rand() * 4.5);
+      push(words, () => -20 + (rand() - 0.5) * 10);
+      const left = (end - out.length) * WS;
+      if (left <= 0) break;
+      const pause = Math.min(left, rand() < 0.1 ? 1 + rand() * 0.6 : 0.2 + rand() * 0.7);
+      push(pause, () => -50 + rand() * 4);
+    }
+    if (k < parts.length - 1) boundaries.push(out.length * WS + p.gap / 2);
+    push(p.gap, silence);
+  }
+  push(opts.tailSec ?? 0, silence);
+  return { power: Float32Array.from(out), boundaries, durationSec: out.length * WS };
+}
+
+describe('a piece of the list the file lacks', () => {
+  // A Hörspiel as the shop lists it: a title song, eight parts, the credits. Each length includes the gap after it.
+  const speech = [205.3, 176.9, 241.2, 158.4, 222.7, 190.1, 263.5, 171.8];
+  const GAP = 1.4;
+  const shop: LookupTrack[] = [
+    { title: 'Intro', durationSec: 38.2 + GAP },
+    ...speech.map((sec, i) => ({ title: `Teil ${i + 1}`, durationSec: sec + GAP })),
+    { title: 'Abspann', durationSec: 44.6 },
+  ];
+  const parts = (from: number, to: number, gap = GAP): Part[] =>
+    shop.slice(from, to).map((t, i, list) => ({ sec: t.durationSec! - GAP, gap: i < list.length - 1 ? gap : 0 }));
+  const near = (cuts: number[], want: number[]) => cuts.forEach((c, i) => expect(Math.abs(c - want[i])).toBeLessThan(0.8));
+
+  const plan = (env: ReturnType<typeof hoerspielEnvelope>) => {
+    const p = planShopCuts(shop, { power: env.power, windowSec: WS, durationSec: env.durationSec });
+    const cuts = p ? cutsForStarts(p.starts, { power: env.power, windowSec: WS, durationSec: env.durationSec }, p.searchSec) : [];
+    return { p, cuts: cuts.map((c) => c.timeSec) };
+  };
+
+  it('is found by its length: the list without its first or last piece adds up to the file', () => {
+    const sum = shop.reduce((a, t) => a + t.durationSec!, 0);
+    const intro = shop[0].durationSec!;
+    expect(wholeAlbumParts(sum, shop).map((x) => [x.from, x.to])).toEqual([[0, 10]]);
+    // The credits are almost as long as the intro: both fit, best first, and the pauses decide (below).
+    expect(wholeAlbumParts(sum - intro + 2, shop).map((x) => [x.from, x.to])).toEqual([
+      [1, 10],
+      [0, 9],
+    ]);
+    expect(wholeAlbumParts(sum - 44.6, shop).map((x) => [x.from, x.to])).toEqual([
+      [0, 9],
+      [1, 10],
+    ]);
+    // Half a minute longer than the list: leaving a piece out does not help.
+    expect(wholeAlbumParts(sum + 30, shop)).toEqual([]);
+    // The whole list fits better than one without a piece.
+    expect(wholeAlbumMisfit(sum - intro, shop)).toBeGreaterThan(4);
+    expect(wholeAlbumMisfit(sum - intro, shop)).toBeLessThan(wholeAlbumMisfit(sum - 15, shop)! + 5);
+    // A long piece is no intro: a list without its first part of three and a half minutes does not fit.
+    expect(wholeAlbumParts(sum - shop[1].durationSec!, shop.slice(1))).toEqual([]);
+  });
+
+  it('is the intro: the cuts begin with the first part, lined up from the start, and the note says so', () => {
+    const env = hoerspielEnvelope(parts(1, 10), { leadSec: 0.6, tailSec: 3 });
+    const { p, cuts } = plan(env);
+    expect(p).toMatchObject({ from: 1, to: 10, byLength: false });
+    expect(cuts).toHaveLength(8);
+    near(cuts, env.boundaries);
+    expect(missingPiecesNote(shop, p!)).toBe('„Intro“ fehlt in deiner Datei. Deshalb beginnt Titel 1 mit „Teil 1“.');
+    // Before 0.6 the whole list was stretched to the file: the first cuts half a minute late, the titles wrong.
+    const stretched = cutsForStarts(startsFromLengths(shop, env.durationSec), { power: env.power, windowSec: WS, durationSec: env.durationSec }, SEARCH_SEC.shop);
+    expect(stretched[1].timeSec - env.boundaries[0]).toBeGreaterThan(20);
+  });
+
+  it('is the intro also when a jingle of about its length runs straight into the first part', () => {
+    const env = hoerspielEnvelope([{ sec: 24, gap: 0 }, ...parts(1, 10)], { seed: 18 });
+    const { p, cuts } = plan(env);
+    // The whole list fits by length too (the jingle in place of the intro), but no pause marks the intro's end.
+    expect(wholeAlbumParts(env.durationSec, shop, true).map((x) => [x.from, x.to])).toContainEqual([0, 10]);
+    expect(p).toMatchObject({ from: 1, to: 10 });
+    near(cuts, env.boundaries.slice(1));
+  });
+
+  it('is the credits at the end, or both', () => {
+    const noEnd = hoerspielEnvelope(parts(0, 9), { seed: 11 });
+    const a = plan(noEnd);
+    expect(a.p).toMatchObject({ from: 0, to: 9 });
+    near(a.cuts, noEnd.boundaries);
+    expect(missingPiecesNote(shop, a.p!)).toBe('„Abspann“ am Ende fehlt in deiner Datei. Deshalb habe ich es weggelassen.');
+    const neither = hoerspielEnvelope(parts(1, 9), { leadSec: 4, tailSec: 6, seed: 12 });
+    const b = plan(neither);
+    expect(b.p).toMatchObject({ from: 1, to: 9 });
+    near(b.cuts, neither.boundaries);
+    expect(missingPiecesNote(shop, b.p!)).toBe('„Intro“ am Anfang und „Abspann“ am Ende fehlen in deiner Datei. Deshalb habe ich beide weggelassen.');
+  });
+
+  it('is nothing missing when the file holds the whole list', () => {
+    const env = hoerspielEnvelope(parts(0, 10), { seed: 13 });
+    const { p, cuts } = plan(env);
+    expect(p).toMatchObject({ from: 0, to: 10, byLength: false });
+    expect(p!.hits).toBe(9);
+    near(cuts, env.boundaries);
+    expect(missingPiecesNote(shop, p!)).toBeUndefined();
+  });
+
+  it('follows a copy played a little faster, and one with a jingle in front', () => {
+    const faster = hoerspielEnvelope(
+      parts(0, 10).map((p) => ({ sec: p.sec * 0.98, gap: p.gap })),
+      { seed: 16 },
+    );
+    const a = plan(faster);
+    expect(a.p).toMatchObject({ from: 0, to: 10 });
+    near(a.cuts, faster.boundaries);
+    // 20 seconds of something else before the intro, 4 after the credits: lined up from the end.
+    const jingle = hoerspielEnvelope([{ sec: 19, gap: 1 }, ...parts(0, 10)], { tailSec: 4, seed: 17 });
+    const b = plan(jingle);
+    expect(b.p).toMatchObject({ from: 0, to: 10 });
+    // The jingle stays in front of the intro: the first cut is the one after the intro.
+    near(b.cuts, jingle.boundaries.slice(1));
+  });
+
+  it('cuts a song album whose gaps are all there, a song running into the next as well', () => {
+    const songs: Song[] = LENGTHS.map((len) => ({ sec: len - 1.6, gap: 1.6 }));
+    songs[11].gap = 0;
+    songs[7] = { sec: LENGTHS[7], gap: 0, fade: false };
+    const { power, boundaries, durationSec } = albumEnvelope(songs, 1.2);
+    const p = planShopCuts(ALBUM.tracks, { power, windowSec: WS, durationSec })!;
+    expect(p).toMatchObject({ from: 0, to: 12, byLength: false, hits: 10 });
+    const cuts = cutsForStarts(p.starts, { power, windowSec: WS, durationSec }, p.searchSec);
+    cuts.forEach((c, i) => i === 7 || expect(Math.abs(c.timeSec - boundaries[i])).toBeLessThan(0.6));
+  });
+
+  it('is not cut at the list when the pauses do not say which piece is missing', () => {
+    // No gaps between the tracks: the parts run on in speech. The file lacks the intro, which only its length tells.
+    const env = hoerspielEnvelope(parts(1, 10, 0), { seed: 14 });
+    expect(wholeAlbumParts(env.durationSec, shop, true).length).toBeGreaterThan(0);
+    expect(planShopCuts(shop, { power: env.power, windowSec: WS, durationSec: env.durationSec })).toBeNull();
+  });
+
+  it('is cut by the lengths, as before, when the whole list fits and nothing else does', () => {
+    const env = hoerspielEnvelope(parts(0, 10, 0), { seed: 15 });
+    const p = planShopCuts(shop, { power: env.power, windowSec: WS, durationSec: env.durationSec });
+    expect(p).toMatchObject({ from: 0, to: 10, byLength: true });
+    expect(p!.starts).toEqual(startsFromLengths(shop, env.durationSec));
   });
 });

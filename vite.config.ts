@@ -3,6 +3,7 @@ import { fileURLToPath } from 'node:url';
 import { defineConfig, loadEnv, type Plugin } from 'vite';
 import preact from '@preact/preset-vite';
 import { licenseFilePlugins } from './scripts/licenses.ts';
+import { pwaPlugin } from './scripts/pwa.ts';
 import { LICENSE_FILE_NAME } from './src/features/help/licensefile.ts';
 import { FONT_NOTICES } from './src/features/help/notices.ts';
 import { entryCount, releaseProblems, sourcesEnabled, type BuildTarget, type ReleaseEnv } from './src/features/sources/release.ts';
@@ -71,7 +72,10 @@ function sourcesReleaseCheck(env: ReleaseEnv, target: BuildTarget, enabled: bool
  * while the page is still read instead of once the app's script runs: the
  * first frame waits for them, so they should be there by then.
  */
-const FIRST_SCREEN_FONT_FILES = /^assets\/(fira-sans-latin-(400|600|700)-normal|shantell-sans-latin|permanent-marker-latin)-[\w-]{8}\.woff2$/;
+// Since 0.6 the app writes in Roboto (400, 500, 700); the stamp of the made covers on the shelf
+// (--font-sticker-stamp) stays Permanent Marker. Fira Sans and Shantell Sans no longer show at the
+// start: their files only took the place of Roboto's, which the first frame waits for (Prüfrunde 2, webkit W6).
+const FIRST_SCREEN_FONT_FILES = /^assets\/(roboto-latin-(400|500|700)-normal|permanent-marker-latin)-[\w-]{8}\.woff2$/;
 function firstScreenFontPreload(): Plugin {
   return {
     name: 'first-screen-font-preload',
@@ -79,7 +83,8 @@ function firstScreenFontPreload(): Plugin {
     transformIndexHtml: {
       order: 'post',
       handler(_html, ctx) {
-        const files = Object.keys(ctx.bundle ?? {}).filter((f) => FIRST_SCREEN_FONT_FILES.test(f)).sort();
+        // The app's own font first: the first frame waits for it.
+        const files = Object.keys(ctx.bundle ?? {}).filter((f) => FIRST_SCREEN_FONT_FILES.test(f)).sort((a, b) => Number(b.includes('roboto')) - Number(a.includes('roboto')) || a.localeCompare(b));
         return files.map((f) => ({ tag: 'link', attrs: { rel: 'preload', as: 'font', type: 'font/woff2', crossorigin: '', href: `./${f}` }, injectTo: 'head' as const }));
       },
     },
@@ -100,8 +105,12 @@ export default defineConfig(({ mode }) => {
   // "Entdecken" only with a list to show (src/features/sources/release.ts); the tests see it.
   const bundled = bundledEntries();
   const entdecken = mode === 'test' || sourcesEnabled(env, target, bundled, localList);
+  // The desktop app replaces itself with Tauri's updater (src/platform/tauri/updater.ts), only in a build
+  // that has the plugin and its key (docs/BUILD.md, "Automatische Updates"): VITE_SELF_UPDATE=on.
+  const selfUpdate = target === 'desktop' && !android && env.VITE_SELF_UPDATE === 'on';
   return {
-    plugins: [preact(), licenses.main, sourcesReleaseCheck(env, target, entdecken, localList, android), firstScreenFontPreload()],
+    // The web app is installable and has a service worker (scripts/pwa.ts); the apps update in their own way.
+    plugins: [preact(), licenses.main, sourcesReleaseCheck(env, target, entdecken, localList, android), firstScreenFontPreload(), pwaPlugin(target === 'web' && mode !== 'test')],
     // Relative paths: the web app runs from any folder of a website (for example example.org/test/), not only from the top.
     base: './',
     clearScreen: false,
@@ -118,6 +127,8 @@ export default defineConfig(({ mode }) => {
       __LOCAL_SOURCES__: JSON.stringify(mode === 'test' || localList),
       // A list comes with the app: "Entdecken" works from it also without an address for a newer list.
       __SOURCES_BUNDLED__: JSON.stringify(mode !== 'test' && bundled > 0),
+      // The desktop app can update itself (see selfUpdate above).
+      __SELF_UPDATE__: JSON.stringify(selfUpdate),
     },
     build: {
       target: 'es2022',

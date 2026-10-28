@@ -185,8 +185,8 @@ describe('texts about the keys', () => {
     expect(five.filter((t) => COUNTED.test(t))).toEqual([]);
     expect(five).toContain(`Taste: ${allLongLabel('5')}`);
     expect(allLongLabel('5')).toContain('Play/Pause + Lauter + Leiser');
-    // commands.cpp: no play_invert with FIVEBUTTONS, the setting IB does nothing.
-    expect(five.join(' ')).toMatch(/Gilt nur bei 3 Tasten/);
+    // commands.cpp before TNG of 26.10.2026: no play_invert with FIVEBUTTONS, the setting IB does nothing.
+    expect(five.join(' ')).toMatch(/Gilt bei dieser Firmware nur für 3 Tasten/);
     const three = logTexts('3');
     expect(three).toContain('Taste: Play/Pause + Vor + Zurück lang');
     expect(three.join(' ')).not.toMatch(/Lauter \+ Leiser/);

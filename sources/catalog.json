@@ -1,6 +1,6 @@
 {
  "format": 1,
- "updatedAt": "2026-10-15",
+ "updatedAt": "2026-10-27",
  "blocked": [],
  "entries": [
   {
@@ -486,6 +486,54 @@
      "about": "Wenn Lina etwas bewegt, trifft sie Kater Hegel im alten Wohnwagen.",
      "until": "2027-09-26",
      "embed": "https://www.ardsounds.de/embed/episode/11163523/"
+    },
+    {
+     "title": "Als der Herbst seine Farben verlor",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:454a26efada1be7d/",
+     "category": "hoerbuch",
+     "ages": {
+      "min": 6,
+      "max": 8
+     },
+     "durationSec": 3660,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:0defc274de6f410d?w=448&ch=97d9bde8912d4e1e",
+     "about": "Dieser Herbst ist wie verhext.",
+     "creators": [
+      {
+       "name": "Ariane Grundies",
+       "role": "author"
+      },
+      {
+       "name": "Mechthild Großmann",
+       "role": "reader"
+      }
+     ],
+     "until": "2027-10-31",
+     "embed": "https://www.ardsounds.de/embed/episode/11388863/"
+    },
+    {
+     "title": "Emil und die Zauberlaterne",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:94d43a9b56a6711a/",
+     "category": "hoerbuch",
+     "ages": {
+      "min": 4,
+      "max": 8
+     },
+     "durationSec": 1980,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:0e961919a3340f9c?w=448&ch=580613f06dff6e28",
+     "about": "Mit seiner Mutter ist Emil in eine neue Stadt gezogen.",
+     "creators": [
+      {
+       "name": "Verena Petrasch",
+       "role": "author"
+      },
+      {
+       "name": "Alexander Khuon",
+       "role": "reader"
+      }
+     ],
+     "until": "2027-10-24",
+     "embed": "https://www.ardsounds.de/embed/episode/11345635/"
     }
    ],
    "series": {
@@ -2607,6 +2655,105 @@
    "delivery": "browser",
    "editPolicy": "unchanged",
    "note": "Du lädst die Folgen auf der Seite von ARD Sounds selbst herunter und ziehst sie dann in die App. Die ARD stellt jede Folge nur eine Zeit lang bereit."
+  },
+  {
+   "type": "link",
+   "status": "active",
+   "id": "rbb-mimi-sandmaedchen",
+   "title": "Mimi Sandmädchen",
+   "publisher": "rbb",
+   "pageUrl": "https://www.ardsounds.de/sendung/mimi-sandmaedchen/urn:ard:show:daebe2a39366d28a/",
+   "blurb": "Sehr kurze Hörspiele für die Kleinsten: mit Mika und seiner Spielzeugkiste, im Kuscheltierkindergarten und mit Eichhörnchen Mio. Jede Woche kommt eine Folge dazu.",
+   "category": "hoerspiel",
+   "ages": {
+    "min": 2,
+    "max": 4,
+    "source": "editor"
+   },
+   "rights": {
+    "kind": "private-use",
+    "holder": "rbb",
+    "termsUrl": "https://www.ardsounds.de/nutzungsbedingungen/"
+   },
+   "note": "Du kannst jede Geschichte hier anhören. Speichern geht auf der Seite von ARD Sounds.",
+   "review": {
+    "at": "2026-10-27",
+    "next": "2027-04-27"
+   },
+   "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:95a86de67363c604?w=448&ch=142a01a209c80094",
+   "coverFrom": "Bild der Sendung bei ARD Sounds (rbb)",
+   "items": [
+    {
+     "title": "Eichhörnchen Mio: Der Baum ohne Blätter",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:e37194eafa53a454/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 2,
+      "max": 4
+     },
+     "durationSec": 480,
+     "about": "Der schöne Baum von Eichhörnchen Mio hat nur noch ein Blatt.",
+     "embed": "https://www.ardsounds.de/embed/episode/11346767/"
+    },
+    {
+     "title": "Im Kuscheltierkindergarten: Das bin ich",
+     "pageUrl": "https://www.ardsounds.de/episode/urn:ard:episode:6df7ac52e434366b/",
+     "category": "hoerspiel",
+     "ages": {
+      "min": 2,
+      "max": 4
+     },
+     "durationSec": 300,
+     "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:64407e3318d5beac?w=448&ch=079dea91a6b59a77",
+     "about": "Teddy Brummel, Mäuschen Kläuschen und Zebra Pünktchen gehen in den Kuscheltierkindergarten.",
+     "embed": "https://www.ardsounds.de/embed/episode/11346659/"
+    }
+   ],
+   "series": {
+    "reader": "ardsounds",
+    "urls": [
+     "https://www.ardsounds.de/sendung/mimi-sandmaedchen/urn:ard:show:daebe2a39366d28a/"
+    ],
+    "agesFromSeries": true
+   },
+   "language": "de",
+   "delivery": "browser",
+   "editPolicy": "unchanged",
+   "single": true
+  },
+  {
+   "type": "link",
+   "status": "check",
+   "id": "mdr-kruemelgeschichten",
+   "title": "Krümelgeschichten",
+   "publisher": "MDR SACHSEN",
+   "pageUrl": "https://www.ardsounds.de/sendung/kruemelgeschichten/urn:ard:show:4ceb8e5cc5e6ae1e/",
+   "blurb": "Kurze, abgeschlossene Geschichten vom MDR, jede Woche eine neue Folge von etwa einer Viertelstunde.",
+   "category": "hoerspiel",
+   "ages": {
+    "min": 4,
+    "max": 8,
+    "source": "editor"
+   },
+   "rights": {
+    "kind": "private-use",
+    "holder": "MDR",
+    "termsUrl": "https://www.ardsounds.de/nutzungsbedingungen/"
+   },
+   "note": "Du kannst jede Geschichte hier anhören. Speichern geht auf der Seite von ARD Sounds.",
+   "cover": "https://api.ardmediathek.de/image-service/images/urn:ard:image:7f0b292870f5b612?w=448&ch=5a37141083a98bc0",
+   "coverFrom": "Bild der Sendung bei ARD Sounds (MDR)",
+   "items": [],
+   "series": {
+    "reader": "ardsounds",
+    "urls": [
+     "https://www.ardsounds.de/sendung/kruemelgeschichten/urn:ard:show:4ceb8e5cc5e6ae1e/"
+    ]
+   },
+   "language": "de",
+   "delivery": "browser",
+   "editPolicy": "unchanged",
+   "single": true
   }
  ]
 }

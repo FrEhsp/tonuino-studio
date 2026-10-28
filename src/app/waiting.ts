@@ -110,7 +110,7 @@ async function bringWaiting(s: CardState & { catalog: Catalog }): Promise<void> 
 if (typeof window !== 'undefined') {
   effect(() => {
     const s = card.value;
-    if (!s || s.status !== 'ready' || !s.catalog || !s.catalogOnCard || s.writeDenied) return;
+    if (!s || s.status !== 'ready' || !s.catalog || !s.catalogOnCard || s.writeDenied || s.unreadable) return;
     const key = `${s.volume.id}\n${s.catalog.id}`;
     if (broughtTo.has(key)) return;
     broughtTo.add(key);

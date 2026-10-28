@@ -250,6 +250,7 @@ describe('the app', () => {
       }
     };
     walk(root);
-    expect(found).toEqual({ 'features/cards/ReadCardActions.tsx': ['cardWritten'], 'features/cards/ReaderPanel.tsx': ['cardWritten'], 'features/workshop/BoxTestTool.tsx': ['testDone'], 'features/workshop/PartsTestTool.tsx': ['testDone'] });
+    // KarteScreen.tsx (0.6): one card at the reader or the phone, as ReaderPanel.
+    expect(found).toEqual({ 'features/cards/KarteScreen.tsx': ['cardWritten'], 'features/cards/ReadCardActions.tsx': ['cardWritten'], 'features/cards/ReaderPanel.tsx': ['cardWritten'], 'features/workshop/BoxTestTool.tsx': ['testDone'], 'features/workshop/PartsTestTool.tsx': ['testDone'] });
   });
 });

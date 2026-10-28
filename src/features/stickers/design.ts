@@ -1,10 +1,11 @@
 import { computed, signal } from '@preact/signals';
 import type { BackMode } from '../../core/stickers/backside';
 import { knownStyle, type Orientation, type StickerStyle } from '../../core/stickers/layout';
-import { calibrationKey, getCalibration, setCalibration, type Calibration, type CalibrationStore } from '../../core/stickers/calibration';
+import { ANY_TEMPLATE, calibrationKey, getCalibration, isIdentityCalibration, setCalibration, type Calibration, type CalibrationStore } from '../../core/stickers/calibration';
 import { chosenMargin } from '../../core/stickers/margin';
 import { BUILTIN_TEMPLATES, defaultPrintOptions, getTemplate, legacyCustomTemplateId, type CustomTemplateParams, type LabelTemplate } from '../../core/stickers/templates';
 import { kv } from '../../platform/web/idb';
+import { activePrinter, ANY_PRINTER } from './printers';
 import { cleanCustomParams, ownTemplateOf } from './customSize';
 import type { FontId } from './fonts';
 
@@ -27,6 +28,37 @@ export interface StickerDesign {
   logoText: string;
   /** Colour the logo like the text (white on dark, dark on light). */
   logoTint: boolean;
+  /**
+   * "Titel" as last chosen in each style (TODO #116). A style not in here starts with its own default
+   * (titleDefault): switching to Klassisch turns the title off, the user's own choice there is kept.
+   */
+  titleByStyle?: Partial<Record<StickerStyle, boolean>>;
+}
+
+/**
+ * Whether a style starts with its title on. Klassisch without (Frank, 22.10.2026, TODO #116: „‚Klassisch'
+ * sollte im Standard irgendwie wirklich nicht ‚Titel' angewählt haben … das wirkt dann viel besser“); the
+ * other styles with it, as before.
+ */
+export function titleDefault(style: StickerStyle): boolean {
+  return style !== 'blur';
+}
+
+/**
+ * The design after a change: a new style brings the title as last chosen in that style, else its default;
+ * a title switched on or off is remembered for the style it was switched in.
+ */
+export function changedDesign(d: StickerDesign, patch: Partial<StickerDesign>): StickerDesign {
+  const next = { ...d, ...patch };
+  const memory = { ...d.titleByStyle, ...patch.titleByStyle };
+  // The style left keeps the title it had there.
+  if (patch.style !== undefined && patch.style !== d.style) {
+    memory[d.style] = d.showTitle;
+    if (patch.showTitle === undefined) next.showTitle = memory[patch.style] ?? titleDefault(patch.style);
+  }
+  if (patch.showTitle !== undefined) memory[next.style] = patch.showTitle;
+  next.titleByStyle = memory;
+  return next;
 }
 
 export interface PrintSetup {
@@ -54,8 +86,6 @@ interface Stored {
 const KEY = 'tonuino-studio:stickers';
 const CAL_KEY = 'tonuino-studio:calibration';
 const LOGO_KEY = 'sticker-logo';
-/** Printer name for calibrations; families rarely have more than one printer. */
-const PRINTER = 'standard';
 
 export const DEFAULT_DESIGN: StickerDesign = {
   // Like a cassette of a Hörspiel, quer (Frank, 13.10.2026: „Standard ist Hörspiel quer“); the shelf shows the same.
@@ -125,7 +155,7 @@ function persist() {
 }
 
 export function updateDesign(patch: Partial<StickerDesign>) {
-  design.value = { ...design.value, ...patch };
+  design.value = changedDesign(design.value, patch);
   persist();
 }
 
@@ -178,8 +208,8 @@ function loadCalibrations(): CalibrationStore {
   const own = ownTemplateOf(initial.print.custom);
   const legacy = own && legacyCustomTemplateId(own);
   if (own && legacy) {
-    const from = calibrationKey(PRINTER, legacy);
-    const to = calibrationKey(PRINTER, own.id);
+    const from = calibrationKey(ANY_PRINTER, legacy);
+    const to = calibrationKey(ANY_PRINTER, own.id);
     if (store[from] && !store[to]) store = { ...store, [to]: store[from] };
   }
   return store;
@@ -187,15 +217,35 @@ function loadCalibrations(): CalibrationStore {
 
 export const calibrations = signal<CalibrationStore>(loadCalibrations());
 
-export const calibration = computed<Calibration>(() => getCalibration(calibrations.value, PRINTER, template.value.id));
+/**
+ * The correction of a printer for a paper (TODO #128: kept per printer): its own, else the one saved
+ * without a printer (all corrections before 0.6, and every print where the app cannot name the printer).
+ */
+export function calibrationOf(store: Readonly<CalibrationStore>, printer: string, templateId: string): Calibration {
+  const own = store[calibrationKey(printer, templateId)] ?? store[calibrationKey(printer, ANY_TEMPLATE)];
+  return own ? { ...own } : getCalibration(store, ANY_PRINTER, templateId);
+}
+
+/**
+ * The store with a printer's correction for a paper. "No correction" for a printer with a name stays as
+ * an entry of zeros while one without a printer exists, which would else take its place again.
+ */
+export function storeCalibration(store: Readonly<CalibrationStore>, printer: string, templateId: string, cal: Calibration): CalibrationStore {
+  const next = setCalibration(store, printer, templateId, cal);
+  if (printer === ANY_PRINTER || next[calibrationKey(printer, templateId)]) return next;
+  return isIdentityCalibration(calibrationOf(next, printer, templateId)) ? next : { ...next, [calibrationKey(printer, templateId)]: { offsetXMm: 0, offsetYMm: 0 } };
+}
+
+export const calibration = computed<Calibration>(() => calibrationOf(calibrations.value, activePrinter.value, template.value.id));
 
 /** The printer correction for a paper other than the chosen one (Werkstatt › Tasten-Sticker prints round stickers). */
 export function calibrationFor(templateId: string): Calibration {
-  return getCalibration(calibrations.value, PRINTER, templateId);
+  return calibrationOf(calibrations.value, activePrinter.value, templateId);
 }
 
+/** Saves the correction for the printer the stickers go to now (activePrinter). */
 export function saveCalibration(templateId: string, cal: Calibration) {
-  calibrations.value = setCalibration(calibrations.value, PRINTER, templateId, cal);
+  calibrations.value = storeCalibration(calibrations.value, activePrinter.value, templateId, cal);
   try {
     localStorage.setItem(CAL_KEY, JSON.stringify(calibrations.value));
   } catch {

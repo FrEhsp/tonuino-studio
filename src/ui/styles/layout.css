@@ -145,6 +145,16 @@
   contain: strict;
 }
 
+/*
+ * Its drawn canvases out of the render tree: hidden, WebKitGTK still put them together in every
+ * frame once they had been painted (App.tsx paints a page built ahead once). Scrolling the page
+ * in front then fell from 20 to 13 pictures a second (Prüfrunde 2, webkit W1/W2). Their pixels
+ * stay; the page coming to the front shows them again.
+ */
+.page-slot-hidden canvas {
+  display: none;
+}
+
 .page {
   max-width: var(--content-max);
   padding: var(--space-8) var(--space-8) var(--space-12);
@@ -1368,11 +1378,7 @@
   white-space: nowrap;
 }
 
-.keycap.key-pause {
-  background: var(--primary-soft);
-  color: var(--primary-soft-text);
-  border-color: color-mix(in srgb, var(--primary) 35%, transparent);
-}
+/* The keys of the box are not buttons of the app: no purple, which means „click here“ (Prüfrunde 2, eltern 5). */
 
 .guide {
   display: flex;
@@ -1497,16 +1503,35 @@
   gap: 8px;
   align-self: flex-start;
   padding: 6px 12px;
-  border-radius: 12px 12px 12px 4px;
-  background: var(--info-soft);
-  color: var(--info-text);
+  position: relative;
+  margin-left: 7px;
+  border: 1.5px solid var(--ink);
+  border-radius: 14px;
+  background: var(--bg);
+  color: var(--text);
   font-size: var(--text-sm);
   font-style: italic;
 }
 
+/* The tail of the bubble, towards the step: so it reads as speech, not as a button. */
+.guide-hear::before {
+  content: '';
+  position: absolute;
+  left: -7px;
+  bottom: 7px;
+  width: 11px;
+  height: 11px;
+  background: var(--bg);
+  border-left: 1.5px solid var(--ink);
+  border-bottom: 1.5px solid var(--ink);
+  transform: skewY(-35deg);
+}
+
+/* What the box says: a speech bubble on paper with an ink line, no blue (Prüfrunde 2, eltern 5). */
 .guide-hear svg {
   flex: none;
   margin-top: 2px;
+  color: var(--text-soft);
 }
 
 .presses {
@@ -3082,4 +3107,45 @@
 
 .add-more h2 {
   font-size: var(--text-lg);
+}
+
+/*
+ * The × at a sticker's top right corner on the sheet: takes it off the
+ * sheet (0.5.1, Frank could not get rid of a special card there). Shown
+ * with the pointer on the sticker; always on touch screens.
+ */
+.sheet-remove {
+  position: absolute;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 1.5px solid #fff;
+  border-radius: 50%;
+  background: var(--danger, #b3402a);
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.3);
+  transform: translate(-60%, -40%);
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.sheet-hit:hover + .sheet-remove,
+.sheet-remove:hover,
+.sheet-remove:focus-visible {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .sheet-remove {
+    opacity: 0.9;
+  }
+}
+
+.sheet-preview.is-moving .sheet-remove {
+  opacity: 0;
+  pointer-events: none;
 }

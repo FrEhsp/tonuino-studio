@@ -25,8 +25,16 @@ import { CLASSIC21_SOUNDS_URL } from '../../core/tonuino/systemsounds';
 import { isContactAddress } from '../sources/release';
 import { DESKTOP_DOWNLOAD_URL } from './desktopapp';
 import { forumLink } from './forum';
+import { filterHostLines } from './netHosts';
 import { glossaryEntry, type GlossaryEntry } from './glossary';
 import type { HelpArtId } from './HelpArt';
+
+/**
+ * Locks the Linux driver that takes the ACR122U (the same command the desktop
+ * app offers, src/platform/tauri/errors.ts 'linux-blacklist-pn533'; tested).
+ */
+export const LINUX_NFC_BLACKLIST =
+  "printf 'blacklist pn533_usb\\nblacklist pn533\\nblacklist nfc\\n' | sudo tee /etc/modprobe.d/blacklist-acr122u.conf && sudo modprobe -r pn533_usb pn533 nfc; sudo systemctl restart pcscd";
 
 export interface HelpLink {
   label: string;
@@ -158,11 +166,13 @@ export type InlinePart =
   | { kind: 'strong'; text: string; inner?: string }
   | { kind: 'link'; text: string; href: string }
   /** A word of the Wörterbuch, shown with its explanation on a tap. */
-  | { kind: 'term'; text: string; entry: GlossaryEntry };
+  | { kind: 'term'; text: string; entry: GlossaryEntry }
+  /** Kept on one line: an address such as is1-ssl.mzstatic.com, which must not break at its hyphen. Written `so`. */
+  | { kind: 'nowrap'; text: string };
 
-const INLINE = /\*\*(.+?)\*\*|\[\[([^\]|]+)(?:\|([^\]]+))?\]\]|\[([^\]]+)\]\(([^)\s]+)\)/g;
+const INLINE = /\*\*(.+?)\*\*|\[\[([^\]|]+)(?:\|([^\]]+))?\]\]|\[([^\]]+)\]\(([^)\s]+)\)|`([^`]+)`/g;
 
-/** Splits "Öffne [Hinzufügen](#/hinzufuegen) **jetzt**" into text, link, bold and Wörterbuch parts. */
+/** Splits "Öffne [Hinzufügen](#/hinzufuegen) **jetzt**" into text, link, bold, Wörterbuch and one-line parts. */
 export function parseInline(text: string): InlinePart[] {
   const parts: InlinePart[] = [];
   let last = 0;
@@ -181,7 +191,8 @@ export function parseInline(text: string): InlinePart[] {
     else if (m[2] !== undefined) {
       const entry = glossaryEntry(m[3] ?? m[2]);
       push(entry ? { kind: 'term', text: m[2], entry } : { kind: 'text', text: m[2] });
-    } else push({ kind: 'link', text: m[4], href: m[5] });
+    } else if (m[6] !== undefined) push({ kind: 'nowrap', text: m[6] });
+    else push({ kind: 'link', text: m[4], href: m[5] });
     last = at + m[0].length;
   }
   if (last < text.length) push({ kind: 'text', text: text.slice(last) });
@@ -916,7 +927,7 @@ export const HELP_TOPICS: readonly HelpTopic[] = [
           { kind: 'mehr', title: 'Reagiert nach der ersten Karte nicht mehr, Piepton, leere Ansagen' },
           {
             kind: 'p',
-            text: 'Fehlt bei TonUINO TNG der Piepton beim Auflegen (mp3/0262.mp3), spielt nur die erste Karte. Danach meldet das [Box-Logbuch](#/werkstatt/logbuch) „Datei fehlt auf der SD-Karte“ (Fehler 6). Das passiert mit alten Ansagen, die bei 0255 aufhören: Installiere sie neu. Stört der Piepton, ersetze die Datei durch eine stille, statt sie zu löschen.',
+            text: 'Fehlt bei TonUINO TNG der Piepton beim Auflegen (mp3/0262.mp3), spielt nur die erste Karte. Danach meldet das [Box-Logbuch](#/werkstatt/logbuch) „Datei fehlt auf der SD-Karte“ (Fehler 6). Das passiert mit alten Ansagen, die bei 0255 aufhören: Installiere sie neu. Stört der Piepton, lösche die Datei nicht: Unter [Systemansagen](#/werkstatt/ansagen) › „Mehr“ schaltest du ihn aus, dann liegt dort eine stille Datei.',
           },
           {
             kind: 'p',
@@ -1024,7 +1035,7 @@ export const HELP_TOPICS: readonly HelpTopic[] = [
         title: 'In der Box steckt ein nachgebauter MP3-Player',
         summary: 'Für Bastler: Die Box springt nach Ansagen, spielt nur Ordner 01, startet langsam oder zu laut.',
         forum: 13352,
-        keywords: ['nachbau', 'nachgebaut', 'klon', 'clone', 'fake', 'mh2024k', 'mh2024k-24ss', 'gd3200b', 'dfplayer', 'dfplayer mini', 'chip', 'yx5200', 'langsamer start', 'gd3200d', 'tasten reagieren nicht', 'nur manche dateien'],
+        keywords: ['nachbau', 'nachgebaut', 'klon', 'clone', 'fake', 'mh2024k', 'mh2024k-24ss', 'gd3200b', 'dfplayer', 'dfplayer mini', 'chip', 'yx5200', 'langsamer start', 'gd3200d', 'tasten reagieren nicht', 'nur manche dateien', 'missing onplayfinished', 'onplayfinished'],
         blocks: [
           {
             kind: 'p',
@@ -1035,7 +1046,7 @@ export const HELP_TOPICS: readonly HelpTopic[] = [
             items: [
               `**Nur Nummern als Namen:** So lege ich Dateien an, solange unter ${SETTINGS} „Nur Nummern als Dateinamen“ an ist. Spiel auch die [Systemansagen](#/werkstatt/ansagen) mit der App neu auf.`,
               '**Weniger Dateien pro Ordner:** Im Forum half, unter etwa 120 zu bleiben.',
-              '**Firmware für den Chip:** Unter [Firmware aufspielen](#/werkstatt/firmware) → „Extras“ → „Mehr: anderer MP3-Player-Chip“ wählst du den Chip, der auf deinem Player steht, etwa MH2024K-24SS auf dem „MP3-TF-16P V3.0“. Machen nur manche Dateien Ärger oder reagieren die Tasten nach einem bestimmten Titel nicht mehr, liegt es meist daran, nicht an der Datei.',
+              '**Firmware für den Chip:** Unter [Firmware aufspielen](#/werkstatt/firmware) → „Extras“ → „Mehr“ wählst du den Chip, der auf deinem Player steht, etwa MH2024K-24SS auf dem „MP3-TF-16P V3.0“. Machen nur manche Dateien Ärger oder reagieren die Tasten nach einem bestimmten Titel nicht mehr, liegt es meist daran, nicht an der Datei.',
               '**Modul tauschen:** Am sichersten ist ein MP3-Player mit einem Chip, den das Forum empfiehlt.',
             ],
           },
@@ -1196,6 +1207,24 @@ export const HELP_TOPICS: readonly HelpTopic[] = [
             kind: 'p',
             text: 'Die Box spielt nach Nummer. Ich sortiere nach CD, dann nach der Titelnummer in der Datei, sonst nach dem Namen, so wie Menschen zählen: „Kapitel 2“ vor „Kapitel 10“. Später ziehst du Titel auf der Seite des Ordners an ihren Platz. Spielt die Box falsche Titel: [Falscher Titel oder falsche Reihenfolge](#/hilfe/falsche-titel).',
           },
+          {
+            kind: 'mehr',
+            title: 'Titel zuschneiden',
+            id: 'anfang-abschneiden',
+            keywords: ['zuschneiden', 'abschneiden', 'kürzen', 'trimmen', 'schneiden', 'intro', 'vorspann', 'abspann', 'titelmusik', 'titellied', 'ansage', 'stück herausschneiden', 'werbung', 'wellenform'],
+          },
+          {
+            kind: 'p',
+            text: 'Im Menü „…“ eines Titels wählst du „Zuschneiden …“. Du siehst den Titel als Welle. Ziehe den gelben Griff links an den neuen Anfang und den rechts an das neue Ende. In der Nähe einer Pause springt der Griff hinein. Tippst du auf einen Griff, hörst du den Titel ab dort.',
+          },
+          {
+            kind: 'p',
+            text: 'Mit „Stück herausschneiden“ nimmst du etwas aus der Mitte heraus, zum Beispiel eine Ansage. Zum Feinschneiden drehst du am Mausrad oder ziehst zwei Finger auseinander. „Rückgängig“ holt jeden Schritt zurück. Unter „Genaue Zeiten eingeben“ tippst du Sekunden ein und schneidest auf Wunsch alle Titel des Ordners gleich, etwa die Titelmusik vor jeder Folge.',
+          },
+          {
+            kind: 'p',
+            text: 'MP3-Dateien schneide ich ohne Umwandeln, am Ton ändert sich nichts. Was weggeschnitten ist, ist von der Karte weg.',
+          },
           { kind: 'mehr', title: 'Grenzen der Box', id: 'grenzen', keywords: ['99', '255', 'maximal', 'höchstens', 'zu viele', 'voll', 'unterordner', 'limit'] },
           {
             kind: 'list',
@@ -1260,7 +1289,7 @@ export const HELP_TOPICS: readonly HelpTopic[] = [
         title: 'Lange Hörbücher teilen',
         summary: 'Die Box merkt sich nur den Titel, nicht die Minute. Darum teile ich lange Dateien.',
         forum: 14920,
-        keywords: ['teilen', 'schneiden', 'kapitel', 'sprechpausen', 'weiterhören', 'fortsetzen', 'm4b', 'aufteilen', 'spulen'],
+        keywords: ['teilen', 'schneiden', 'kapitel', 'sprechpausen', 'weiterhören', 'fortsetzen', 'm4b', 'aufteilen', 'spulen', 'cue', 'cue-datei', 'album in einer datei'],
         blocks: [
           {
             kind: 'p',
@@ -1355,11 +1384,11 @@ export const HELP_TOPICS: readonly HelpTopic[] = [
           },
           {
             kind: 'p',
-            text: 'Die Bilder kommen von iTunes (Apple) und von MusicBrainz mit dem Cover Art Archive. Für Namen wie „Ordner 05“ suche ich nicht. Gib dem Ordner einen genauen Namen.',
+            text: 'Die Bilder kommen von iTunes (Apple), von Deezer und von MusicBrainz mit dem Cover Art Archive. Für Namen wie „Ordner 05“ suche ich nicht. Gib dem Ordner einen genauen Namen.',
           },
           {
             kind: 'p',
-            text: 'Fürs Regal suche ich das Cover auch von selbst, wenn der Name eines Ordners ein Hörspiel genau nennt. Auf der Seite des Ordners steht es dann als „Cover automatisch gefunden“. Erst „Übernehmen“ bringt es auf die Karte.',
+            text: 'Fehlt einem Ordner das Cover, hole ich es auch von selbst, wenn die SD-Karte steckt: zuerst aus den Dateien im Ordner, dann aus dem Internet, wenn der Name ein Hörspiel genau nennt. Bin ich mir sicher, kommt das Cover gleich auf die Karte. Bei unsicheren Treffern entscheidest du hier unter „Cover suchen“. Ein Cover, das schon da ist, ersetze ich nie. Nimmst du ein Cover weg, hole ich es nicht wieder.',
           },
           // Forum 2109, 5972 (pictoselector): ARASAAC pictograms are CC BY-NC-SA 4.0, author Sergio Palao, owner the Government of Aragón.
           { kind: 'mehr', title: 'Freie Piktogramme für Bildkarten', id: 'piktogramme', keywords: ['piktogramme', 'arasaac', 'pictoselector', 'symbole', 'wortkarten', 'bildkarten', 'kita', 'ohne cover', 'lizenz'] },
@@ -1545,6 +1574,31 @@ export const HELP_TOPICS: readonly HelpTopic[] = [
         ],
       },
       {
+        // The notice: src/features/box/writeAccess.ts ('read-only-system'); the cause: src-tauri/src/volumes.rs (block_read_only).
+        id: 'sd-karte-pruefen',
+        title: 'Die Karte ist plötzlich schreibgeschützt oder die Cover sind weg',
+        summary: 'Die Verbindung zur Karte ist beim Schreiben abgebrochen. Seitdem gibt der Computer sie nur zum Lesen frei, oder ich kann Cover und Namen nicht mehr lesen.',
+        keywords: ['schreibgeschützt', 'nur lesen', 'verbindung verloren', 'abgebrochen', 'reparieren', 'fsck', 'chkdsk', 'laufwerke', 'cover weg', 'dateisystem', 'nicht lesen', 'fsck0000.rec', 'found.000'],
+        blocks: [
+          {
+            kind: 'p',
+            text: 'Fällt der Kartenleser ab, während ich schreibe, kann auf der Karte etwas durcheinandergeraten. Linux merkt das und gibt die Karte zur Sicherheit nur noch zum Lesen frei. Am Schalter liegt es dann nicht, und neu einstecken hilft nicht. Die Musik ist meist heil. Bis die Karte geprüft ist, speichere ich nichts auf ihr.',
+          },
+          {
+            kind: 'steps',
+            items: [
+              'Wirf die Karte aus und ziehe sie heraus.',
+              'Unter Linux: Öffne das Programm „Laufwerke“, wähle die Karte, klicke die Partition an und im Zahnrad-Menü auf „Dateisystem überprüfen“, danach „Dateisystem reparieren“.',
+              'Unter Windows: Stecke die Karte ein. Bietet Windows an, sie zu prüfen und zu reparieren, bestätige das. Sonst Rechtsklick auf die Karte › Eigenschaften › Tools › Prüfen.',
+              'Am Mac: Festplattendienstprogramm › Karte wählen › Erste Hilfe.',
+              'Lösche nichts, was die Prüfung auf der Karte ablegt: Dateien wie FSCK0000.REC (Linux) oder einen Ordner FOUND.000 (Windows). Darin stecken oft die alten Cover.',
+              'Stecke die Karte wieder ein. Fehlen danach Cover oder Namen, kopiere aus deiner letzten „TonUINO-Sicherung“ die Dateien tonuino-studio.json und tonuino-studio-covers.zip zurück auf die Karte. Hast du keine Sicherung, frage im Forum: Aus den Fundstücken lassen sich die Cover meist zurückholen.',
+            ],
+          },
+          { kind: 'p', text: 'Damit es nicht wieder passiert: Stecke den Kartenleser direkt am Computer ein, nicht an einem Verteiler, und lasse ihn in Ruhe, solange ich schreibe.' },
+        ],
+      },
+      {
         // The notice and the button: src/features/box/writeAccess.ts; the remount: src-tauri/src/volumes.rs (volume_fix_access).
         id: 'sd-karte-schreibrechte',
         title: 'Schreiben auf die SD-Karte klappt nicht',
@@ -1659,7 +1713,25 @@ export const HELP_TOPICS: readonly HelpTopic[] = [
               '**Karte löschen:** unter „Mehr zum NFC-Leser“ (die drei Punkte). Danach ist die Karte leer, und die Box sagt wieder „Oh, eine neue Karte!“.',
             ],
           },
-          { kind: 'command', text: 'Unter Linux braucht der Leser den Dienst „pcscd“. Unter Debian, Ubuntu und Linux Mint:', command: 'sudo apt install pcscd libacsccid1' },
+          { kind: 'p', text: 'Unter Linux braucht der Leser etwas Einrichtung. Wie das geht, steht gleich darunter.' },
+          {
+            kind: 'mehr',
+            title: 'NFC-Leser unter Linux einrichten',
+            id: 'nfc-linux',
+            keywords: ['linux', 'ubuntu', 'debian', 'mint', 'pcscd', 'pcsc_scan', 'pcsc-tools', 'pn533', 'blacklist', 'sperren', 'treiber', 'libacsccid1', 'acr122u linux'],
+          },
+          {
+            kind: 'p',
+            text: 'Meist zeigt dir die Desktop-App selbst, was fehlt, mit dem passenden Befehl. Klappt es trotzdem nicht, gehe diese Schritte durch. So lief es im Forum unter Ubuntu 24.04 und Debian.',
+          },
+          { kind: 'command', text: '1. Installiere den Dienst für NFC-Leser, den Treiber und ein Prüfwerkzeug:', command: 'sudo apt install pcscd pcsc-tools libacsccid1' },
+          { kind: 'command', text: '2. Sperre den Linux-Treiber „pn533“. Er belegt sonst den Leser, und die App kommt nicht dran:', command: LINUX_NFC_BLACKLIST },
+          { kind: 'command', text: '3. Starte den Computer neu. Dann prüfe: Der Leser muss erscheinen, und eine aufgelegte Karte auch. Beenden mit Strg+C.', command: 'pcsc_scan' },
+          {
+            kind: 'p',
+            text: 'Kennt dein System „libacsccid1“ nicht, oder erscheint der Leser nicht: Lade den Linux-Treiber von der Seite des Herstellers ACS (acs.com.hk, Suche „ACR122U“). Nimm das Paket für deine Ubuntu-Version, installiere es und starte neu.',
+          },
+          { kind: 'command', text: 'Brauchst du später andere NFC-Geräte am Computer? So nimmst du die Sperre zurück. Danach neu starten:', command: 'sudo rm /etc/modprobe.d/blacklist-acr122u.conf' },
           {
             kind: 'mehr',
             title: 'Freie Ordnernummer, Zahlen und Bytes, TonUINO 2.0',
@@ -1696,7 +1768,7 @@ export const HELP_TOPICS: readonly HelpTopic[] = [
           {
             kind: 'note',
             tone: 'info',
-            text: `Quiz, Memory, Teekesselchen und andere Spiele zeige ich erst, wenn du unter ${SETTINGS} „Spiele und Spezialmodi zeigen“ einschaltest. Sie brauchen eine passende Firmware.`,
+            text: `Quiz, Memory, Teekesselchen und andere Spiele zeige ich erst, wenn du unter ${SETTINGS} „Spiele und Spezialmodi zeigen“ einschaltest. Sie brauchen eine selbst gebaute Firmware: Die fertige TonUINO-Firmware und die aus der Werkstatt können sie nicht.`,
           },
           { kind: 'mehr', title: 'Was die Karte speichert und was die Box', id: 'was-die-karte-speichert', keywords: ['zweite box', 'andere box', 'oma', 'fortschritt', 'gemerkt', 'merkt sich'] },
           {
@@ -1891,7 +1963,7 @@ export const HELP_TOPICS: readonly HelpTopic[] = [
               '**Schleich und andere Tiere** stehen auf vier Beinen: Klebe sie auf eine runde oder ovale Scheibe, der Sticker kommt darunter.',
               '**Playmobil, Duplo, Ü-Ei-Figuren:** Ihr Fuß ist zu klein. Klebe sie auf eine Scheibe oder auf einen Schlüsselanhänger mit Chip.',
               '**3D-Druck:** Drucke einen Sockel mit einer flachen Tasche für den Sticker, der Boden darunter so dünn wie möglich.',
-              '**Tonies** liest die Box nicht: Ihr Chip ist eine andere Sorte (ISO 15693), die der Kartenleser im TonUINO nicht kennt. Einen eigenen Sticker unter einem Tonie kannst du probieren, der Magnet im Fuß stört manchmal.',
+              '**Tonies** liest die Box nicht: Ihr Chip ist eine andere Sorte (ISO 15693), die der Kartenleser im TonUINO nicht kennt. Das Hörspiel steckt auch nicht in der Figur. Sie trägt nur eine Nummer, den Inhalt lädt die Toniebox aus dem Internet. Darum kann keine App ihn von der Figur holen, auch nicht bei einem Kreativ-Tonie. Einen eigenen Sticker unter einem Tonie kannst du probieren, der Magnet im Fuß stört manchmal.',
             ],
           },
           { kind: 'mehr', title: 'Die Stelle auf dem Deckel', id: 'figur-deckel', keywords: ['deckel', 'mulde', 'markierung', 'leseposition', 'deckelstärke', 'abstand', 'reichweite'] },
@@ -2144,6 +2216,8 @@ export const HELP_TOPICS: readonly HelpTopic[] = [
               'poti',
               'leuchtring',
               'led-ring',
+              'neopixel',
+              'ws2812',
               'leuchtende tasten',
               'kopfhörer-erkennung',
               'baukasten',
@@ -2162,7 +2236,7 @@ export const HELP_TOPICS: readonly HelpTopic[] = [
           },
           {
             kind: 'p',
-            text: 'Hat deine Classic- oder AiO-Box einen Drehregler, ein Poti, einen Leuchtring, leuchtende Tasten oder eine Kopfhörerbuchse mit Schaltkontakt? Klappe unter „Fertige Firmware“ die **Extras** auf und hake an, was eingebaut ist. Ich nehme dann eine Firmware, in der genau das eingeschaltet ist, ohne Internet. Was nicht zusammen geht, ist ausgegraut. Wohin die Teile kommen, zeigt der [Lötplan](#/werkstatt/loetplan).',
+            text: 'Hat deine Classic- oder AiO-Box einen Drehregler, ein Poti, einen Leuchtring, leuchtende Tasten oder eine Kopfhörerbuchse mit Schaltkontakt? Im Schritt **Extras** wählst du sie mit Bildern: Knopf, Licht und Zusatzteile. Ich nehme dann eine Firmware, in der genau das eingeschaltet ist, ohne Internet. Was gerade nicht zusammen geht, ist blass und sagt beim Antippen, warum. Danach fragt der Schritt **Verhalten** in Sätzen, wie sich die Box verhalten soll, und sagt bei jedem Satz, ob er in die Firmware kommt oder an der Box eingestellt wird. Wohin die Teile kommen, zeigt der [Lötplan](#/werkstatt/loetplan).',
           },
           {
             kind: 'p',
@@ -2220,6 +2294,9 @@ export const HELP_TOPICS: readonly HelpTopic[] = [
           'equalizer',
           'eq',
           'schlaftimer',
+          'eeprom',
+          'eeprom löschen',
+          'werkseinstellungen',
         ],
         blocks: [
           {
@@ -2264,7 +2341,7 @@ export const HELP_TOPICS: readonly HelpTopic[] = [
         id: 'loetplan',
         title: 'Lötplan: welches Kabel wohin',
         summary: 'Baust du die Box selbst, zeigt dir ein großes Bild, welches Kabel wohin gehört.',
-        keywords: ['lötplan', 'löten', 'verkabeln', 'kabel', 'schaltplan', 'anschließen', 'verdrahten', 'selbst bauen', 'zusammenbauen'],
+        keywords: ['lötplan', 'löten', 'verkabeln', 'kabel', 'schaltplan', 'anschließen', 'verdrahten', 'selbst bauen', 'zusammenbauen', 'spannungsteiler', 'akku-anzeige', 'akku-messung', 'akkuspannung'],
         blocks: [
           {
             kind: 'p',
@@ -2291,7 +2368,7 @@ export const HELP_TOPICS: readonly HelpTopic[] = [
         id: 'logbuch',
         title: 'Box-Logbuch und Box testen',
         summary: 'Frage die Box per USB, was sie tut: Firmware, Fehler, jede Taste und jede Karte.',
-        keywords: ['log', 'konsole', 'serieller monitor', 'fehlermeldung', 'debug', 'forum', 'startet nicht', 'dfplayer', 'steckbrief', 'box testen'],
+        keywords: ['log', 'konsole', 'serieller monitor', 'fehlermeldung', 'debug', 'forum', 'startet nicht', 'dfplayer', 'steckbrief', 'box testen', 'tr in folder', '0 tr in folder', 'missing onplayfinished', 'akku abgleichen', 'abgleichen', 'messgerät', 'korrekturwert', 'akkuspannung'],
         blocks: [
           {
             kind: 'p',
@@ -2403,7 +2480,7 @@ export const HELP_TOPICS: readonly HelpTopic[] = [
               '**Treiber:** Viele Nano-Nachbauten und die AiO+ brauchen unter Windows einmal den Treiber für den Chip CH340.',
             ],
           },
-          { kind: 'p', text: 'Schritt für Schritt für deinen Computer: [Box wird nicht erkannt?](#/werkstatt/usb)' },
+          { kind: 'p', text: 'Schritt für Schritt für deinen Computer: [Computer findet die Box am USB-Kabel nicht](#/werkstatt/usb)' },
           { kind: 'mehr', title: 'Unter Linux' },
           { kind: 'command', text: 'In der Desktop-App hilft „USB-Zugriff einrichten“. Sonst gibst du diesen Befehl im Terminal ein und meldest dich danach ab und wieder an:', command: 'sudo usermod -aG dialout $USER' },
           { kind: 'command', text: 'Unter Ubuntu belegt manchmal „brltty“ (für Braillezeilen) den Anschluss:', command: 'sudo apt remove brltty' },
@@ -2466,7 +2543,7 @@ export const HELP_TOPICS: readonly HelpTopic[] = [
         // The extras of the settings page (SETTINGS_SECTIONS "zusatzfunktionen"); each part is a place of its own in the search.
         id: 'zusatzfunktionen',
         title: 'Zusatzfunktionen',
-        summary: 'Seltene Werkzeuge anderer TonUINO-Programme: Titel zusammenfügen, Anfang und Ende abschneiden, Hörspiele in Mono, mehr als 99 Hörspiele, Sticker-Rückseiten, Titelansagen, selbst aufnehmen.',
+        summary: 'Seltene Werkzeuge anderer TonUINO-Programme: Titel zusammenfügen, Hörspiele in Mono, mehr als 99 Hörspiele, Sticker-Rückseiten, Titelansagen, selbst aufnehmen.',
         keywords: ['extras', 'zusatz', 'werkzeuge', 'toolbox', 'einschalten', 'freischalten', 'experte'],
         blocks: [
           {
@@ -2481,15 +2558,6 @@ export const HELP_TOPICS: readonly HelpTopic[] = [
           {
             kind: 'p',
             text: 'MP3-Dateien im gleichen Format füge ich ohne Umwandeln aneinander, ohne hörbare Naht. Sonst wandle ich die Titel zusammen neu um. Die alten Titel lösche ich erst, wenn der neue fertig auf der Karte ist.',
-          },
-          { kind: 'mehr', title: 'Anfang und Ende abschneiden', id: 'anfang-abschneiden', keywords: ['abschneiden', 'kürzen', 'trimmen', 'intro', 'vorspann', 'abspann', 'titelmusik', 'titellied', 'ansage', 'schneiden'] },
-          {
-            kind: 'p',
-            text: 'Im Menü „…“ eines Titels wählst du „Anfang/Ende abschneiden …“. Du gibst die Sekunden ein, hörst den neuen Anfang zur Probe an und schneidest auf Wunsch alle Titel des Ordners gleich, etwa die Titelmusik vor jeder Folge.',
-          },
-          {
-            kind: 'p',
-            text: 'MP3-Dateien schneide ich ohne Umwandeln, am Ton ändert sich nichts. Was abgeschnitten ist, ist von der Karte weg.',
           },
           { kind: 'mehr', title: 'Hörspiele in Mono speichern', id: 'mono-speichern', keywords: ['mono', 'stereo', 'platz sparen', 'kleiner', 'halb so groß', 'speicherplatz', 'dateigröße'] },
           {
@@ -2567,7 +2635,7 @@ export const HELP_TOPICS: readonly HelpTopic[] = [
         id: 'browser',
         title: 'Web-App oder Desktop-App?',
         summary: 'Beide können fast alles. Was nur in Chrome und Edge geht und was nur in der Desktop-App.',
-        keywords: ['chrome', 'edge', 'firefox', 'safari', 'mac', 'windows', 'linux', 'installieren', 'programm', 'welcher browser', 'handy', 'tablet', 'ipad', 'iphone', 'smartphone', 'android'],
+        keywords: ['chrome', 'edge', 'firefox', 'safari', 'mac', 'windows', 'linux', 'installieren', 'programm', 'welcher browser', 'handy', 'tablet', 'ipad', 'iphone', 'smartphone', 'android', 'web nfc', 'offline', 'neue version', 'app installieren', 'pwa'],
         blocks: [
           {
             kind: 'list',
@@ -2575,7 +2643,8 @@ export const HELP_TOPICS: readonly HelpTopic[] = [
               '**Chrome und Edge:** ohne Installation. Ich schreibe direkt auf die SD-Karte und spreche über USB mit der Box.',
               '**Firefox und Safari:** Ich darf nicht auf die Karte schreiben und packe alles Neue in ein Paket, mehr unter [Ein Paket auf die Karte bringen](#/hilfe/paket). USB geht in Firefox ab Version 151, in Safari nicht.',
               '**Desktop-App für Windows und Linux:** findet die Karte selbst, wirft sie aus und prüft das Format. Nur mit ihr gehen NFC-Leser und Boxen mit WLAN. Warnt Windows beim Installieren: [Die App installieren und starten](#/hilfe/installieren).',
-              '**Android-Handy und -Tablet:** mit der Android-App. Sie beschreibt Karten über NFC, nimmt mit dem Mikrofon auf und liest die SD-Karte über einen SD-Kartenleser am USB-Anschluss. Im Browser am Handy geht es nicht, am iPhone und iPad auch nicht.',
+              '**Android-Handy und -Tablet:** mit der Android-App. Sie beschreibt Karten über NFC, nimmt mit dem Mikrofon auf und liest die SD-Karte über einen SD-Kartenleser am USB-Anschluss. Im Browser am Handy geht es nicht, am iPhone und iPad auch nicht. Der Browser am Handy kann NFC-Karten nur als Web-Link beschreiben, nicht so, wie die Box sie liest.',
+              '**Web-App als App installieren:** Chrome und Edge bieten das in der Adressleiste an, Safari am Mac unter „Ablage“ › „Zum Dock hinzufügen“. Dann startet die Web-App in einem eigenen Fenster, auch ohne Internet. Ist eine neue Version da, steht oben „Neue Version da · neu laden“.',
             ],
           },
           // Only in a web build given a download address (desktopapp.ts).
@@ -2585,7 +2654,7 @@ export const HELP_TOPICS: readonly HelpTopic[] = [
           {
             kind: 'list',
             items: [
-              '**Firefox fragt nach einem Add-on**, wenn er zum ersten Mal USB nutzt. Das erzeugt Firefox selbst: [Box wird nicht erkannt?](#/werkstatt/usb)',
+              '**Firefox fragt nach einem Add-on**, wenn er zum ersten Mal USB nutzt. Das erzeugt Firefox selbst: [Computer findet die Box am USB-Kabel nicht](#/werkstatt/usb)',
               '**M4A und AAC unter Linux:** Firefox braucht „ffmpeg“ vom System.',
               '**Sehr lange Dateien** in seltenen Formaten öffnen ältere Browser nur bis 45\u00a0Minuten.',
               '**Auswerfen** geht im Browser nicht. Die Anleitung zum Paket sagt dir, wie.',
@@ -2697,21 +2766,21 @@ export const HELP_TOPICS: readonly HelpTopic[] = [
           },
           { kind: 'p', text: 'Beim Einlesen und Packen bleibt alles auf deinem Computer.' },
           { kind: 'h3', text: 'Wann die App ins Internet geht' },
-          { kind: 'p', text: 'Nur in diesen Fällen, und bis auf die Cover fürs Regal immer erst, wenn du selbst etwas öffnest oder startest:' },
+          { kind: 'p', text: 'Nur in diesen Fällen, und bis auf fehlende Cover immer erst, wenn du selbst etwas öffnest oder startest:' },
           {
             kind: 'list',
             items: [
-              '**Cover-Suche:** Öffnest du „Cover auswählen“, sucht die App gleich bei iTunes (Apple) und MusicBrainz, mit dem Namen des Hörspiels und, wenn bekannt, dem Interpreten. Die Bilder kommen von dort und vom Cover Art Archive. Diese Dienste sehen dabei den Suchbegriff und deine IP-Adresse.',
+              '**Cover-Suche:** Öffnest du „Cover auswählen“, sucht die App gleich bei iTunes (Apple), Deezer und MusicBrainz, mit dem Namen des Hörspiels und, wenn bekannt, dem Interpreten. Die Bilder kommen von dort und vom Cover Art Archive. Diese Dienste sehen dabei den Suchbegriff und deine IP-Adresse. Die Desktop-App nennt ihnen ihren Namen und ihre Versionsnummer, wie MusicBrainz es verlangt.',
               '**Titelnamen:** Erst wenn du in einem Ordner auf „Im Internet suchen“ klickst, schickt die App den Namen des Ordners und, wenn bekannt, den Interpreten an iTunes (Apple) und MusicBrainz und lädt von dort die Titelliste des Albums. Diese Dienste sehen dabei den Namen und deine IP-Adresse.',
-              `**Cover fürs Regal:** Fehlt einem Ordner das Cover und nennt sein Name ein Hörspiel oder Album genau, sucht die App nach dem Einlesen von selbst danach, bei iTunes (Apple) und MusicBrainz, einen Ordner nach dem anderen. Das Bild lädt sie von dort oder vom Cover Art Archive, es bleibt auf diesem Computer, bis du es übernimmst. Diese Dienste sehen dabei den Namen und deine IP-Adresse. Ganz aus schaltest du das unter ${SETTINGS} mit „Fehlende Cover selbst suchen“; für einen einzelnen Ordner stellst du auf seiner Seite „Im Regal“ auf „Sticker“.`,
-              '**Cover für viele Ordner:** Erst wenn du unter „Cover suchen“ auf „Suche starten“ klickst, schickt die App die Namen der Ordner in der Liste an iTunes (Apple) und MusicBrainz, einen nach dem anderen. Die Vorschaubilder und die gewählten Bilder lädt sie von dort und vom Cover Art Archive. Diese Dienste sehen dabei die Namen und deine IP-Adresse.',
+              `**Fehlende Cover:** Fehlt einem Ordner das Cover, schaut die App zuerst in seine Dateien. Steckt dort kein Bild und nennt sein Name ein Hörspiel oder Album genau, sucht sie nach dem Einlesen und nach dem Hinzufügen von selbst danach, bei iTunes (Apple) und Deezer, wenn nötig auch bei MusicBrainz. Das Bild lädt sie von dort oder vom Cover Art Archive. Ist sie sich sicher, legt sie es gleich auf die SD-Karte. Diese Dienste sehen dabei den Namen und deine IP-Adresse. Ganz aus schaltest du das unter ${SETTINGS} mit „Fehlende Cover selbst suchen“.`,
+              '**Cover für viele Ordner:** Erst wenn du unter „Cover suchen“ auf „Suche starten“ klickst, schickt die App die Namen der Ordner in der Liste an iTunes (Apple) und Deezer, wenn nötig auch an MusicBrainz, mehrere zugleich. Die Vorschaubilder und die gewählten Bilder lädt sie von dort und vom Cover Art Archive. Diese Dienste sehen dabei die Namen und deine IP-Adresse.',
               '**Piktogramme:** Erst wenn du beim Sticker-Stil „Bildkarte“ unter „Piktogramm suchen“ auf „Suchen“ klickst, schickt die App dein Suchwort an ARASAAC (api.arasaac.org, Regierung von Aragón, Spanien) und zeigt die Vorschaubilder von dort. Wählst du eins, lädt sie dieses Bild einmal und behält es auf diesem Gerät; zum Drucken geht sie nicht wieder ins Internet. ARASAAC sieht dabei das Suchwort und deine IP-Adresse.',
-              '**Firmware:** Wählst du in der Werkstatt die fertige Firmware, lädt die App sie von der Seite des Projekts TonUINO TNG (tonuino.github.io). Die Seite liegt bei GitHub, das dabei deine IP-Adresse sieht.',
+              '**Firmware:** Für Classic und AiO ist die fertige Firmware in der App, dafür geht sie nicht ins Internet. Nur für die AiO+ lädt die App sie von der Seite des Projekts TonUINO TNG (tonuino.github.io). Die Seite liegt bei GitHub, das dabei deine IP-Adresse sieht.',
               '**Systemansagen:** Lädst du die Ansagen herunter, holt die App sie ebenfalls von tonuino.github.io.',
               ...(__SOURCES_ENABLED__ ? [(__DESKTOP_BUILD__ && __LOCAL_SOURCES__ ? PRIVACY_ONLINE_LOCAL : BUNDLED_ONLY ? PRIVACY_ONLINE_BUNDLED : PRIVACY_ONLINE) + (CAN_REPORT ? PRIVACY_REPORT : '')] : []),
               ...(UPDATE_CHECK
                 ? [
-                    `**Neue Versionen:** Nur wenn du unter ${SETTINGS} „Auf neue Versionen hinweisen“ einschaltest, fragt die Desktop-App höchstens einmal am Tag bei ${releasesHost(RELEASES_URL)} nach, ob es eine neue Version gibt. Der Server sieht dabei deine IP-Adresse. Ab Werk ist das aus.`,
+                    `**Neue Versionen:** Nur wenn du unter ${SETTINGS} „Auf neue Versionen hinweisen“ einschaltest, fragt die App höchstens einmal am Tag bei ${releasesHost(RELEASES_URL)} nach, ob es eine neue Version gibt. Der Server sieht dabei deine IP-Adresse. Ab Werk ist das aus.${__SELF_UPDATE__ ? ' Klickst du auf „Jetzt aktualisieren“, lädt die App die neue Version von github.com.' : ''}`,
                   ]
                 : []),
               '**Links** zu Apps, Downloads, zum Forum oder zu Lizenzen öffnen sich in deinem Browser.',
@@ -2719,7 +2788,7 @@ export const HELP_TOPICS: readonly HelpTopic[] = [
           },
           {
             kind: 'p',
-            text: 'Die Web-App selbst lädt dein Browser beim Öffnen von ihrer Webseite, die Lizenztexte erst, wenn du sie ansiehst. Schriften und Symbole sind in der App enthalten, dafür lädt sie nichts nach. Mit Boxen über WLAN spricht die Desktop-App nur in deinem Heimnetz.',
+            text: 'Die Web-App selbst lädt dein Browser beim Öffnen von ihrer Webseite, die Lizenztexte erst, wenn du sie ansiehst. Damit sie auch ohne Internet aufgeht, behält der Browser sie gespeichert. Solange sie offen ist, fragt er etwa einmal in der Stunde bei ihrer Webseite nach, ob es eine neue Version gibt. Schriften und Symbole sind in der App enthalten, dafür lädt sie nichts nach. Mit Boxen über WLAN spricht die Desktop-App nur in deinem Heimnetz.',
           },
           { kind: 'h3', text: 'Was die App nicht verschickt' },
           {
@@ -2733,6 +2802,25 @@ export const HELP_TOPICS: readonly HelpTopic[] = [
           {
             kind: 'p',
             text: `**Gemerkte Boxen:** Schaltest du unter ${SETTINGS} „Boxen auf diesem Gerät merken“ ein, behält die App von jeder Box, die du öffnest, Ordnernummern, Namen, Titel, wie die Karten spielen, und kleine Cover. So zeigt „Meine Box“ sie auch ohne SD-Karte. Das bleibt auf diesem Gerät, Hörspiele und Musik merkt sie sich nicht. Mit „Gemerkte Box vergessen“ löschst du es dort wieder.`,
+          },
+          // The addresses come from the code that asks them (netHosts.ts).
+          {
+            kind: 'mehr',
+            title: 'Internetfilter und Firewall: was die App erreichen muss',
+            id: 'internetfilter',
+            keywords: ['firewall', 'webfilter', 'internetfilter', 'filter', 'jugendschutz', 'plucky', 'pi-hole', 'opensnitch', 'proxy', 'freigeben', 'blockiert', 'adressen', 'whitelist', 'allowlist', 'webkitnetworkprocess'],
+          },
+          {
+            kind: 'p',
+            text: 'Nutzt du einen Filter, zum Beispiel einen Jugendschutzfilter, einen Pi-hole oder die Firewall in Schule oder Büro? Dann gib dort diese Adressen frei. Sonst findet die App keine Cover und keine Piktogramme. Alles andere geht auch ohne Internet.',
+          },
+          { kind: 'list', items: filterHostLines({ sources: __SOURCES_ENABLED__, updates: UPDATE_CHECK ? releasesHost(RELEASES_URL) : undefined }) },
+          ...(__SOURCES_ENABLED__ ? [{ kind: 'p' as const, text: 'Bei Entdecken kommen die Server der Radiosender dazu, von denen eine Folge ist. Welche das sind, steht bei jeder Reihe unter „Herkunft und Lizenz“.' }] : []),
+          {
+            kind: 'p',
+            text: __DESKTOP_BUILD__
+              ? `Unter Linux bauen zwei Programme die Verbindungen auf: „tonuino-studio“ selbst für die Cover-Suche${__SOURCES_ENABLED__ ? ' und die Liste von Entdecken' : ''}, „WebKitNetworkProcess“ für alles andere. Fragt deine Firewall nach Programmen, zum Beispiel OpenSnitch, dann erlaube beide.`
+              : 'Die Web-App braucht dazu ihre eigene Webseite. Die Verbindungen baut dein Browser auf.',
           },
         ],
       },
@@ -2897,6 +2985,8 @@ export const HELP_ALIASES: Readonly<Record<string, string>> = {
   credits: 'dank',
   privatsphaere: 'datenschutz',
   internet: 'datenschutz',
+  firewall: 'internetfilter',
+  webfilter: 'internetfilter',
   spotify: 'cd-und-streaming',
   streaming: 'cd-und-streaming',
   cd: 'cd-und-streaming',

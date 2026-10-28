@@ -614,3 +614,13 @@
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
+
+/* Under the shelf now (Prüfrunde 1 Aussehen 11). */
+.box-bench > .box-room {
+  margin-top: var(--space-4);
+}
+
+/* The other notes folded into one line under the first. */
+.box-notes-more {
+  margin: 0;
+}

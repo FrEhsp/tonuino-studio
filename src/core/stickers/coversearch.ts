@@ -1,8 +1,15 @@
 /**
- * Cover search for audio plays and albums: iTunes Search API and MusicBrainz
- * with the Cover Art Archive, run in parallel, merged and ranked. Also loads
- * the chosen cover, and finds covers embedded in audio files and cover images
- * in a folder.
+ * Cover search for audio plays and albums: iTunes, Deezer and MusicBrainz
+ * with the Cover Art Archive, merged and ranked. Also loads the chosen
+ * cover, and finds covers embedded in audio files and cover images in a
+ * folder.
+ *
+ * iTunes and Deezer are asked at the same time; MusicBrainz is slow (one
+ * request a second for the whole app) and asked along with them, or with
+ * `musicBrainz: 'rest'` only when the other two found nothing good enough.
+ * Every request goes through the polite queues of src/core/covers/net.ts.
+ * Names are cleaned first (src/core/covers/names.ts): "Disc 1", "[Bonus
+ * Tracks]", "(Remastered 2009)" and downloader names are not searched for.
  *
  * Ranking knows German audio-play conventions: umlauts and punctuation are
  * normalised, "Die drei ???" and "Die drei !!!" stay different series, and an
@@ -10,9 +17,25 @@
  */
 
 import type { IPicture } from 'music-metadata';
+import { cleanForSearch, prepareQuery, variantOf, variantsFit, type PreparedQuery } from '../covers/names';
+import {
+  abortError,
+  FormatError,
+  HttpError,
+  isDown,
+  serviceJson,
+  SERVICE_HOSTS,
+  ServiceDownError,
+  TimeoutError,
+  withTimeout,
+  type Limiter,
+} from '../covers/net';
+import { parseReleaseName } from '../library/releasename';
 import { blobPart, isAbortError, sniffImageType, type FetchLike } from './image';
 
-export type CoverSource = 'itunes' | 'musicbrainz';
+export { RateLimiter } from '../covers/net';
+
+export type CoverSource = 'itunes' | 'deezer' | 'musicbrainz';
 
 /**
  * What the cover belongs to: "cd" (the usual square covers of any edition)
@@ -30,7 +53,7 @@ export interface CoverQuery {
 }
 
 export interface CoverCandidate {
-  /** Stable id, e.g. "itunes:1440871234" or "musicbrainz:<release-group mbid>". */
+  /** Stable id, e.g. "itunes:1440871234", "deezer:302127" or "musicbrainz:<release-group mbid>". */
   id: string;
   source: CoverSource;
   title: string;
@@ -38,9 +61,9 @@ export interface CoverCandidate {
   year?: number;
   /** About 250 px, for result lists. */
   thumbUrl: string;
-  /** About 600 px (iTunes) or 500 px (Cover Art Archive), for previews. */
+  /** About 500 to 600 px, for previews. */
   mediumUrl?: string;
-  /** About 1200 px, for printing at 300 dpi. */
+  /** About 1000 to 1200 px, for printing at 300 dpi. */
   fullUrl: string;
   /** Requested edge length of fullUrl in px; the server may deliver less if the original is smaller. */
   sizeHint?: number;
@@ -50,29 +73,54 @@ export interface CoverCandidate {
    * so they are not merged into one hit.
    */
   edition?: string;
+  /** Other services that had the same album under the same name (merged into this hit). */
+  alsoFrom?: CoverSource[];
   /** Match quality, higher is better (roughly -1 … 1.5). */
   score: number;
 }
 
 export interface CoverSearchResult {
   candidates: CoverCandidate[];
-  /** German messages for sources that failed; the candidates of the others are still returned. */
+  /**
+   * German messages, only when no service answered at all: one that does
+   * not answer while others do is left out without a word (a web filter on
+   * Frank's computer blocks some, #110).
+   */
   warnings: string[];
+  /** Hints that are no failure, e.g. that there is no cassette photo. */
+  notes?: string[];
+  /** Services asked. */
+  asked?: CoverSource[];
+  /** Services that did not answer (or were left out because they did not answer before). */
+  failed?: CoverSource[];
 }
 
 export interface CoverSearchOptions {
   fetchFn?: FetchLike;
   signal?: AbortSignal;
-  /** Per source, default 12 s. */
+  /** Per request, default 12 s. */
   timeoutMs?: number;
-  /** Default both; for cassettes MusicBrainz only. */
+  /** Default all three; for cassettes MusicBrainz, with iTunes and Deezer for the name and as a fallback. */
   sources?: readonly CoverSource[];
   /** Default "cd". */
   kind?: CoverKind;
-  /** Shared MusicBrainz limiter (1 request per second) unless given. */
-  rateLimiter?: RateLimiter;
+  /** MusicBrainz' turns; the app's shared queue unless given. */
+  rateLimiter?: Limiter;
+  /** Turns per service; the app's shared queues unless given (tests: ones that never wait). */
+  limiters?: Partial<Record<CoverSource, Limiter>>;
   /** Maximum number of results, default 20. */
   limit?: number;
+  /**
+   * "always" (default): MusicBrainz along with the others. "rest": only
+   * when iTunes and Deezer found nothing that `enough` takes.
+   */
+  musicBrainz?: 'always' | 'rest';
+  /** With musicBrainz "rest": whether the hits of iTunes and Deezer do. Default: any hit. */
+  enough?: (partial: CoverSearchResult) => boolean;
+  /** Reuse answers given a little earlier (default true). */
+  cache?: boolean;
+  /** How often a busy answer (503, 429) is asked again, default 3. */
+  retries?: number;
   /**
    * Called with the results so far whenever a source has answered while
    * another is still running, so the first hits can show without waiting for
@@ -89,206 +137,213 @@ export interface CoverDownloadOptions {
 }
 
 const ITUNES_SEARCH = 'https://itunes.apple.com/search';
+const DEEZER_SEARCH = 'https://api.deezer.com/search/album';
 const MUSICBRAINZ_RELEASE_SEARCH = 'https://musicbrainz.org/ws/2/release/';
 const COVER_ART_ARCHIVE = 'https://coverartarchive.org';
-const SOURCE_NAME: Record<CoverSource, string> = { itunes: 'iTunes', musicbrainz: 'MusicBrainz' };
+export const SOURCE_NAME: Record<CoverSource, string> = { itunes: 'iTunes', deezer: 'Deezer', musicbrainz: 'MusicBrainz' };
 
-// ---------------------------------------------------------------------------
-// Rate limiting
-
-/**
- * Spaces calls at least `intervalMs` apart (MusicBrainz allows one request per
- * second per client). Slots are reserved synchronously, so concurrent callers
- * queue up. A caller that gives up while waiting returns its slot when nobody
- * queued behind it, so an abandoned search does not delay the next one.
- */
-export class RateLimiter {
-  private nextSlot = 0;
-
-  constructor(
-    readonly intervalMs: number,
-    private readonly now: () => number = () => Date.now(),
-    private readonly sleep: (ms: number, signal?: AbortSignal) => Promise<void> = sleepMs,
-  ) {}
-
-  async wait(signal?: AbortSignal): Promise<void> {
-    if (signal?.aborted) throw abortError();
-    const t = this.now();
-    const start = Math.max(t, this.nextSlot);
-    const end = start + this.intervalMs;
-    this.nextSlot = end;
-    if (start <= t) return;
-    try {
-      await this.sleep(start - t, signal);
-    } catch (err) {
-      if (this.nextSlot === end) this.nextSlot = start;
-      throw err;
-    }
-  }
-}
-
-const musicBrainzLimiter = new RateLimiter(1100);
-
-function sleepMs(ms: number, signal?: AbortSignal): Promise<void> {
-  return new Promise((resolve, reject) => {
-    if (signal?.aborted) return reject(abortError());
-    const timer = setTimeout(() => {
-      signal?.removeEventListener('abort', onAbort);
-      resolve();
-    }, ms);
-    const onAbort = () => {
-      clearTimeout(timer);
-      reject(abortError());
-    };
-    signal?.addEventListener('abort', onAbort, { once: true });
-  });
-}
-
-function abortError(): Error {
-  return typeof DOMException !== 'undefined'
-    ? new DOMException('Die Suche wurde abgebrochen.', 'AbortError')
-    : Object.assign(new Error('Die Suche wurde abgebrochen.'), { name: 'AbortError' });
-}
+export const NO_CASSETTE_SEARCH = 'Kassettenfotos gibt es nur bei MusicBrainz, und MusicBrainz antwortet gerade nicht. Blockiert vielleicht ein Filter musicbrainz.org? Hier siehst du die CD-Cover. Sie passen auch zum Stil „Kassette“.';
+export const NO_CASSETTE_PHOTO = 'Bei MusicBrainz gibt es für diesen Titel kein Kassettenfoto. Nimm das CD-Cover: Es passt auch zum Stil „Kassette“.';
 
 // ---------------------------------------------------------------------------
 // Search
 
 interface SourceResult {
   source: CoverSource;
-  candidates: CoverCandidate[];
+  candidates: (CoverCandidate & { mbScore?: number })[];
+  failed?: boolean;
+  /** Not needed any more: another service found enough first. */
+  skipped?: boolean;
   warning?: string;
 }
 
 /**
- * Searches iTunes and MusicBrainz in parallel and returns the merged, ranked
- * and de-duplicated candidates. A failing source adds a German warning, the
- * other's results still come back; `onProgress` gets the hits of the first
- * source that answers. Aborting via `signal` rejects with an AbortError.
+ * Searches the services and returns the merged, ranked and de-duplicated
+ * candidates. A service that fails is left out without a word as long as
+ * another answers; only when none does, the result has German warnings.
+ * `onProgress` gets the hits of the first service that answers. Aborting
+ * via `signal` rejects with an AbortError.
  */
 export async function searchCovers(query: CoverQuery, options: CoverSearchOptions = {}): Promise<CoverSearchResult> {
-  if (!queryText(query)) {
+  const prepared = prepareQuery(query);
+  if (!prepared.text) {
     return { candidates: [], warnings: ['Gib einen Namen ein, zum Beispiel „Die drei ??? Folge 12“.'] };
   }
   if (options.signal?.aborted) throw abortError();
   const fetchFn: FetchLike = options.fetchFn ?? ((url, init) => fetch(url, init));
   const kind = options.kind ?? 'cd';
-  // iTunes has no cassettes: its covers are those of the download, square.
-  const sources = (options.sources ?? (['itunes', 'musicbrainz'] as const)).filter((s) => kind === 'cd' || s === 'musicbrainz');
-  const timeoutMs = options.timeoutMs ?? 12_000;
+  const sources = options.sources ?? (['itunes', 'deezer', 'musicbrainz'] as const);
+  const limit = options.limit ?? 20;
+  const ctx: SearchContext = { fetchFn, options, prepared, kind, signal: options.signal };
 
   // By source position, so the ranking does not depend on which source answered first.
-  const done: (SourceResult | undefined)[] = sources.map(() => undefined);
-  const summary = (): CoverSearchResult => {
-    const results = done.filter((r): r is SourceResult => r !== undefined);
-    const warnings: string[] = [];
-    const succeeded = results.filter((r) => !r.warning).map((r) => SOURCE_NAME[r.source]);
-    for (const r of results) {
-      if (!r.warning) continue;
-      warnings.push(succeeded.length > 0 ? `${r.warning} Es werden nur Treffer von ${succeeded.join(' und ')} gezeigt.` : r.warning);
-    }
-    const candidates = rankCandidates(query, results.flatMap((r) => r.candidates).filter((c) => isRelevant(query, c))).slice(0, options.limit ?? 20);
-    return { candidates, warnings };
+  const order: CoverSource[] = ['itunes', 'deezer', 'musicbrainz'];
+  const done = new Map<CoverSource, SourceResult>();
+  const summary = (): CoverSearchResult => summarize(query, prepared, order.flatMap((s) => (done.has(s) ? [done.get(s)!] : [])), limit, kind);
+
+  const run = async (source: CoverSource, others: () => boolean) => {
+    const result = await askSource(ctx, source);
+    if (options.signal?.aborted) throw abortError();
+    done.set(source, result);
+    if (others()) options.onProgress?.(summary());
   };
 
-  const runs = sources.map(async (source, i) => {
-    let result: SourceResult;
-    try {
-      const candidates =
-        source === 'itunes'
-          ? parseItunesResults(await getJson(fetchFn, buildItunesUrl(query), options.signal, timeoutMs))
-          : await searchMusicBrainz(fetchFn, query, options, timeoutMs, kind);
-      result = { source, candidates };
-    } catch (err) {
-      if (options.signal?.aborted) throw abortError();
-      result = { source, candidates: [], warning: failureMessage(source, err) };
-    }
+  if (kind === 'cassette') {
+    await searchCassette(ctx, sources, done);
     if (options.signal?.aborted) throw abortError();
-    done[i] = result;
-    if (done.includes(undefined)) options.onProgress?.(summary());
-  });
-  await Promise.all(runs);
+    return summary();
+  }
+
+  let fast: CoverSource[] = sources.filter((s) => s !== 'musicbrainz');
+  let slow = sources.includes('musicbrainz');
+  // A service that does not answer (a web filter) leaves its place to MusicBrainz right away.
+  if (options.musicBrainz === 'rest' && slow && fast.some(isDown)) {
+    fast = [...fast, 'musicbrainz'];
+    slow = false;
+  }
+  if (options.musicBrainz === 'rest') {
+    const enough = options.enough ?? ((r: CoverSearchResult) => r.candidates.length > 0);
+    // A service whose turn has not come yet is not needed any more once the other found enough: its turn goes to the next folder.
+    const own = new Map(fast.map((s) => [s, new AbortController()]));
+    let pending = fast.length;
+    await Promise.all(
+      fast.map(async (s) => {
+        const result = await askSource({ ...ctx, skip: own.get(s)!.signal }, s);
+        pending--;
+        if (options.signal?.aborted) throw abortError();
+        if (result.skipped) return;
+        done.set(s, result);
+        if (!pending) return;
+        const partial = summary();
+        if (!result.failed && enough(partial)) own.forEach((c, o) => o !== s && c.abort());
+        else options.onProgress?.(partial);
+      }),
+    );
+    const partial = summary();
+    const answered = fast.some((s) => done.has(s) && !done.get(s)!.failed);
+    if (slow && !(answered && enough(partial))) {
+      if (fast.length) options.onProgress?.(partial);
+      await run('musicbrainz', () => false);
+    }
+  } else {
+    const all = [...fast, ...(slow ? (['musicbrainz'] as const) : [])];
+    let pending = all.length;
+    await Promise.all(all.map((s) => run(s, () => --pending > 0)));
+  }
   if (options.signal?.aborted) throw abortError();
   return summary();
 }
 
-async function searchMusicBrainz(
-  fetchFn: FetchLike,
-  query: CoverQuery,
-  options: CoverSearchOptions,
-  timeoutMs: number,
-  kind: CoverKind,
-): Promise<CoverCandidate[]> {
-  await (options.rateLimiter ?? musicBrainzLimiter).wait(options.signal);
-  return parseMusicBrainzResults(await getJson(fetchFn, buildMusicBrainzUrl(query, kind), options.signal, timeoutMs), kind);
+interface SearchContext {
+  fetchFn: FetchLike;
+  options: CoverSearchOptions;
+  prepared: PreparedQuery;
+  kind: CoverKind;
+  signal?: AbortSignal;
+  /** Aborts when this service is not needed any more: gives up its turn if it has not come yet. */
+  skip?: AbortSignal;
 }
 
-class HttpError extends Error {
-  constructor(readonly status: number) {
-    super(`HTTP ${status}`);
-    this.name = 'HttpError';
-  }
+function limiterFor(ctx: SearchContext, source: CoverSource): Limiter | undefined {
+  return ctx.options.limiters?.[source] ?? (source === 'musicbrainz' ? ctx.options.rateLimiter : undefined);
 }
 
-class TimeoutError extends Error {
-  constructor() {
-    super('timeout');
-    this.name = 'TimeoutError';
-  }
+function json(ctx: SearchContext, source: CoverSource, url: string): Promise<unknown> {
+  return serviceJson(source, url, {
+    fetchFn: ctx.fetchFn,
+    signal: ctx.signal,
+    timeoutMs: ctx.options.timeoutMs,
+    limiter: limiterFor(ctx, source),
+    cache: ctx.options.cache,
+    retries: ctx.options.retries,
+    skip: ctx.skip,
+  });
 }
 
-class FormatError extends Error {
-  constructor() {
-    super('unexpected response');
-    this.name = 'FormatError';
+/** One service, with a second try without the artist when the first finds nothing (an artist tag may be a track's title, #110). */
+async function askSource(ctx: SearchContext, source: CoverSource, prepared = ctx.prepared, kind: CoverKind = ctx.kind): Promise<SourceResult> {
+  try {
+    if (isDown(source)) throw new ServiceDownError(source);
+    const once = async (p: PreparedQuery) => {
+      if (source === 'itunes') return parseItunesResults(await json(ctx, source, buildItunesUrl(p)));
+      if (source === 'deezer') return parseDeezerResults(await json(ctx, source, buildDeezerUrl(p)));
+      return parseMusicBrainzResults(await json(ctx, source, buildMusicBrainzUrl(p, kind)), kind);
+    };
+    let candidates = await once(prepared);
+    const relevant = candidates.filter((c) => isRelevant(prepared, c));
+    // Nothing with the artist: once more without it.
+    if (!relevant.length && prepared.artist && prepared.album && normalizeForMatch(prepared.album) !== normalizeForMatch(prepared.text)) {
+      candidates = [...candidates, ...(await once({ ...prepared, artist: undefined, text: prepared.album }))];
+    }
+    return { source, candidates };
+  } catch (err) {
+    if (ctx.signal?.aborted) throw abortError();
+    if (ctx.skip?.aborted && isAbortError(err)) return { source, candidates: [], skipped: true };
+    return { source, candidates: [], failed: true, warning: failureMessage(source, err) };
   }
 }
 
 /**
- * Runs `request` with a signal that follows the caller's `signal` and also
- * aborts after `timeoutMs`; running out of time rejects with a TimeoutError.
+ * Cassette covers (TODO #115): only MusicBrainz knows cassette editions,
+ * and few of them have a photo. A name with only a series and a number
+ * ("TKKG Folge 7") learns the episode's title from iTunes or Deezer first,
+ * because the cassettes carry the title, not the number. When MusicBrainz
+ * has no cassette, the CD covers follow with a note.
  */
-async function withTimeout<T>(signal: AbortSignal | undefined, timeoutMs: number, request: (signal: AbortSignal) => Promise<T>): Promise<T> {
-  const controller = new AbortController();
-  let timedOut = false;
-  const timer = setTimeout(() => {
-    timedOut = true;
-    controller.abort();
-  }, timeoutMs);
-  const onAbort = () => controller.abort();
-  signal?.addEventListener('abort', onAbort, { once: true });
-  try {
-    return await request(controller.signal);
-  } catch (err) {
-    if (timedOut) throw new TimeoutError();
-    throw err;
-  } finally {
-    clearTimeout(timer);
-    signal?.removeEventListener('abort', onAbort);
+async function searchCassette(ctx: SearchContext, sources: readonly CoverSource[], done: Map<CoverSource, SourceResult>) {
+  const fast = sources.filter((s) => s !== 'musicbrainz');
+  const cds = await Promise.all(fast.map((s) => askSource(ctx, s, ctx.prepared, 'cd')));
+  let prepared = ctx.prepared;
+  const parsed = parseReleaseName(prepared.album, prepared.artist);
+  if (!parsed.title && parsed.episode !== undefined) {
+    const named = rankCandidates(prepared, cds.flatMap((r) => r.candidates)).find((c) => episodeNumbers(c.title).includes(parsed.episode!));
+    const title = named ? parseReleaseName(named.title, named.artist).title : '';
+    if (title) prepared = { ...prepared, album: `${parsed.series ?? named!.artist} ${title}`, artist: parsed.series ?? named!.artist };
   }
+  if (sources.includes('musicbrainz')) done.set('musicbrainz', await askSource(ctx, 'musicbrainz', prepared, 'cassette'));
+  // The CD covers as a fallback, behind the cassettes.
+  for (const r of cds) done.set(r.source, { ...r, candidates: r.candidates.map((c) => ({ ...c, cdFallback: true })) });
 }
 
-function getJson(fetchFn: FetchLike, url: string, signal: AbortSignal | undefined, timeoutMs: number): Promise<unknown> {
-  return withTimeout(signal, timeoutMs, async (timed) => {
-    const res = await fetchFn(url, { signal: timed, headers: { Accept: 'application/json' } });
-    if (!res.ok) throw new HttpError(res.status);
-    try {
-      return await res.json();
-    } catch (err) {
-      if (isAbortError(err)) throw err;
-      throw new FormatError();
-    }
-  });
+function summarize(query: CoverQuery, prepared: PreparedQuery, results: SourceResult[], limit: number, kind: CoverKind): CoverSearchResult {
+  const asked = results.map((r) => r.source);
+  const failed = results.filter((r) => r.failed).map((r) => r.source);
+  const warnings = failed.length === asked.length ? results.flatMap((r) => (r.warning ? [r.warning] : [])) : [];
+  // Relevant to the whole name, or to the album alone (an artist tag may be the title of a track, #110).
+  const albumOnly = prepared.artist && prepared.album ? { ...prepared, artist: undefined, text: prepared.album } : null;
+  const all = results.flatMap((r) => r.candidates).filter((c) => isRelevant(prepared, c) || (!!albumOnly && isRelevant(albumOnly, c)));
+  let candidates: CoverCandidate[];
+  const notes: string[] = [];
+  if (kind === 'cassette') {
+    const tapes = rankCandidates(query, all.filter((c) => !(c as { cdFallback?: boolean }).cdFallback));
+    const cds = rankCandidates(query, all.filter((c) => (c as { cdFallback?: boolean }).cdFallback)).map(({ cdFallback: _cd, ...c }: CoverCandidate & { cdFallback?: boolean }) => c);
+    if (!tapes.length && asked.includes('musicbrainz') && !failed.includes('musicbrainz')) notes.push(NO_CASSETTE_PHOTO);
+    else if (cds.length && failed.includes('musicbrainz')) notes.push(NO_CASSETTE_SEARCH);
+    candidates = [...tapes, ...cds].slice(0, limit);
+  } else {
+    candidates = rankCandidates(query, all).slice(0, limit);
+  }
+  return { candidates, warnings, asked, failed, ...(notes.length ? { notes } : {}) };
+}
+
+/**
+ * A service that does not answer at all may be blocked by a web filter (a child-safe filter, a firewall
+ * at school or at work): which addresses to allow there (Hilfe: „Internetfilter und Firewall“).
+ */
+export function filterQuestion(source: CoverSource): string {
+  return `Blockiert vielleicht ein Filter? Dann gib dort ${SERVICE_HOSTS[source].join(', ')} frei.`;
 }
 
 function failureMessage(source: CoverSource, err: unknown): string {
   const name = SOURCE_NAME[source];
   if (err instanceof HttpError) {
-    if (err.status === 503 || err.status === 429) return `${name} ist gerade ausgelastet. Warte ein paar Sekunden und suche noch einmal.`;
+    if (err.status === 503 || err.status === 429) return `${name} ist gerade ausgelastet. Warte ein paar Minuten und suche noch einmal.`;
     return `${name} hat mit einem Fehler geantwortet (${err.status}). Versuche es später noch einmal.`;
   }
-  if (err instanceof TimeoutError) return `${name} antwortet gerade nicht. Versuche es später noch einmal.`;
+  if (err instanceof TimeoutError) return `${name} antwortet gerade nicht. ${filterQuestion(source)} Sonst versuche es später noch einmal.`;
   if (err instanceof FormatError) return `${name} hat eine unerwartete Antwort geschickt. Versuche es später noch einmal.`;
-  return `Die Suche bei ${name} hat nicht geklappt. Prüfe die Internetverbindung und versuche es noch einmal.`;
+  if (err instanceof ServiceDownError) return `${name} ist von diesem Computer aus gerade nicht erreichbar. ${filterQuestion(source)} Sonst versuche es später noch einmal.`;
+  return `Die Suche bei ${name} hat nicht geklappt. Prüfe die Internetverbindung. ${filterQuestion(source)}`;
 }
 
 // ---------------------------------------------------------------------------
@@ -326,7 +381,7 @@ export async function downloadCoverImage(
   }
   throw new Error(
     timedOut
-      ? 'Der Server antwortet gerade nicht. Versuche es gleich noch einmal oder nimm ein anderes Bild.'
+      ? 'Der Server antwortet gerade nicht. Blockiert vielleicht ein Filter? Versuche es gleich noch einmal oder nimm ein anderes Bild.'
       : 'Der Server gibt das Bild nicht heraus. Speichere es selbst auf deinem Computer und wähle es dann unter „Eigenes Bild“ aus.',
   );
 }
@@ -334,22 +389,40 @@ export async function downloadCoverImage(
 // ---------------------------------------------------------------------------
 // Request URLs
 
-function queryText(q: CoverQuery): string {
-  return [q.artist, q.album, q.title, q.query]
-    .map((s) => (s ?? '').trim())
-    .filter(Boolean)
-    .join(' ');
+function prepared(q: CoverQuery | PreparedQuery): PreparedQuery {
+  return 'text' in q && 'variant' in q ? q : prepareQuery(q);
 }
 
-export function buildItunesUrl(q: CoverQuery): string {
-  const params = new URLSearchParams({ term: queryText(q), entity: 'album', limit: '12', country: 'DE' });
+export function buildItunesUrl(q: CoverQuery | PreparedQuery): string {
+  const params = new URLSearchParams({ term: prepared(q).text, entity: 'album', limit: '12', country: 'DE' });
   return `${ITUNES_SEARCH}?${params.toString()}`;
 }
 
-/** Lucene query for the MusicBrainz release index; for cassettes only editions on cassette. */
-export function buildMusicBrainzQuery(q: CoverQuery, kind: CoverKind = 'cd'): string {
-  const artist = (q.artist ?? '').trim();
-  const release = luceneTerms([q.album, q.title, q.query].map((s) => (s ?? '').trim()).filter(Boolean).join(' '));
+/** Deezer's album search: free, without a key, many German audio plays, pictures up to 1000 px. */
+export function buildDeezerUrl(q: CoverQuery | PreparedQuery): string {
+  const params = new URLSearchParams({ q: prepared(q).text, limit: '12' });
+  return `${DEEZER_SEARCH}?${params.toString()}`;
+}
+
+/**
+ * Lucene query for the MusicBrainz release index; for cassettes only
+ * editions on cassette. With an artist (or a series, for cassettes) the
+ * artist field and the words of the title; else the words anywhere.
+ */
+export function buildMusicBrainzQuery(q: CoverQuery | PreparedQuery, kind: CoverKind = 'cd'): string {
+  const p = prepared(q);
+  let artist = p.artist ?? '';
+  let title = p.album;
+  if (kind === 'cassette' || !artist) {
+    // "Benjamin Blümchen Folge 87 Das Laternenfest": cassettes carry the series as artist and the title without the number.
+    const parsed = parseReleaseName(p.album, p.artist);
+    if (kind === 'cassette' && parsed.series && parsed.title) {
+      artist = parsed.series;
+      title = parsed.title;
+    }
+  }
+  if (artist && normalizeForMatch(title).startsWith(normalizeForMatch(artist))) title = title.slice(artist.length);
+  const release = luceneTerms(title);
   let lucene = '';
   if (artist) {
     const phrase = `artist:"${artist.replace(/["\\]/g, (ch) => `\\${ch}`)}"`;
@@ -365,7 +438,7 @@ export function buildMusicBrainzQuery(q: CoverQuery, kind: CoverKind = 'cd'): st
   return lucene && kind === 'cassette' ? `(${lucene}) AND format:cassette` : lucene;
 }
 
-export function buildMusicBrainzUrl(q: CoverQuery, kind: CoverKind = 'cd'): string {
+export function buildMusicBrainzUrl(q: CoverQuery | PreparedQuery, kind: CoverKind = 'cd'): string {
   // Many cassette editions have no picture in the Cover Art Archive (their tiles are left out), so ask for more.
   const limit = kind === 'cassette' ? 50 : 8;
   return `${MUSICBRAINZ_RELEASE_SEARCH}?query=${encodeURIComponent(buildMusicBrainzQuery(q, kind))}&fmt=json&limit=${limit}`;
@@ -422,6 +495,49 @@ export function parseItunesResults(json: unknown): CoverCandidate[] {
       mediumUrl: resizable ? itunesArtworkUrl(art, 600) : art,
       fullUrl: resizable ? itunesArtworkUrl(art, 1200) : art,
       sizeHint: resizable ? 1200 : undefined,
+      score: 0,
+    });
+  });
+  return out;
+}
+
+interface DeezerAlbum {
+  id?: number;
+  title?: string;
+  cover_small?: string;
+  cover_medium?: string;
+  cover_big?: string;
+  cover_xl?: string;
+  release_date?: string;
+  record_type?: string;
+  artist?: { name?: string };
+}
+
+/** Deezer's album search: cover_medium is 250 px, cover_big 500 px, cover_xl 1000 px. */
+export function parseDeezerResults(json: unknown): CoverCandidate[] {
+  if (isRecord(json) && isRecord(json.error)) {
+    // {"error":{"type":"Exception","message":"Quota limit exceeded","code":4}}: as busy as a 429.
+    throw new HttpError(json.error.code === 4 ? 429 : 500);
+  }
+  const data = isRecord(json) && Array.isArray(json.data) ? (json.data as unknown[]) : null;
+  if (!data) throw new FormatError();
+  const out: CoverCandidate[] = [];
+  data.forEach((raw, i) => {
+    if (!isRecord(raw)) return;
+    const item = raw as DeezerAlbum;
+    const title = item.title?.trim();
+    const thumb = item.cover_medium ?? item.cover_big ?? item.cover_xl;
+    if (!title || !thumb) return;
+    out.push({
+      id: `deezer:${item.id ?? i}`,
+      source: 'deezer',
+      title,
+      artist: item.artist?.name?.trim() ?? '',
+      year: yearOf(item.release_date),
+      thumbUrl: thumb,
+      mediumUrl: item.cover_big ?? thumb,
+      fullUrl: item.cover_xl ?? item.cover_big ?? thumb,
+      sizeHint: item.cover_xl ? 1000 : undefined,
       score: 0,
     });
   });
@@ -581,32 +697,54 @@ function coverage(needles: readonly string[], haystack: readonly string[]): numb
   return needles.reduce((s, t) => s + tokenMatch(t, haystack), 0) / needles.length;
 }
 
+/** The query as cleaned for the search (names.ts); a prepared one as it is. */
+function preparedOf(query: CoverQuery | PreparedQuery): PreparedQuery {
+  return 'text' in query && 'variant' in query ? query : prepareQuery(query);
+}
+
 /**
  * Whether a hit is about what was searched at all: at least half of the
  * searched words (articles and numbers aside) in its title or artist.
  * "Der Tod" or "Der unheimliche Phantoll" for "Der Räuber Hotzenplotz" are not.
  */
-export function isRelevant(query: CoverQuery, candidate: Pick<CoverCandidate, 'title' | 'artist'>): boolean {
-  const qTokens = contentTokens(normalizeForMatch(queryText(query)));
+export function isRelevant(query: CoverQuery | PreparedQuery, candidate: Pick<CoverCandidate, 'title' | 'artist'>): boolean {
+  const qTokens = contentTokens(normalizeForMatch(preparedOf(query).text));
   if (!qTokens.length) return true;
   return coverage(qTokens, [...contentTokens(normalizeForMatch(candidate.title)), ...contentTokens(normalizeForMatch(candidate.artist))]) >= 0.5;
 }
 
-/** Match quality of one candidate for the query, roughly -1 … 1.5. */
-export function scoreCandidate(query: CoverQuery, candidate: Pick<CoverCandidate, 'title' | 'artist' | 'source'> & { mbScore?: number }): number {
-  const text = queryText(query);
+/**
+ * Match quality of one candidate for the query, roughly -1 … 1.5. Both
+ * names are compared cleaned (no "Disc 1", "[Bonus Tracks]", "(Remastered
+ * 2009)"); a hit of the kind the name asks for ("Ungekürzte Lesung",
+ * "Soundtrack") gets a little more, one of another kind less.
+ */
+export function scoreCandidate(query: CoverQuery | PreparedQuery, candidate: Pick<CoverCandidate, 'title' | 'artist' | 'source'> & { mbScore?: number }): number {
+  const p = preparedOf(query);
+  const text = p.text;
   const qTokens = contentTokens(normalizeForMatch(text));
-  const titleTokens = contentTokens(normalizeForMatch(candidate.title));
+  const cleanTitle = cleanForSearch(candidate.title);
+  const titleTokens = contentTokens(normalizeForMatch(cleanTitle));
   const artistTokens = contentTokens(normalizeForMatch(candidate.artist));
   const all = [...titleTokens, ...artistTokens];
 
-  let score = 0.55 * coverage(qTokens, all) + 0.15 * coverage(titleTokens, qTokens);
-  if (query.artist?.trim()) score += 0.2 * coverage(contentTokens(normalizeForMatch(query.artist)), artistTokens);
+  let score: number;
+  if (p.artist) {
+    // Album and artist each by themselves: "Winterkinder" by Rolf Zuckowski is not "Im Kindergarten" by Rolf Zuckowski.
+    const albumTokens = contentTokens(normalizeForMatch(p.album));
+    const ourArtist = contentTokens(normalizeForMatch(p.artist));
+    const albumCov = albumTokens.length ? coverage(albumTokens, all) : coverage(qTokens, all);
+    const titleCov = coverage(titleTokens, [...albumTokens, ...ourArtist]);
+    const artistCov = Math.max(coverage(ourArtist, [...artistTokens, ...titleTokens]), coverage(artistTokens, ourArtist));
+    score = 0.5 * albumCov + 0.2 * titleCov + 0.2 * artistCov;
+  } else {
+    score = 0.55 * coverage(qTokens, all) + 0.15 * coverage(titleTokens, qTokens);
+  }
 
-  const wanted = episodeNumbers([query.album, query.title, query.query].filter(Boolean).join(' '));
-  const collection = isCollection(candidate.title);
+  const wanted = p.episodes;
+  const collection = isCollection(cleanTitle);
   if (wanted.length > 0) {
-    const found = episodeNumbers(candidate.title);
+    const found = episodeNumbers(cleanTitle);
     // The right number only helps as far as the series matches too: "Die drei !!! Folge 12" is a
     // poor hit for "Die drei ??? Folge 12". A wrong number always costs.
     const seriesMatch = qTokens.length > 0 ? coverage(qTokens, all) ** 2 : 1;
@@ -614,39 +752,52 @@ export function scoreCandidate(query: CoverQuery, candidate: Pick<CoverCandidate
     else score -= found.length > 0 ? 0.35 : 0.1;
   }
   if (collection && !isCollection(text)) score -= 0.12;
-  score += candidate.source === 'itunes' ? 0.02 : 0.02 * ((candidate.mbScore ?? 0) / 100) - 0.01;
+  const kind = variantOf(candidate.title);
+  if (p.variant && kind === p.variant) score += 0.05;
+  else if (!variantsFit(p.variant, kind)) score -= 0.15;
+  score += candidate.source === 'musicbrainz' ? 0.02 * ((candidate.mbScore ?? 0) / 100) - 0.01 : candidate.source === 'itunes' ? 0.02 : 0.015;
   return Math.round(score * 1000) / 1000;
 }
 
+const SOURCE_ORDER: Record<CoverSource, number> = { itunes: 0, deezer: 1, musicbrainz: 2 };
+
 /**
  * Scores, removes duplicates (same artist and title; the better one stays,
- * iTunes on a tie because its artwork always exists) and sorts best first.
+ * iTunes before Deezer before MusicBrainz on a tie because their artwork
+ * always exists) and sorts best first. A duplicate from another service is
+ * noted in `alsoFrom`: two services agree.
  */
-export function rankCandidates(query: CoverQuery, candidates: readonly (CoverCandidate & { mbScore?: number })[]): CoverCandidate[] {
+export function rankCandidates(query: CoverQuery | PreparedQuery, candidates: readonly (CoverCandidate & { mbScore?: number })[]): CoverCandidate[] {
+  const p = preparedOf(query);
   const scored = candidates.map((c, order) => {
     const { mbScore: _ignored, ...rest } = c;
-    return { candidate: { ...rest, score: scoreCandidate(query, c) }, order };
+    return { candidate: { ...rest, score: scoreCandidate(p, c) }, order };
   });
-  scored.sort(
-    (a, b) =>
-      b.candidate.score - a.candidate.score ||
-      (a.candidate.source === b.candidate.source ? 0 : a.candidate.source === 'itunes' ? -1 : 1) ||
-      a.order - b.order,
-  );
-  const seen = new Set<string>();
+  scored.sort((a, b) => b.candidate.score - a.candidate.score || SOURCE_ORDER[a.candidate.source] - SOURCE_ORDER[b.candidate.source] || a.order - b.order);
+  const kept = new Map<string, CoverCandidate>();
   const out: CoverCandidate[] = [];
   for (const { candidate } of scored) {
     const key = sameAlbumKey(candidate);
-    if (seen.has(key)) continue;
-    seen.add(key);
+    const first = kept.get(key);
+    if (first) {
+      if (candidate.source !== first.source && !first.alsoFrom?.includes(candidate.source)) first.alsoFrom = [...(first.alsoFrom ?? []), candidate.source];
+      continue;
+    }
+    kept.set(key, candidate);
     out.push(candidate);
   }
   return out;
 }
 
-/** Hits with this key show the same album (rankCandidates keeps only one of them); editions of cassettes stay apart. */
+/**
+ * Hits with this key show the same album (rankCandidates keeps only one of
+ * them): the same artist and name, apart from notes about the edition
+ * ("Remastered", "40th Anniversary Edition"), and of the same kind (the
+ * soundtrack and the audio play of a film stay apart). Editions of
+ * cassettes stay apart.
+ */
 export function sameAlbumKey(c: Pick<CoverCandidate, 'artist' | 'title' | 'edition'>): string {
-  const key = `${normalizeForMatch(c.artist)}|${normalizeForMatch(c.title)}`;
+  const key = `${normalizeForMatch(c.artist)}|${normalizeForMatch(cleanForSearch(c.title))}|${variantOf(c.title)}`;
   return c.edition ? `${key}|${c.edition}` : key;
 }
 

@@ -156,6 +156,35 @@ install_and_build_frontend() {
 # not run beforeBuildCommand a second time.
 TAURI_SKIP_FRONTEND_BUILD='{"build":{"beforeBuildCommand":null}}'
 
+# Tauri's updater (docs/BUILD.md, "Automatische Updates"). With the secret key
+# in TAURI_SIGNING_PRIVATE_KEY (and TAURI_SIGNING_PRIVATE_KEY_PASSWORD),
+# tauri build also writes the signed update files (.sig next to the AppImage
+# and the setup), through src-tauri/tauri.updater.conf.json. The public key in
+# tauri.conf.json (plugins.updater.pubkey) must be the real one then. Once the
+# app has the plugin (tauri-plugin-updater in Cargo.toml), a build without
+# the key stops: its users could never update by themselves. Call before
+# install_and_build_frontend; pass "${UPDATER_ARGS[@]}" to tauri build.
+UPDATER_ARGS=()
+prepare_updater() {
+  local pubkey plugin=0
+  grep -q '^tauri-plugin-updater' src-tauri/Cargo.toml && plugin=1
+  if [[ -z "${TAURI_SIGNING_PRIVATE_KEY:-}" ]]; then
+    ((plugin == 0)) || die 'Die App hat den Updater eingebaut, aber TAURI_SIGNING_PRIVATE_KEY fehlt. Ohne den Schlüssel könnte sich diese Version nie selbst aktualisieren. Siehe docs/BUILD.md, „Automatische Updates“.'
+    return 0
+  fi
+  pubkey="$(node -p 'require("./src-tauri/tauri.conf.json").plugins?.updater?.pubkey ?? ""')"
+  [[ -n "$pubkey" && "$pubkey" != PLATZHALTER* ]] ||
+    die 'TAURI_SIGNING_PRIVATE_KEY ist gesetzt, aber in src-tauri/tauri.conf.json steht beim Updater (plugins.updater.pubkey) noch kein öffentlicher Schlüssel. Siehe docs/BUILD.md, „Automatische Updates“.'
+  UPDATER_ARGS=(--config src-tauri/tauri.updater.conf.json)
+  if ((plugin)); then
+    # The front end offers "Jetzt aktualisieren" (vite.config.ts, __SELF_UPDATE__).
+    export VITE_SELF_UPDATE=on
+    note 'Mit Updater: Die App kann sich selbst aktualisieren, die Update-Dateien werden signiert.'
+  else
+    note 'Die Update-Dateien werden signiert. Der Updater selbst ist noch nicht eingebaut (docs/BUILD.md).'
+  fi
+}
+
 # Usage: rename_deb_package <file.deb> <name>
 # Rewrites the Package field of a .deb in place; contents and maintainer
 # scripts stay as they are.

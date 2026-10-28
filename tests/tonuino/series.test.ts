@@ -4,7 +4,7 @@
  * episode number, in at least three folders.
  */
 import { describe, expect, it } from 'vitest';
-import { episodeNumber, episodeOrder, findSeries, seriesKey, seriesOfTitle } from '../../src/core/tonuino/series';
+import { episodeNumber, episodeOrder, findSeries, isPlaceholderTitle, seriesKey, seriesOfTitle } from '../../src/core/tonuino/series';
 
 describe('the series of a title', () => {
   it('is the text before the episode number', () => {
@@ -97,5 +97,21 @@ describe('the order of the episodes', () => {
   it('keeps the folder numbers when no title has a number, and for the same number', () => {
     expect(episodeOrder([{ number: 9, title: 'Hörbuch' }, { number: 3, title: 'Hörbuch' }, { number: 5, title: 'Noch eins' }])).toEqual([3, 5, 9]);
     expect(episodeOrder([{ number: 9, title: 'Reihe 1' }, { number: 3, title: 'Reihe 1' }])).toEqual([3, 9]);
+  });
+});
+
+describe('placeholder names are no series (Prüfrunde 1, bastler 17)', () => {
+  it('never finds a series in „Ordner 03“ and its kind', () => {
+    for (const t of ['Ordner 03', 'Ordner 3', 'Neuer Ordner 12', 'neuer ordner', 'Folder 7', 'Ordner Nr. 4']) {
+      expect(isPlaceholderTitle(t)).toBe(true);
+      expect(seriesOfTitle(t)).toBeUndefined();
+    }
+    expect(findSeries([1, 2, 3, 4, 5].map((n) => ({ number: n, title: `Ordner ${String(n).padStart(2, '0')}` })))).toEqual([]);
+    expect(findSeries([{ number: 1, title: 'Ordner' }, { number: 2, title: 'Ordner 2' }, { number: 3, title: 'Ordner 3' }, { number: 4, title: 'Ordner 4' }])).toEqual([]);
+  });
+
+  it('still finds a series whose name merely contains the word', () => {
+    expect(isPlaceholderTitle('Der Ordner des Grauens 3')).toBe(false);
+    expect(seriesOfTitle('Der Ordner des Grauens 3')).toBe('Der Ordner des Grauens');
   });
 });

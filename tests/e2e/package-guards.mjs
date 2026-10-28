@@ -44,7 +44,7 @@ export async function packageGuards(browser) {
   /* ---------------------------------------------------------------- format guess */
   console.log('guards: the format of the card');
   await chooseFolder(page, card, page.getByRole('button', { name: 'SD-Karte einlesen' }));
-  await page.locator('.sidebar').getByText(/Eingelesen um/).waitFor();
+  await page.locator('.kopf .sd-zeile').getByText(/Eingelesen um/).waitFor();
   check(!(await healthTitles()).includes(NOT_FAT), 'format: a card with FAT times is not taken for exFAT');
 
   /* ---------------------------------------------------------------- texts while choosing */
@@ -74,7 +74,7 @@ export async function packageGuards(browser) {
   page.on('download', () => downloads++);
   await into.click();
   await page.getByText('Paket wird vorbereitet').waitFor();
-  await page.locator('.sidebar').getByRole('button', { name: 'Paket' }).click();
+  await page.locator('.kopf .sd-zeile').getByRole('button', { name: 'Paket' }).click();
   await dialog.getByText(BUSY).waitFor();
   const button = dialog.getByRole('button', { name: 'Paket herunterladen' });
   check(await button.isDisabled(), 'busy: "Paket herunterladen" waits while titles are prepared');
@@ -86,7 +86,7 @@ export async function packageGuards(browser) {
   await page.getByText(/sind bereit fürs Paket|ist bereit fürs Paket/).waitFor({ timeout: 180_000 });
   check(downloads === 0, 'busy: nothing was downloaded meanwhile');
   check((await shown(page).locator('.package-banner.pending').count()) === 1, 'busy: afterwards everything waits for one Paket');
-  await page.locator('.sidebar').getByRole('button', { name: 'Paket' }).click();
+  await page.locator('.kopf .sd-zeile').getByRole('button', { name: 'Paket' }).click();
   await dialog.getByText('Das kommt auf die Karte:').waitFor();
   check((await dialog.getByText(BUSY).count()) === 0 && (await dialog.getByRole('button', { name: 'Paket herunterladen' }).isEnabled()), 'busy: then the Paket can be downloaded');
   await page.keyboard.press('Escape');

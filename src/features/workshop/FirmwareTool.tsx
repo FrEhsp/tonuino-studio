@@ -23,7 +23,7 @@ import {
   type Stk500Board,
 } from '../../core/firmware/variants';
 import { normalizeBoxAddress } from '../../core/tonuino/esp32';
-import { Badge, Button, Callout, Progress, Spinner, Steps } from '../../ui/components/controls';
+import { Badge, Button, Callout, Progress, Spinner } from '../../ui/components/controls';
 import { CommandLine, errorText } from '../../ui/components/Hints';
 import { toast, toastError, toastSaved } from '../../ui/components/Toast';
 import { navigate } from '../../app/router';
@@ -34,8 +34,10 @@ import { Facts, NoSerial, TechDetails, ToolHeader } from './common';
 import { probeBox } from './detect';
 import { dateTime } from './logbook';
 import { flashSession, type FlashRun, type SavedFirmware, type StartFlash } from './flashsession';
-import { APP_BASE, ExtrasPanel, baukastenManifest, localFetch, useBaukastenManifest } from './ExtrasPanel';
-import type { ExtrasChoice } from '../../core/firmware/baukasten';
+import { isBaukastenBoard } from '../../core/firmware/baukasten';
+import { BaukastenSchirm, FirmwareSteps, SHUTDOWN_SHORT, VerhaltenSchirm, wartendePunkte } from './FirmwareBaukasten';
+import { baukastenManifest } from './ExtrasPanel';
+import { CHECKED_TNG, standTitle } from '../../core/firmware/tngstands';
 import { logSession } from './logsession';
 import { ExtrasLostButtons, KnownExtrasNote } from './ExtrasLost';
 import { SettingsCheck } from './SettingsCheck';
@@ -44,10 +46,7 @@ import { ProblemView, offersAction } from './ProblemView';
 import { suggestBoards } from './ports';
 import {
   ASK_SHUTDOWN_FIRST,
-  baukastenChoice,
-  baukastenProblem,
   chooseBoard,
-  chooseExtras,
   chooseFirmware,
   chooseShutdown,
   chooseVariant,
@@ -62,7 +61,7 @@ import {
   guessText,
   holdAgainFits,
   keepsText,
-  loadBaukasten,
+  acceptUnchecked,
   loadReadyMade,
   nextStep,
   nextSteps,
@@ -75,56 +74,82 @@ import {
   shutdownAdvice,
   SHUTDOWN_CHOICES,
   sourceBlocker,
-  stepsFor,
   successFacts,
   successTechnical,
   variantAdvice,
   variantsFor,
   versionFacts,
   versionText,
-  wantedBuildId,
+  uncheckedText,
   type NextStep,
   type WizardState,
   type WizardStep,
 } from './wizard';
 import { toDevice } from '../../app/device';
+import { keyCount } from '../../core/tonuino/adminkeys';
 
 const session = flashSession;
-
-/** „Extras wählen“ after the check stopped the upload: the firmware step opens with the extras unfolded. */
-let extrasAsked = false;
 
 export function FirmwareTool() {
   const s = session.wizard.value;
   const run = session.run.value;
   const board = s.board ? getBoard(s.board) : undefined;
-  const steps = stepsFor(board);
-  let active = steps.findIndex((x) => x.id === s.step);
-  if (run.phase === 'running' || run.phase === 'failed') active = steps.length - 1;
-  if (run.phase === 'done') active = steps.length;
+  // With a board of the Baukasten chosen, its manifest loads while the buttons are asked: „Extras“ then shows at once.
+  const baukastenBoard = !!board && isBaukastenBoard(board.id);
+  useEffect(() => {
+    if (baukastenBoard) baukastenManifest().catch(() => undefined);
+  }, [baukastenBoard]);
+
+  // Classic and AiO: „Extras“ and „Verhalten“ are screens of 0.6 (FirmwareBaukasten.tsx).
+  const schirmBoard = run.phase === 'idle' && board?.method === 'stk500' && isBaukastenBoard(board.id) && s.variant ? board : undefined;
+  // While „Tasten“ is asked, „Extras“ is drawn ahead, hidden, when the browser has nothing else to do.
+  // „Weiter“ then only shows it: the same elements, laid out and framed already (never slower than 0.5.1).
+  const vorabFrage = !!schirmBoard && s.step === 'variant';
+  const [vorab, setVorab] = useState(false);
+  useEffect(() => {
+    if (!vorabFrage || vorab) return;
+    if (typeof requestIdleCallback === 'function') {
+      const id = requestIdleCallback(() => setVorab(true), { timeout: 1500 });
+      return () => cancelIdleCallback(id);
+    }
+    const id = window.setTimeout(() => setVorab(true), 300);
+    return () => window.clearTimeout(id);
+  }, [vorabFrage, vorab]);
+
+  if (schirmBoard && s.step === 'verhalten') return <VerhaltenSchirm s={s} board={schirmBoard} />;
+  if (schirmBoard && s.step === 'source')
+    // The same place in the tree as the screen drawn ahead below, so it is kept and not drawn again.
+    return (
+      <>
+        {null}
+        <BaukastenSchirm key="extras" s={s} board={schirmBoard} />
+      </>
+    );
+  const extrasVorab = schirmBoard && vorabFrage && vorab ? <BaukastenSchirm key="extras" s={{ ...s, step: 'source' }} board={schirmBoard} vorab /> : null;
 
   return (
-    <div class="page narrow ws-page">
-      <ToolHeader title="Firmware aufspielen" intro="Bringe die Software deiner Box auf den neuesten Stand. Schritt für Schritt." />
-      <div class="ws-steps">
-        <Steps steps={steps.map((x) => x.label)} active={active} />
+    <>
+      <div class="page narrow ws-page">
+        <ToolHeader title="Firmware aufspielen" intro="Bringe die Software deiner Box auf den neuesten Stand. Schritt für Schritt." />
+        <FirmwareSteps s={s} board={board} run={run.phase === 'done' ? 'done' : run.phase === 'idle' ? 'idle' : 'running'} />
+        {/* On the board step always, so choosing a board does not move the page; the upload step says it itself. */}
+        {!plat().capabilities.serial && run.phase === 'idle' && s.step !== 'flash' && (s.step === 'board' || board?.method !== 'esp32') ? (
+          <NoSerial>
+            <span>Boxen mit ESP32 bekommen ihre Firmware über WLAN, dafür brauchst du kein USB.</span>
+          </NoSerial>
+        ) : null}
+        {run.phase === 'running' ? (
+          <Running run={run} />
+        ) : run.phase === 'done' ? (
+          <Done run={run} />
+        ) : run.phase === 'failed' ? (
+          <Failed run={run} />
+        ) : (
+          <StepView s={s} board={board} />
+        )}
       </div>
-      {/* On the board step always, so choosing a board does not move the page; the upload step says it itself. */}
-      {!plat().capabilities.serial && run.phase === 'idle' && s.step !== 'flash' && (s.step === 'board' || board?.method !== 'esp32') ? (
-        <NoSerial>
-          <span>Boxen mit ESP32 bekommen ihre Firmware über WLAN, dafür brauchst du kein USB.</span>
-        </NoSerial>
-      ) : null}
-      {run.phase === 'running' ? (
-        <Running run={run} />
-      ) : run.phase === 'done' ? (
-        <Done run={run} />
-      ) : run.phase === 'failed' ? (
-        <Failed run={run} />
-      ) : (
-        <StepView s={s} board={board} />
-      )}
-    </div>
+      {extrasVorab}
+    </>
   );
 }
 
@@ -134,6 +159,7 @@ const TITLES: Record<WizardStep, string> = {
   board: 'Welche Platine steckt in deiner Box?',
   variant: 'Wie viele Tasten hat deine Box?',
   source: 'Welche Firmware soll auf die Box?',
+  verhalten: 'So soll sich meine Box verhalten',
   flash: 'Box anschließen und aufspielen',
 };
 
@@ -179,7 +205,8 @@ function StepView({ s, board }: { s: WizardState; board: BoardInfo | undefined }
         {title}
       </h2>
       {body}
-      <div class="ws-nav">
+      {/* „Weiter“ in view on every step, as on the last one (Prüfrunde 2, bastler 4). */}
+      <div class="ws-nav ws-nav-fest">
         {back}
         <span class="spacer" />
         {blocker && !next && primary ? <span class="small muted">{blocker}</span> : null}
@@ -386,22 +413,19 @@ function SourceStep({ s, board, variant, onBlocker }: { s: WizardState; board: S
     session.wizard.value = pickReadyMade(session.wizard.value);
     // Boards that are asked how they switch off load the build only after a fitting answer.
     if (!readyMadeAllowed(board, session.wizard.value.shutdown)) return;
-    const want = wantedBuildId(session.wizard.value);
     const have = session.wizard.value.firmware;
-    if (have?.kind === 'download' && have.board === board.id && have.variant === variant && have.baukasten?.id === want) return;
+    if (have?.kind === 'download' && have.board === board.id && have.variant === variant) return;
     session.wizard.value = chooseFirmware(session.wizard.value, undefined);
     loading.current?.abort();
     const ctrl = new AbortController();
     loading.current = ctrl;
     setBusy(true);
     try {
-      // With extras the build comes with the app (Firmware-Baukasten), without internet.
-      const firmware = want
-        ? await loadBaukasten(localFetch, APP_BASE, await baukastenManifest(), session.wizard.value)
-        : await loadReadyMade(plat().fetch, board, variant, ctrl.signal);
-      if (!ctrl.signal.aborted && wantedBuildId(session.wizard.value) === want) session.wizard.value = chooseFirmware(session.wizard.value, firmware);
+      // Classic and AiO have the Firmware-Baukasten (FirmwareBaukasten.tsx); the other boards download.
+      const firmware = await loadReadyMade(plat().fetch, board, variant, ctrl.signal);
+      if (!ctrl.signal.aborted) session.wizard.value = chooseFirmware(session.wizard.value, firmware);
     } catch (e) {
-      if (!ctrl.signal.aborted) setProblem(e instanceof FirmwareDownloadError ? e.problem : want ? baukastenProblem(e) : describeFlashError(e, { board }));
+      if (!ctrl.signal.aborted) setProblem(e instanceof FirmwareDownloadError ? e.problem : describeFlashError(e, { board }));
     } finally {
       if (loading.current === ctrl) {
         loading.current = null;
@@ -434,11 +458,6 @@ function SourceStep({ s, board, variant, onBlocker }: { s: WizardState; board: S
     }
   };
 
-  const changeExtras = (extras: ExtrasChoice) => {
-    session.wizard.value = chooseExtras(session.wizard.value, extras);
-    if (kind === 'download') void fetchReadyMade();
-  };
-
   const answerShutdown = (shutdown: ShutdownKind) => {
     session.wizard.value = chooseShutdown(session.wizard.value, shutdown);
     if (kind !== 'download') return;
@@ -455,13 +474,6 @@ function SourceStep({ s, board, variant, onBlocker }: { s: WizardState; board: S
   const versions = shown ? versionFacts(firmwareVersion(shown.image), known?.board === board.id ? known.version : undefined) : undefined;
   const asked = kind === 'download' && askShutdown(board);
   const blocked = kind === 'download' && !readyMadeAllowed(board, s.shutdown);
-  const extrasFor = baukastenChoice(s);
-  const manifest = useBaukastenManifest();
-  const [openExtras] = useState(() => {
-    const asked = extrasAsked;
-    extrasAsked = false;
-    return asked;
-  });
   return (
     <>
       <div class="choices ws-two" role="radiogroup" aria-label="Firmware">
@@ -472,10 +484,7 @@ function SourceStep({ s, board, variant, onBlocker }: { s: WizardState; board: S
           <span class="choice-title row tight">
             Fertige Firmware <Badge tone="success">Für die meisten Boxen</Badge>
           </span>
-          <span class="choice-text">
-            Die aktuelle Version von TonUINO TNG für „{board.shortName}“ mit {VARIANTS[variant].label}.{' '}
-            {extrasFor ? 'Ohne Extras wird sie aus dem Internet geladen, mit Extras ist sie in TonUINO Studio dabei.' : 'Sie wird aus dem Internet geladen.'}
-          </span>
+          <span class="choice-text">{`Der neueste Stand von TonUINO TNG für „${board.shortName}“ mit ${VARIANTS[variant].label}. Er wird von der Seite des TNG-Teams geladen.`}</span>
         </button>
         <button type="button" role="radio" class="choice" aria-checked={kind === 'file'} onClick={pickFile}>
           <span class="choice-icon" aria-hidden="true">
@@ -487,9 +496,6 @@ function SourceStep({ s, board, variant, onBlocker }: { s: WizardState; board: S
       </div>
       <KnownExtrasNote board={board.id} variant={variant} />
       {asked ? <ShutdownQuestion board={board} value={s.shutdown} onChange={answerShutdown} /> : null}
-      {kind === 'download' && extrasFor && manifest && manifest !== 'failed' ? (
-        <ExtrasPanel board={extrasFor.board} buttons={extrasFor.buttons} value={s.extras ?? {}} traeger={!!extrasFor.choice.traeger} manifest={manifest} onChange={changeExtras} openFirst={openExtras} />
-      ) : null}
       <div aria-live="polite">
         {blocked ? null : busy ? (
           <p class="row soft">
@@ -517,7 +523,13 @@ function SourceStep({ s, board, variant, onBlocker }: { s: WizardState; board: S
                 <span class="ws-file-name">{shown.fileName}</span>
                 <span class="small muted">
                   {formatBytes(shown.image.byteCount)} Firmware ·{' '}
-                  {shown.kind === 'download' ? (shown.baukasten ? `mit Extras: ${shown.baukasten.summary}` : 'geladen von tonuino.github.io') : 'eigene Datei'}
+                  {shown.kind === 'download'
+                    ? shown.baukasten
+                      ? shown.baukasten.summary
+                        ? `mit Extras: ${shown.baukasten.summary}`
+                        : `${shown.baukasten.stand}, geprüft, in der App dabei`
+                      : 'geladen von tonuino.github.io'
+                    : 'eigene Datei'}
                 </span>
                 {shown.kind === 'download' && shown.baukasten ? <span class="small muted">Quelle: {shown.baukasten.source}</span> : null}
               </div>
@@ -529,6 +541,7 @@ function SourceStep({ s, board, variant, onBlocker }: { s: WizardState; board: S
             </div>
             {versions?.facts.length ? <Facts facts={versions.facts} /> : null}
             {versions?.note ? <Callout tone="neutral">{versions.note}</Callout> : null}
+            {shown.kind === 'download' && shown.unchecked ? <UncheckedNote unchecked={shown.unchecked} ok={!!s.uncheckedOk} /> : null}
           </div>
         ) : null}
       </div>
@@ -537,9 +550,7 @@ function SourceStep({ s, board, variant, onBlocker }: { s: WizardState; board: S
           <div class="stack tight">
             <b>Gut zu wissen</b>
             <span>
-              {extrasFor
-                ? 'Die fertige Firmware passt zu Boxen, die nach Anleitung gebaut sind, auch mit Pololu-Schalter. Hat deine Box Drehregler, Leuchtring oder andere Extras, schalte sie oben unter „Extras“ ein. Machen nur manche Dateien Ärger, oder reagieren die Tasten nach einem bestimmten Titel nicht mehr, liegt es meist am Chip des MP3-Players: Den stellst du unter „Extras“ bei „Mehr: anderer MP3-Player-Chip“ ein. Fehlt etwas, frage, wer die Box gebaut hat, nach der passenden Datei und nimm „Eigene Datei“.'
-                : 'Die fertige Firmware passt zu Boxen, die nach Anleitung gebaut sind, auch mit Pololu-Schalter. Wurde deine Box beim Bauen angepasst, zum Beispiel mit anderem MP3-Chip, Drehregler oder LED-Ring, fehlt das danach. Dann frage, wer die Box gebaut hat, nach der passenden Datei und nimm „Eigene Datei“.'}
+              Die fertige Firmware passt zu Boxen, die nach Anleitung gebaut sind, auch mit Pololu-Schalter. Wurde deine Box beim Bauen angepasst, zum Beispiel mit anderem MP3-Chip, Drehregler oder LED-Ring, fehlt das danach. Dann frage, wer die Box gebaut hat, nach der passenden Datei und nimm „Eigene Datei“.
             </span>
             <span>Im Zweifel hilft die Sicherung: Vor dem Aufspielen sichere ich die alte Firmware. Fehlt danach etwas, spielst du sie einfach zurück.</span>
           </div>
@@ -548,6 +559,29 @@ function SourceStep({ s, board, variant, onBlocker }: { s: WizardState; board: S
     </>
   );
 }
+
+/**
+ * A download from tonuino.github.io that is not the checked TNG state: said
+ * plainly, and „Weiter“ only after a tick (canEnter, WizardState.uncheckedOk).
+ */
+function UncheckedNote({ unchecked, ok }: { unchecked: { version?: string; date?: string }; ok: boolean }) {
+  const t = uncheckedText(unchecked);
+  return (
+    <Callout tone="warning">
+      <div class="stack tight">
+        <b>{t.title}</b>
+        <span>{t.text}</span>
+        <label class="row tight">
+          <input type="checkbox" checked={ok} onChange={(e) => (session.wizard.value = acceptUnchecked(session.wizard.value, (e.currentTarget as HTMLInputElement).checked))} />
+          <span>{t.confirm}</span>
+        </label>
+      </div>
+    </Callout>
+  );
+}
+
+/** ESP32 boxes get the file from tonuino.github.io, which always has the newest main (tngstands.ts). */
+export const ESP32_STAND_NOTE = `Die Datei kommt von der Seite des TNG-Teams. Dort liegt immer der neueste Entwicklungsstand. Den hat TonUINO Studio nicht geprüft; geprüft ist ${standTitle(CHECKED_TNG)}.`;
 
 /**
  * „Wie geht deine Box aus?“: the ready-made build drives the shutdown pin one
@@ -603,6 +637,9 @@ function FlashStep({ s, board, heading, back }: { s: WizardState; board: Stk500B
             { label: 'Platine', value: board.name },
             ...(s.variant ? [{ label: 'Tasten', value: VARIANTS[s.variant].label }] : []),
             { label: 'Firmware', value: firmwareLabel(firmware) },
+            ...(firmware.kind === 'download' && firmware.baukasten?.summary ? [{ label: 'Extras', value: firmware.baukasten.summary }] : []),
+            // The answer to „Wie geht deine Box aus?“ belongs to the summary too (Prüfrunde 1 Bastler 3).
+            ...(s.shutdown && askShutdown(board) ? [{ label: 'Ausschalten', value: SHUTDOWN_SHORT[s.shutdown] }] : []),
           ]}
         />
         <Callout tone="warning">
@@ -629,7 +666,8 @@ function FlashStep({ s, board, heading, back }: { s: WizardState; board: Stk500B
           { label: 'Platine', value: board.name },
           ...(s.variant ? [{ label: 'Tasten', value: VARIANTS[s.variant].label }] : []),
           { label: 'Firmware', value: firmwareLabel(firmware) },
-          ...(firmware.kind === 'download' && firmware.baukasten ? [{ label: 'Extras', value: firmware.baukasten.summary }] : []),
+          ...(firmware.kind === 'download' && firmware.baukasten?.summary ? [{ label: 'Extras', value: firmware.baukasten.summary }] : []),
+          ...(s.shutdown && askShutdown(board) ? [{ label: 'Ausschalten', value: SHUTDOWN_SHORT[s.shutdown] }] : []),
         ]}
       />
       {firmware.kind === 'download' && firmware.baukasten?.needsNewBootloader ? (
@@ -675,7 +713,8 @@ function FlashStep({ s, board, heading, back }: { s: WizardState; board: Stk500B
         </ul>
       ) : null}
       {saved ? <SavedBackup saved={saved} earlier onRestore={ready ? restore : undefined} /> : null}
-      <div class="ws-nav">
+      {/* Held at the bottom of the window, so „Firmware aufspielen“ is in view without scrolling (Prüfrunde 1 Bastler 3). */}
+      <div class="ws-nav ws-nav-fest">
         {back}
         <span class="spacer" />
         {!ready ? (
@@ -764,6 +803,7 @@ function Esp32Step({ s, board, variant }: { s: WizardState; board: Esp32Board; v
   return (
     <>
       <p class="soft">Boxen mit ESP32 haben eine eigene Webseite im WLAN. Darüber spielst du die neue Firmware auf, ganz ohne USB-Kabel.</p>
+      <p class="small muted">{ESP32_STAND_NOTE}</p>
       {askShutdown(board) ? (
         <ShutdownQuestion board={board} value={s.shutdown} onChange={(kind) => (session.wizard.value = chooseShutdown(session.wizard.value, kind))} />
       ) : null}
@@ -885,7 +925,8 @@ function Done({ run }: { run: Done }) {
   const wizard = session.wizard.value;
   const shutdown = wizard.board === request.board.id ? wizard.shutdown : undefined;
   const backup = !!saved && !restored && saved.backup.data.length > 0;
-  const next = nextSteps(request.board, request.firmware, profile.value, { shutdown, backup }).filter((n) => n.id !== 'release');
+  const einstellen = request.firmware.kind === 'download' && request.firmware.baukasten ? wartendePunkte(profile.value, keyCount(request.firmware.variant)) : [];
+  const next = nextSteps(request.board, request.firmware, profile.value, { shutdown, backup, einstellen }).filter((n) => n.id !== 'release');
   return (
     <>
       <section class="card pad stack loose" aria-labelledby="ws-done-title">
@@ -1000,10 +1041,7 @@ function Failed({ run }: { run: Failed }) {
           session.wizard.value = w;
         }}
         again={() => again({ skipExtrasCheck: true })}
-        back={() => {
-          extrasAsked = true;
-          backTo('source');
-        }}
+        back={() => backTo('source')}
       />
     );
   } else if (problem.code === 'too-large' || problem.code === 'bad-image') {

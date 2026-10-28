@@ -20,7 +20,7 @@ import { modeByCode } from '../../core/tonuino/modes';
 import { folderName, MAX_TRACKS } from '../../core/tonuino/sd';
 import { canChangeCard } from '../../app/pending';
 import { navigate } from '../../app/router';
-import { card, profile, selection, settings } from '../../app/state';
+import { card, profile, revealPicked, selection, settings } from '../../app/state';
 import { formatBytes, plural } from '../../app/format';
 import { Button, Callout, Field, IconButton, Progress } from '../../ui/components/controls';
 import { Hoch, Runter } from '../../ui/icons';
@@ -49,6 +49,7 @@ function openCards(ids: readonly string[]) {
   selection.value = new Set();
   extraSelection.value = new Set(ids);
   packedSeries.value = null;
+  revealPicked.value = true;
   navigate({ page: 'cards' });
 }
 

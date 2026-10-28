@@ -124,10 +124,11 @@ export const SETTING_TEXTS: Record<SettingKey, SettingText> = {
   },
   findCovers: {
     label: 'Fehlende Cover selbst suchen',
-    hint: 'Hat ein Ordner kein Bild, suche ich im Internet nach dem Original-Cover für die Karte im Regal.',
+    hint: 'Hat ein Ordner kein Bild, hole ich das Original-Cover selbst und lege es auf die SD-Karte.',
     more: [
-      'Dafür schicke ich den Namen des Ordners an iTunes und MusicBrainz, aber nur, wenn der Name eindeutig ein Album nennt. Ein gefundenes Bild bleibt auf deinem Computer. Auf die SD-Karte kommt es erst, wenn du im Ordner auf „Übernehmen“ klickst.',
-      'Schaltest du das aus, frage ich nur noch, wenn du selbst auf „Cover suchen“ klickst.',
+      'Zuerst schaue ich in die Dateien des Ordners. Steckt dort ein Bild, nehme ich das. Sonst schicke ich den Namen des Ordners an iTunes (Apple) und Deezer, wenn nötig auch an MusicBrainz. Das mache ich nur, wenn der Name ein Album genau nennt.',
+      'Bin ich mir sicher, kommt das Cover gleich auf die Karte. Bin ich mir nicht sicher, entscheidest du unter „Cover suchen“. Ein Cover, das schon da ist, ersetze ich nie. Nimmst du ein Cover weg, hole ich es nicht wieder.',
+      'Schaltest du das aus, suche ich nur, wenn du selbst auf „Cover suchen“ klickst.',
     ],
   },
   profile: {
@@ -271,16 +272,6 @@ export const SETTING_TEXTS: Record<SettingKey, SettingText> = {
     ],
     help: 'titel-zusammenfuegen',
   },
-  trimTracks: {
-    label: 'Anfang und Ende abschneiden',
-    hint: 'Im Menü eines Titels schneidest du Sekunden am Anfang oder Ende ab, zum Beispiel die gleiche Titelmusik vor jeder Folge.',
-    more: [
-      'Du gibst an, wie viele Sekunden weg sollen, und hörst den neuen Anfang zur Probe an. Auf Wunsch schneide ich alle Titel des Ordners gleich.',
-      'MP3-Dateien schneide ich ohne Umwandeln, am Ton ändert sich nichts. Der Schnitt liegt auf etwa 1/40\u00a0Sekunde genau.',
-      'Was abgeschnitten ist, ist von der Karte weg. Brauchst du es noch, behalte die Originale auf deinem Computer.',
-    ],
-    help: 'anfang-abschneiden',
-  },
   monoSpeech: {
     label: 'Hörspiele in Mono speichern (halb so groß)',
     name: 'Hörspiele in Mono',
@@ -359,7 +350,7 @@ export const SETTINGS_SECTIONS: SettingsSection[] = [
     id: 'zusatzfunktionen',
     title: 'Zusatzfunktionen',
     intro: 'Seltene Werkzeuge, wie sie andere TonUINO-Programme haben. Ausgeschaltet zeige ich sie nirgends.',
-    keys: ['joinTracks', 'trimTracks', 'monoSpeech', 'episodePlanner', 'stickerBacks', 'announceTitles', 'recordAudio'],
+    keys: ['joinTracks', 'monoSpeech', 'episodePlanner', 'stickerBacks', 'announceTitles', 'recordAudio'],
   },
 ];
 

@@ -158,6 +158,11 @@ oder Desktop-App?“ und im Hinweis auf Handys und Tablets
 (`src/features/help/desktopapp.ts`). Ohne die Variable, oder wenn sie keine
 https-Adresse ist, steht dort kein Link. Die Desktop-App zeigt ihn nie.
 
+Genauso `VITE_ANDROID_DOWNLOAD_URL` für die Android-App: Mit ihr zeigt die
+Web-App auf Android-Handys und -Tablets „Android-App herunterladen“ (im Hinweis
+auf dem Handy und in den Einstellungen unter „Was in diesem Browser geht“).
+Auf dem iPhone und iPad steht der Link nie, dort hilft die Android-App nicht.
+
 ## Wo die Dateien landen
 
 `<target>` ist `src-tauri/target` oder `CARGO_TARGET_DIR`, `<version>` die
@@ -420,11 +425,164 @@ signieren sie.
   `tauri.conf.json`. Wer ihn ändert, bekommt eine andere App: Updates über
   die alte gehen dann nicht mehr.
 
+## Automatische Updates
+
+Stand 0.6: vorbereitet, nicht eingeschaltet. Nichts davon veröffentlicht
+etwas; Releases legt nur Frank an (oder jemand mit seinem OK).
+
+Voraussetzung für alles: **öffentliche Releases.** Das Repository ist privat.
+Die App kann neue Versionen nur dort finden, wo jeder ohne Anmeldung lesen
+kann: entweder das Repository öffentlich machen oder ein eigenes,
+öffentliches Repository nur für die fertigen Dateien anlegen. Im zweiten Fall
+die Adressen unten (`endpoints`, `VITE_RELEASES_URL`) auf dieses Repository
+ändern.
+
+### Was die App je System macht
+
+| System | Was passiert | Wo im Code |
+|---|---|---|
+| Windows (Setup), Mac, Linux-AppImage | „Neue Version da“, dann „Jetzt aktualisieren“: Die App lädt, prüft die Signatur und ersetzt sich (Tauri-Updater). Bis der Updater eingebaut ist: Schritte und Download-Knopf wie beim .deb. | `src/platform/tauri/updater.ts`, `src/app/updatesteps.ts` |
+| Linux .deb | „Neue Version da“ mit Download des .deb und den Schritten (Softwareverwaltung oder `sudo apt install ./…deb`). Der Tauri-Updater kann kein .deb. | `src/app/updatesteps.ts` |
+| Android | „Neue Version da“ mit Download der APK; Android fragt „Aktualisieren?“. Klappt nur, solange jede APK mit demselben Schlüssel signiert ist (siehe Android). | `src/app/updatesteps.ts` |
+| Web-App | Der Service Worker merkt eine neue Version; ein offener Tab zeigt „Neue Version da · neu laden“. | `src/app/pwa.ts`, `src/pwa/` |
+
+Der Hinweis in den Apps bleibt abschaltbar und ist aus, bis man ihn in den
+Einstellungen einschaltet („Auf neue Versionen hinweisen“). Er erscheint nur
+in Builds mit `VITE_RELEASES_URL`, zum Beispiel
+`VITE_RELEASES_URL=https://api.github.com/repos/FrEhsp/tonuino-studio/releases/latest`.
+Aus der Antwort von GitHub nimmt die App die Datei für ihr System (Endung
+`.exe`, `.dmg`, `.AppImage`, `.deb`, `.apk`), sonst die Release-Seite.
+
+### Den Update-Schlüssel anlegen (einmal, Frank oder der Build-Thread)
+
+Der Tauri-Updater installiert nur Dateien, die mit dem geheimen Schlüssel
+signiert sind. Der öffentliche Teil steckt in der App. **Wer den geheimen
+Schlüssel verliert, kann installierte Apps nie mehr aktualisieren**; wer ihn
+bekommt, könnte allen Nutzern eine fremde Version unterschieben. Deshalb:
+nie ins Repository, nie in einen Chat, nie in eine Mail.
+
+1. Schlüssel erzeugen, außerhalb des Quellcodes, mit Passwort:
+
+   ```sh
+   mkdir -p ~/geheim && npx tauri signer generate -w ~/geheim/tonuino-updater.key
+   ```
+
+   Das legt `tonuino-updater.key` (geheim) und `tonuino-updater.key.pub`
+   (öffentlich) an.
+2. Den **Inhalt** von `tonuino-updater.key.pub` in
+   `src-tauri/tauri.conf.json` bei `plugins.updater.pubkey` statt des
+   Platzhalters eintragen und committen (der öffentliche Teil ist kein
+   Geheimnis).
+3. Den geheimen Schlüssel und sein Passwort sichern: im Passwort-Manager und
+   zusätzlich offline (USB-Stick an einem sicheren Ort).
+4. Für GitHub Actions (Mac): im Repository unter Settings › Secrets and
+   variables › Actions zwei Secrets anlegen: `TAURI_SIGNING_PRIVATE_KEY`
+   (Inhalt der Datei `tonuino-updater.key`) und
+   `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`.
+5. Für die Build-Skripte unter Linux vor dem Bauen:
+
+   ```sh
+   export TAURI_SIGNING_PRIVATE_KEY="$(cat ~/geheim/tonuino-updater.key)"
+   export TAURI_SIGNING_PRIVATE_KEY_PASSWORD=…
+   ```
+
+Mit dem Schlüssel bauen `scripts/build-linux.sh`, `scripts/build-windows.sh`
+und `mac.yml` zusätzlich die signierten Update-Dateien
+(`src-tauri/tauri.updater.conf.json`, `bundle.createUpdaterArtifacts`):
+`….AppImage.sig`, `…_x64-setup.exe.sig`, `TonUINO Studio.app.tar.gz` mit
+`.sig`. Ohne Schlüssel bauen sie wie bisher. Steht noch der Platzhalter in
+`tauri.conf.json`, brechen sie mit einem Hinweis ab.
+
+### Den Updater in die App einbauen
+
+Dafür braucht die App zwei neue Abhängigkeiten, die nur mit Franks OK
+dazukommen (Regel „keine neuen Abhängigkeiten“): das Crate
+`tauri-plugin-updater` (Rust). Das npm-Paket `@tauri-apps/plugin-updater`
+ist nicht nötig, `updater.ts` ruft das Plugin direkt auf.
+
+1. `src-tauri/Cargo.toml`, nur für den Computer:
+
+   ```toml
+   [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
+   tauri-plugin-updater = "2"
+   ```
+
+2. `src-tauri/src/lib.rs`, in `run()` beim `#[cfg(desktop)]`-Teil des Builders:
+
+   ```rust
+   #[cfg(desktop)]
+   let builder = builder.plugin(tauri_plugin_updater::Builder::new().build());
+   ```
+
+3. `src-tauri/capabilities/updater.json`:
+
+   ```json
+   { "identifier": "updater", "windows": ["main"], "platforms": ["linux", "macOS", "windows"], "permissions": ["updater:default"] }
+   ```
+
+Sobald `tauri-plugin-updater` in `Cargo.toml` steht, setzen die Skripte und
+`mac.yml` beim Bau der Oberfläche `VITE_SELF_UPDATE=on`
+(`__SELF_UPDATE__` in `vite.config.ts`), und die App zeigt „Jetzt
+aktualisieren“. Ein Build ohne Schlüssel bricht dann ab, denn seine Nutzer
+könnten sich nie selbst aktualisieren. **Wichtig:** Erst eine Version, die
+den Updater schon enthält, kann sich später selbst aktualisieren. Wer davor
+installiert hat, holt sich die erste Version mit Updater noch von Hand.
+
+Windows: Das Setup läuft beim Update ohne Fragen mit Fortschrittsbalken
+(`plugins.updater.windows.installMode: passive`) und startet die App neu.
+Mac und AppImage: Die App sagt danach „Schließe TonUINO Studio und öffne es
+wieder“. Unter macOS fragt das System nach jedem Update evtl. wieder nach
+Mikrofon und SD-Karte (Ad-hoc-Signatur, siehe macOS). Der Updater ist auf
+keinem echten Mac und keinem echten Windows durchgespielt.
+
+### Ein Release mit Updates (nur mit Franks OK)
+
+1. Version in `package.json` hochzählen, mit Schlüssel bauen (Linux,
+   Windows, `mac.yml` von Hand starten).
+2. `latest.json` schreiben, mit allen Dateien, die eine `.sig` daneben haben:
+
+   ```sh
+   node scripts/updater-latest.mjs --version 0.6.0 \
+     --base https://github.com/FrEhsp/tonuino-studio/releases/download/v0.6.0/ \
+     --notes "Was neu ist" \
+     "…/TonUINO Studio_0.6.0_amd64.AppImage" "…/TonUINO Studio_0.6.0_x64-setup.exe" "…/TonUINO Studio.app.tar.gz"
+   ```
+
+   GitHub macht beim Hochladen aus Leerzeichen in Dateinamen Punkte; die
+   Adressen in `latest.json` tun das auch.
+3. Ein **öffentliches** Release `v0.6.0` anlegen (kein Entwurf, keine
+   Vorabversion) und hochladen: `.deb`, AppImage, Setup, `.dmg`, die APK, die
+   Update-Dateien mit ihren `.sig` und `latest.json`. Die App fragt
+   `releases/latest/download/latest.json`, also immer das neueste Release.
+
+### Web-App: installierbar und „neu laden“
+
+Der Bau der Web-App legt `sw.js`, `manifest.webmanifest` und `icons/` neben
+`index.html` (`scripts/pwa.ts`; die Desktop- und die Android-App bekommen
+nichts davon). Die Web-App ist damit als App installierbar (Chrome, Edge,
+Samsung Internet, Safari am Mac und am iPhone) und öffnet sich auch ohne
+Internet. Der Service Worker meldet sich erst an, wenn die erste Seite steht
+und der Browser nichts zu tun hat; der Start wird dadurch nicht langsamer.
+Online lädt der Browser die Dateien der App selbst (aus seinem Zwischenspeicher),
+der Service Worker hält nur eine Kopie für den Start ohne Internet: aus seinem
+Speicher beantwortet, kam das erste Bild in WebKit doppelt so spät.
+
+Für den Webspace:
+
+- Nur über HTTPS (sonst gibt es keinen Service Worker, die App läuft trotzdem).
+- `sw.js` ohne langen Zwischenspeicher ausliefern (`Cache-Control: no-cache`);
+  Browser fragen sie ohnehin spätestens nach 24 Stunden neu.
+- `manifest.webmanifest` als `application/manifest+json`.
+- Beim Hochladen einer neuen Version die alten Dateien in `assets/` ein paar
+  Tage liegen lassen: Ein Tab, der noch die alte Version zeigt, lädt sonst
+  manche Seiten nicht mehr, bis man „neu laden“ drückt.
+
 ## Bekannte Grenzen
 
 - Nichts ist signiert. Windows SmartScreen warnt beim ersten Start des
-  Installers („Weitere Informationen“, dann „Trotzdem ausführen“). Einen
-  Auto-Updater gibt es nicht.
+  Installers („Weitere Informationen“, dann „Trotzdem ausführen“). Der
+  Auto-Updater ist vorbereitet, aber nicht eingebaut (siehe
+  [Automatische Updates](#automatische-updates)).
 - Kein MSI-Paket (WiX läuft nur unter Windows). Das macOS-Paket baut nur
   GitHub Actions (siehe oben), unsigniert und auf keinem Mac durchgespielt.
 - Unter macOS beenden Cmd+Q und „Beenden“ im Dock die App

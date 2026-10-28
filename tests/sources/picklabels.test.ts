@@ -1,9 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { readFileSync } from 'node:fs';
 import { agesLabel } from '../../src/core/sources/filter';
 import type { IndexEntry, IndexItem } from '../../src/core/sources/types';
 import { pickAges, pickAgesLabel, pickLengthLabel, pickTitle } from '../../src/features/sources/labels';
-import { NARROW_QUERY, PICKS_SHOWN, PICKS_SHOWN_NARROW, picksShown } from '../../src/features/sources/Picks';
 
 const item = (n: number, over: Partial<IndexItem> = {}): IndexItem => ({ key: `e/${n}`, title: `Folge ${n}`, category: 'hoerspiel', files: [], durationSec: 1200, ...over });
 const entry = (type: IndexEntry['type'], items: IndexItem[]): IndexEntry => ({
@@ -62,17 +60,5 @@ describe('labels of a recommendation', () => {
     const e = entry('podcast', [item(1)]);
     expect(pickTitle({ entry: e, item: e.items[0] })).toBe('Folge 1');
     expect(pickTitle({ entry: e })).toBe('Die Sendung');
-  });
-});
-
-describe('picks on a phone', () => {
-  it('shows two before "Alle anzeigen" on a narrow screen, four on a wide one', () => {
-    expect(picksShown(true)).toBe(PICKS_SHOWN_NARROW);
-    expect(picksShown(false)).toBe(PICKS_SHOWN);
-    expect(PICKS_SHOWN_NARROW).toBe(2);
-    expect(PICKS_SHOWN).toBe(4);
-    // The compact cards in sources.css start at the same width.
-    const css = readFileSync(new URL('../../src/features/sources/sources.css', import.meta.url), 'utf8');
-    expect(css).toContain(`@media ${NARROW_QUERY}`);
   });
 });

@@ -5,6 +5,7 @@
  */
 import { EQ_NAMES, type BoxInfo, type LogIssue, type VolumeLevels } from '../../core/firmware/bootlog';
 import { VARIANTS, getBoard } from '../../core/firmware/variants';
+import { invertKind, invertText } from '../../core/firmware/tngstands';
 import { tngStandOf } from '../../core/tonuino/firmwaredetect';
 
 export interface BoxFact {
@@ -97,12 +98,11 @@ export function boxFacts(info: BoxInfo): BoxFacts {
   if (s.pauseWhenCardRemoved !== undefined) {
     settings.push({ id: 'card-removed', label: 'Karte wegnehmen', value: s.pauseWhenCardRemoved ? 'Box hält an' : 'Box spielt weiter' });
   }
-  if (s.invertVolumeButtons !== undefined && (info.buttons === undefined || info.buttons === '3')) {
-    settings.push({
-      id: 'buttons',
-      label: 'Tasten',
-      value: s.invertVolumeButtons ? 'kurz drücken: Lautstärke, lang: Titel' : 'kurz drücken: Titel, lang: Lautstärke',
-    });
+  if (s.invertVolumeButtons !== undefined) {
+    // 3 buttons: short/long; 5 buttons only with TNG from 26.10.2026 (tngstands.ts invertKind), else it does nothing there.
+    const kind = info.buttons === undefined ? 'three' : invertKind({ buttons: info.buttons, version: info.version, date: info.versionDate });
+    const value = kind && info.buttons !== '3x3' ? invertText(kind, s.invertVolumeButtons) : undefined;
+    if (value) settings.push({ id: 'buttons', label: 'Tasten', value });
   }
   // „Box einstellen“ sets what the speaker plays; the headphone values it cannot count from.
   return { box, settings: settings.map((f) => (f.id === 'headphone' ? f : { ...f, link: CHANGE })) };
@@ -116,7 +116,7 @@ export function hasBootFacts(info: BoxInfo): boolean {
 const LEVEL_WORDS = { error: 'Fehler', warn: 'Hinweis', info: 'Info' } as const;
 
 /** Plain-text summary for a file or a forum post. */
-export function summaryLines(info: BoxInfo, issues: readonly LogIssue[]): string[] {
+export function summaryLines(info: BoxInfo, issues: readonly LogIssue[], forum = false): string[] {
   const { box, settings } = boxFacts(info);
   const lines: string[] = ['Steckbrief der Box'];
   if (!box.length && !settings.length) lines.push('- noch nichts bekannt (die Box ist im Log nicht gestartet)');
@@ -125,6 +125,11 @@ export function summaryLines(info: BoxInfo, issues: readonly LogIssue[]): string
   if (!issues.length) lines.push('- keine');
   for (const i of issues) {
     const count = i.count > 1 ? ` (${i.count}×)` : '';
+    // In the forum only the facts: the app's explanations and tips speak as „ich“ and would read as the poster's words (Prüfrunde 1, bastler 12).
+    if (forum) {
+      lines.push(`- [${LEVEL_WORDS[i.explanation.level]}] ${i.explanation.title}${count}`);
+      continue;
+    }
     lines.push(`- [${LEVEL_WORDS[i.explanation.level]}] ${i.explanation.title}${count}: ${i.explanation.explanation}`);
     if (i.explanation.fix) lines.push(`  Tipp: ${i.explanation.fix}`);
   }

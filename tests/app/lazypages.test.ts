@@ -77,10 +77,12 @@ describe('pages that come as their own files', () => {
     }
   });
 
-  it('are not part of the start, "Meine Box" is', () => {
+  it('are not part of the start, „Musik“ and „Karte“ are (the first page on a computer and on a phone)', () => {
     const app = read('src/app/App.tsx');
-    expect(app).toMatch(/import \{ BoxPage, useAutoRefresh \} from '\.\.\/features\/box\/BoxPage'/);
-    for (const page of ['FolderPage', 'AddPage', 'SourcesPage', 'StickerPage', 'CardsPage', 'RecordPage', 'WorkshopPage', 'HelpPage', 'SettingsPage']) {
+    expect(app).toMatch(/import \{ MusikScreen \} from '\.\.\/features\/add\/MusikScreen'/);
+    expect(app).toMatch(/import \{ KarteScreen \} from '\.\.\/features\/cards\/KarteScreen'/);
+    // Meine Box too since 0.6 (#121): it is no longer the first page.
+    for (const page of ['BoxPage', 'StickerScreen', 'FolderPage', 'AddPage', 'SourcesPage', 'StickerPage', 'CardsPage', 'RecordPage', 'WorkshopPage', 'HelpPage', 'SettingsPage']) {
       expect(app).not.toMatch(new RegExp(`import \\{[^}]*\\b${page}\\b[^}]*\\} from`));
       expect(app).toContain(`.then((m) => m.${page})`);
     }

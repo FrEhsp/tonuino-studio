@@ -7,9 +7,13 @@
  * saved only after the user confirms (see setCovers in app/state.ts).
  */
 
+import { commercialSeriesIn } from '../sources/commercial';
+import { cleanArtist, cleanForSearch, isDoubtfulVersion, isVariousArtists, prepareQuery, variantOf, variantsFit, type PreparedQuery } from '../covers/names';
+import { abortError, RateLimiter, type Limiter } from '../covers/net';
+import { compareRelease } from '../library/releasename';
 import type { Catalog, CatalogFolder } from '../tonuino/catalog';
 import { folderName, type SdScan } from '../tonuino/sd';
-import { episodeNumbers, normalizeForMatch, RateLimiter, type CoverCandidate, type CoverQuery, type CoverSearchResult } from './coversearch';
+import { episodeNumbers, normalizeForMatch, type CoverCandidate, type CoverQuery, type CoverSearchResult } from './coversearch';
 import { isAbortError } from './image';
 
 // ---------------------------------------------------------------------------
@@ -23,6 +27,8 @@ export interface BulkTarget {
   detail?: string;
   /** What is searched for; empty when the name says too little to search. */
   query: string;
+  /** The same in parts (artist or series, and the album), as the services get it; missing: `query` as free text. */
+  search?: CoverQuery;
   /**
    * The name points at one album, not just at an artist, a series or a kind
    * of music ("Kinderlieder"). Only then can a hit start ticked.
@@ -55,7 +61,14 @@ export function coverlessFolders(
     const query = buildFolderQuery(entry);
     const title = entry.title?.trim() || `Ordner ${folderName(f.number)}`;
     const lead = (entry.series ?? entry.artist ?? '').trim();
-    out.push({ folder: f.number, title, detail: lead && !containsWords(title, lead) ? lead : undefined, query, specific: !!query && namesOneAlbum(entry) });
+    out.push({
+      folder: f.number,
+      title,
+      detail: lead && !containsWords(title, lead) ? lead : undefined,
+      query,
+      ...(query ? { search: buildFolderSearch(entry) } : {}),
+      specific: !!query && namesOneAlbum(entry),
+    });
   }
   return out;
 }
@@ -110,7 +123,10 @@ export function namesOneAlbum(entry: Pick<CatalogFolder, 'title' | 'artist' | 's
   if (PLACEHOLDER_TITLE.test(title)) title = '';
   const series = clean(entry.series);
   const artist = NO_ARTIST.test(clean(entry.artist)) ? '' : clean(entry.artist);
-  const lead = series || artist;
+  let lead = series || artist;
+  // An artist tag that repeats the album's name ("Unter meinem Bett" by "Unter meinem Bett") says nothing more,
+  // unless the name is that of a well-known series ("Bibi Blocksberg" by "Bibi Blocksberg": any episode would fit).
+  if (lead && normalizeForMatch(lead) === normalizeForMatch(title) && !isSeriesName(title)) lead = '';
   const leadWords = new Set(contentWords(lead));
   const titleWords = contentWords(title);
   // At least one word of the title says which album it is, and the whole name has two such words.
@@ -120,6 +136,13 @@ export function namesOneAlbum(entry: Pick<CatalogFolder, 'title' | 'artist' | 's
   // A series and an episode number name one episode, also when both are in the title ("TKKG Folge 7").
   const episode = (entry.episode && entry.episode > 0) || episodeNumbers(title).length > 0;
   return episode && (!!lead || own.length > 0);
+}
+
+/** True when the name is just that of a well-known series ("Bibi Blocksberg", "TKKG"). */
+function isSeriesName(name: string): boolean {
+  const series = commercialSeriesIn(name);
+  const n = normalizeForMatch(name);
+  return !!series && [series.name, ...series.match, ...(series.alone ?? [])].some((m) => normalizeForMatch(m) === n);
 }
 
 /** True when every word of `inner` appears as a word in `outer` (after normalising umlauts, "???" and so on). */
@@ -150,6 +173,23 @@ export function buildFolderQuery(entry: Pick<CatalogFolder, 'title' | 'artist' |
   return isSearchable(query) ? query.slice(0, 150) : '';
 }
 
+/**
+ * The search for a folder in parts: the series (or else the artist tag) as
+ * artist, and the title with "Folge N" when the number is not in it yet.
+ * The services get the artist and the cleaned title (names.ts); a service
+ * that finds nothing with the artist is asked once more without it, for
+ * artist tags that are the title of a track.
+ */
+export function buildFolderSearch(entry: Pick<CatalogFolder, 'title' | 'artist' | 'series' | 'episode'>): CoverQuery {
+  const clean = (s: string | undefined) => (s ?? '').replace(/\s+/g, ' ').trim();
+  let title = clean(entry.title);
+  if (PLACEHOLDER_TITLE.test(title)) title = '';
+  const lead = clean(entry.series) || cleanArtist(entry.artist) || '';
+  const episode = entry.episode;
+  const album = episode && episode > 0 && (title || lead) && !episodeNumbers(`${lead} ${title}`).includes(episode) ? `${title} Folge ${episode}`.trim() : title;
+  return lead ? { artist: lead, album: album || lead } : { album };
+}
+
 /** True when the text has at least one word that tells audio plays apart (not just "Folge 1"). */
 export function isSearchable(query: string): boolean {
   return normalizeForMatch(query)
@@ -161,31 +201,133 @@ export function isSearchable(query: string): boolean {
 // Good enough to take?
 
 /**
- * Score (see scoreCandidate) from which the best hit is ticked right away.
- * Below it a row starts unticked with "Unsicher – bitte prüfen". Calibrated
- * with tests/stickers/bulkcover.test.ts: the right episode of the right
- * series scores about 0.9 to 1.1, the right album of an artist about 0.7, a
- * hit that shares one word with the name 0.4 or less.
+ * Score (see scoreCandidate) a hit needs at least to be taken without a
+ * look. Only a floor: the checks of isConfident decide. The right episode
+ * of the right series scores about 0.9 to 1.1, the right album of an
+ * artist about 0.9, one with an artist tag that is really a track's title
+ * (TODO #110) about 0.5, a hit that shares one word with the name 0.3 or
+ * less.
  */
-export const CONFIDENT_SCORE = 0.6;
+export const CONFIDENT_SCORE = 0.35;
 
 /** The best hit plus up to four others to choose from. */
 export const MAX_CHOICES = 5;
 
+export interface ConfidenceTarget {
+  query: string;
+  specific: boolean;
+  search?: CoverQuery;
+}
+
+/** The artist of the folder in the hit: in its artist (word for word, either way round), or as the series in its title. */
+function artistFits(artist: string, hit: Pick<CoverCandidate, 'title' | 'artist'>): boolean {
+  const words = (s: string) => normalizeForMatch(s).split(' ').filter((w) => w.length >= 2 && !ARTIST_FILLERS.has(w));
+  const ours = words(artist);
+  if (!ours.length) return true;
+  const theirs = words(hit.artist);
+  const share = (a: string[], b: string[]) => (a.length ? a.filter((w) => b.includes(w)).length / a.length : 0);
+  // "Die drei ???" is not "Die drei !!!": half the words are not enough.
+  if (Math.max(share(ours, theirs), share(theirs, ours)) >= 0.6) return true;
+  return share(ours, words(hit.title)) === 1;
+}
+const ARTIST_FILLERS = new Set(['the', 'die', 'der', 'das', 'und', 'and', 'feat', 'featuring', 'mit', 'seine', 'ihre', 'freunde', 'friends', 'band', 'orchester', 'ensemble']);
+
+/** An episode label in front of a title: "Folge 3: ", "003 - ", "Teil 2/". */
+const EPISODE_LABEL = /^\s*(?:(?:folge|episode|teil|band|nr\.?|no\.?|vol\.?)\s*)?\d{1,4}\s*[:./–—-]\s+/i;
+
 /**
- * True when the hit can be ticked without a second look: the folder name
- * points at one album (see namesOneAlbum), the score is high enough and,
- * when the name has an episode number, the hit has the same number.
+ * Whether the hit can be the folder's album at all: the same episode number
+ * (none the name does not have), not a karaoke or tribute version the name
+ * did not ask for, of a kind that fits ("Lesung" is no "Hörspiel"), by the
+ * folder's artist or series (or a compilation of various artists).
  */
-export function isConfident(target: Pick<BulkTarget, 'query' | 'specific'>, candidate: Pick<CoverCandidate, 'title' | 'score'> | undefined): boolean {
-  if (!candidate || !target.specific || candidate.score < CONFIDENT_SCORE) return false;
-  const wanted = episodeNumbers(target.query);
-  return !wanted.length || episodeNumbers(candidate.title).some((n) => wanted.includes(n));
+function fitsName(p: PreparedQuery, hit: Pick<CoverCandidate, 'title' | 'artist'>): boolean {
+  const title = cleanForSearch(hit.title);
+  const found = episodeNumbers(title);
+  if (p.episodes.length) {
+    if (!found.some((n) => p.episodes.includes(n))) return false;
+  } else {
+    // "Folge 3: Hexen gibt es doch" is the folder "Hexen gibt es doch"; "Unter meinem Bett 3" is not "Unter meinem Bett".
+    const inName = episodeNumbers(title.replace(EPISODE_LABEL, ''));
+    if (inName.some((n) => !episodeNumbers(p.raw).includes(n))) return false;
+  }
+  if (isDoubtfulVersion(`${hit.title} ${hit.artist}`, p.raw)) return false;
+  const kind = variantOf(hit.title);
+  if (!variantsFit(p.variant, kind)) return false;
+  // A reading, a soundtrack, a live album says so in its name; most audio plays do not.
+  if (p.variant && p.variant !== 'hoerspiel' && kind !== p.variant) return false;
+  return !p.artist || isVariousArtists(hit.artist) || artistFits(p.artist, hit);
+}
+
+/**
+ * The name of the folder and the hit name the same release, word for word
+ * or with the same episode number (compareRelease). Also the names alone,
+ * when the artist is called like the album ("Die Eule findet den Beat" by
+ * "Eule findet den Beat"): fitsName has checked the artist then.
+ */
+function matchesName(p: PreparedQuery, hit: Pick<CoverCandidate, 'title' | 'artist'>) {
+  const album = p.album || p.text;
+  const title = cleanForSearch(hit.title);
+  const withArtists = compareRelease({ album, artist: p.artist }, { album: title, artist: isVariousArtists(hit.artist) ? undefined : hit.artist });
+  if (withArtists.same || !p.artist) return withArtists;
+  const names = compareRelease({ album }, { album: title });
+  return names.strong ? names : withArtists;
+}
+
+/** Two hits show the same release: the same artist, the same name and a kind that fits. Cassette editions count apart. */
+export function sameRelease(a: Pick<CoverCandidate, 'title' | 'artist'> & Partial<Pick<CoverCandidate, 'edition'>>, b: Pick<CoverCandidate, 'title' | 'artist'> & Partial<Pick<CoverCandidate, 'edition'>>): boolean {
+  if (a.edition && b.edition && a.edition !== b.edition) return false;
+  if (!variantsFit(variantOf(a.title), variantOf(b.title))) return false;
+  if (!(isVariousArtists(a.artist) && isVariousArtists(b.artist)) && !artistFits(a.artist, b)) return false;
+  return compareRelease({ album: cleanForSearch(a.title), artist: a.artist }, { album: cleanForSearch(b.title), artist: b.artist }).strong;
+}
+
+/**
+ * True when the hit can be taken without a second look (TODO #133):
+ *
+ * - the folder name points at one album (namesOneAlbum), not only at an
+ *   artist or a series;
+ * - the hit can be it (fitsName: number, version, kind, artist);
+ * - its name is the folder's word for word or with the same episode number
+ *   (both cleaned, so "Disc 1" or "(Remastered 2009)" do not matter), or
+ *   two services have it under the same name;
+ * - no other hit of another album fits just as well (the soundtrack and the
+ *   audio play of a film, when the name does not say which);
+ * - and its score is not low.
+ *
+ * `others`: the other hits of the search, for agreement and rivals.
+ */
+export type ConfidenceHit = Pick<CoverCandidate, 'title' | 'score'> & Partial<Pick<CoverCandidate, 'artist' | 'source' | 'alsoFrom' | 'edition'>>;
+
+export function isConfident(target: ConfidenceTarget, hit: ConfidenceHit | undefined, hits: readonly ConfidenceHit[] = []): boolean {
+  if (!hit || !target.specific || hit.score < CONFIDENT_SCORE) return false;
+  const candidate = { artist: '', ...hit };
+  const others = hits.map((o) => (o === hit ? candidate : { artist: '', ...o }));
+  const p = prepareQuery(target.search ?? { query: target.query });
+  if (!fitsName(p, candidate)) return false;
+  const match = matchesName(p, candidate);
+  if (!match.same) return false;
+  const agreed = !!candidate.alsoFrom?.length || others.some((o) => o !== candidate && o.source !== candidate.source && sameRelease(o, candidate));
+  if (!match.strong && !agreed) return false;
+  const preferred = !!p.variant && variantOf(candidate.title) === p.variant;
+  const rival = others.some(
+    (o) =>
+      o !== candidate &&
+      !sameRelease(o, candidate) &&
+      !(preferred && variantOf(o.title) !== p.variant) &&
+      fitsName(p, o) &&
+      matchesName(p, o).strong &&
+      // A compilation of the same name only rivals another compilation.
+      (isVariousArtists(o.artist) === isVariousArtists(candidate.artist) || !p.artist),
+  );
+  return !rival;
 }
 
 /** True when no service answered at all (as opposed to answering "nothing found"). */
 export function isUnreachable(result: CoverSearchResult, sourceCount = 2): boolean {
-  return result.candidates.length === 0 && result.warnings.length >= sourceCount;
+  if (result.candidates.length) return false;
+  if (result.asked) return result.asked.length > 0 && (result.failed?.length ?? 0) >= result.asked.length;
+  return result.warnings.length >= sourceCount;
 }
 
 // ---------------------------------------------------------------------------
@@ -244,7 +386,9 @@ export function newRows(targets: readonly BulkTarget[]): BulkRow[] {
 
 /** True when the search found nothing because a service did not answer, not because there is nothing. */
 export function searchFailed(result: CoverSearchResult): boolean {
-  return result.candidates.length === 0 && result.warnings.length > 0;
+  // With hits, a service that did not answer is left out without a word (TODO #110: a web filter).
+  if (result.candidates.length) return false;
+  return result.asked ? (result.failed?.length ?? 0) > 0 : result.warnings.length > 0;
 }
 
 /** The row once its search has answered. A choice the user made meanwhile (own picture) stays. */
@@ -256,7 +400,7 @@ export function withResult(row: BulkRow, result: CoverSearchResult): BulkRow {
 /** Proposes the best hit; ticked only when it is a confident one. Rows the user touched keep their choice. */
 function autoChoose(row: BulkRow): BulkRow {
   const best = row.candidates[0];
-  const confident = isConfident(row.target, best);
+  const confident = isConfident(row.target, best, row.candidates);
   if (row.touched) return { ...row, confident };
   return { ...row, confident, choice: best ? { kind: 'candidate', id: best.id } : { kind: 'none' }, checked: !!best && confident };
 }
@@ -297,8 +441,8 @@ export function dropCandidate(row: BulkRow, id: string): BulkRow {
   const candidates = row.candidates.filter((c) => c.id !== id);
   const wasChoice = row.choice.kind === 'candidate' && row.choice.id === id;
   const next: BulkRow = { ...row, candidates, status: candidates.length || row.status !== 'found' ? row.status : 'nothing' };
-  if (!wasChoice) return { ...next, confident: isConfident(row.target, candidates[0]) };
-  if (row.touched) return { ...next, choice: { kind: 'none' }, checked: false, confident: isConfident(row.target, candidates[0]) };
+  if (!wasChoice) return { ...next, confident: isConfident(row.target, candidates[0], candidates) };
+  if (row.touched) return { ...next, choice: { kind: 'none' }, checked: false, confident: isConfident(row.target, candidates[0], candidates) };
   return autoChoose(next);
 }
 
@@ -352,17 +496,20 @@ export function reviewSummary(rows: readonly BulkRow[]): string {
 // Searching politely
 
 /**
- * Spacing between two searches. Every search asks iTunes once, and Apple
- * allows about 20 requests a minute; MusicBrainz keeps its own limit of one
- * request a second inside searchCovers.
+ * Spacing between two searches of a run. None any more: each service keeps
+ * its own pace for the whole app (src/core/covers/net.ts), so iTunes and
+ * Deezer answer folder after folder while MusicBrainz takes its turns.
  */
-export const SEARCH_SPACING_MS = 3000;
+export const SEARCH_SPACING_MS = 0;
 export const searchSpacing = new RateLimiter(SEARCH_SPACING_MS);
 
-/** At most this many searches run at the same time. */
-export const SEARCH_CONCURRENCY = 2;
+/** About this long per folder, for the time the dialog announces (measured with tests/covers/franks-ordner). */
+export const SEARCH_SECONDS_PER_FOLDER = 1.5;
 
-export const UNREACHABLE_MESSAGE = 'Ich erreiche gerade weder iTunes noch MusicBrainz, oder beide sind ausgelastet. Prüfe die Internetverbindung und versuche es in ein paar Minuten noch einmal. Geändert wurde nichts.';
+/** At most this many searches run at the same time. */
+export const SEARCH_CONCURRENCY = 4;
+
+export const UNREACHABLE_MESSAGE = 'Ich erreiche gerade keinen der Dienste (iTunes, Deezer, MusicBrainz), oder sie sind ausgelastet. Prüfe die Internetverbindung. Blockiert vielleicht ein Filter? Welche Adressen frei sein müssen, steht in der Hilfe unter „Internetfilter und Firewall“. Versuche es in ein paar Minuten noch einmal. Geändert wurde nichts.';
 export const OFFLINE_MESSAGE = 'Dein Computer ist gerade nicht mit dem Internet verbunden. Verbinde ihn und versuche es noch einmal. Geändert wurde nichts.';
 export const BUSY_MESSAGE = 'iTunes und MusicBrainz sind gerade ausgelastet. Warte ein paar Minuten und versuche es dann noch einmal. Geändert wurde nichts.';
 
@@ -380,12 +527,12 @@ export class UnreachableError extends Error {
 }
 
 export interface BulkSearchOptions {
-  /** Runs one search, normally searchCovers with the app's fetch. */
-  search: (query: CoverQuery, signal: AbortSignal) => Promise<CoverSearchResult>;
+  /** Runs one search, normally searchCovers with the app's fetch (and searchOptionsFor the target). */
+  search: (query: CoverQuery, signal: AbortSignal, target: BulkTarget) => Promise<CoverSearchResult>;
   signal?: AbortSignal;
   concurrency?: number;
-  /** Spaces the searches; the shared limiter unless given. */
-  spacing?: RateLimiter;
+  /** Spaces the searches; none unless given (the services keep their own pace). */
+  spacing?: Limiter;
   /** Services asked per search, to tell "nobody answered" from "nothing found". */
   sourceCount?: number;
   onStart?: (folder: number) => void;
@@ -421,7 +568,7 @@ export async function runBulkSearch(targets: readonly BulkTarget[], opts: BulkSe
       opts.onStart?.(target.folder);
       let result: CoverSearchResult;
       try {
-        result = await opts.search({ query: target.query }, inner.signal);
+        result = await opts.search(target.search ?? { query: target.query }, inner.signal, target);
       } catch (err) {
         if (inner.signal.aborted || isAbortError(err)) throw err;
         // searchCovers reports failing services as warnings; anything else counts as "nobody answered".
@@ -448,11 +595,6 @@ export async function runBulkSearch(targets: readonly BulkTarget[], opts: BulkSe
   if (opts.signal?.aborted) throw abortError();
 }
 
-function abortError(): Error {
-  return typeof DOMException !== 'undefined'
-    ? new DOMException('Die Suche wurde abgebrochen.', 'AbortError')
-    : Object.assign(new Error('Die Suche wurde abgebrochen.'), { name: 'AbortError' });
-}
 
 // ---------------------------------------------------------------------------
 // Small helpers

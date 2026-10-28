@@ -223,6 +223,14 @@ describe('saved Logbuch read back', () => {
     expect(rendered.issues).toEqual(book.issues);
   });
 
+  it('writes the forum post as facts only: no tips and no sentences of the app (Prüfrunde 1, bastler 12)', () => {
+    const { book, savedAt } = session();
+    const post = forumText(book.entries, book.info, book.issues, { at: savedAt });
+    expect(book.issues.length).toBeGreaterThan(0);
+    expect(post).not.toMatch(/Tipp:|\b[Ii]ch\b/);
+    for (const i of book.issues) expect(post).toContain(i.explanation.title);
+  });
+
   it('keeps an unexpected restart in a saved file unexpected', async () => {
     const book = new Logbook({ now: clock().now });
     book.connected('COM4');

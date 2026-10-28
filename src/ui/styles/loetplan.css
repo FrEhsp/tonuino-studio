@@ -25,8 +25,8 @@
 @media screen {
   :root[data-theme='dark'] .lp-page,
   :root[data-theme='dark'] .bt-page {
-    /* Black wires (ground, speaker minus) get a light edge, or they vanish on the dark sheet. */
-    --lp-rand-schwarz: #b3a998;
+    /* Black wires (ground, speaker minus) get a mid grey edge, or they vanish on the dark sheet; a light one made them look hollow, like the white RST wire (Prüfrunde 1, bastler 9). */
+    --lp-rand-schwarz: #7d7468;
     --lp-rand-schwarz-deckung: 1;
   }
 }
@@ -498,57 +498,6 @@
   }
 }
 
-.bt-steps ol {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-1) var(--space-2);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  counter-reset: bt;
-}
-
-.bt-steps li {
-  counter-increment: bt;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 2px 10px 2px 4px;
-  border-radius: var(--radius-full);
-  font-size: var(--text-sm);
-  color: var(--text-muted);
-}
-
-.bt-steps li::before {
-  content: counter(bt);
-  display: grid;
-  place-items: center;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  border: 1px solid var(--border-strong);
-  font-size: 12px;
-}
-
-.bt-steps li.is-done::before {
-  content: '✓';
-  border-color: var(--success);
-  background: var(--success);
-  color: var(--text-on-brand);
-}
-
-.bt-steps li.is-now {
-  background: var(--primary-soft);
-  color: var(--primary-soft-text);
-  font-weight: 600;
-}
-
-.bt-steps li.is-now::before {
-  border-color: var(--primary);
-  background: var(--primary);
-  color: var(--text-on-brand);
-}
-
 .bt-nav {
   align-items: center;
 }
@@ -687,4 +636,1181 @@
 
 .bt-extra-wahl {
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 170px), 1fr));
+}
+
+/* ================================================================== Lötplan 0.6 (design/06-umbau/loetplan) */
+
+/*
+ * One screen: the choice and the big sheet on the left, the steps on the
+ * right. The screen scrolls on its own; below the first screen come the
+ * wires with sources, the extras in detail and "Box testen".
+ */
+.schirm.lp-neu {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.lp-neu .lp-oben {
+  flex: none;
+  height: 100%;
+  min-height: 560px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 28px;
+  padding: 20px 28px 22px;
+}
+
+.lp-neu .lp-bildseite {
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.lp-neu .lp-rechts {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/*
+ * A long list of steps scrolls with the screen, not in a hidden box of its
+ * own (Prüfrunde 1, bastler 6): the sheet stays where it is (sticky, one
+ * screen high), the open points come under the list and the buttons stay
+ * at the bottom edge.
+ */
+.schirm.lp-neu:not(.handy) {
+  container-type: size;
+}
+
+.lp-neu:not(.handy) .lp-oben {
+  --lp-pad-y: 20px;
+  height: auto;
+  min-height: max(560px, 100cqh);
+  align-items: start;
+}
+
+.lp-neu:not(.handy) .lp-bildseite {
+  position: sticky;
+  top: var(--lp-pad-y);
+  height: calc(max(560px, 100cqh) - 2 * var(--lp-pad-y));
+}
+
+.lp-neu:not(.handy) .lp-rechts {
+  min-height: calc(max(560px, 100cqh) - 2 * var(--lp-pad-y));
+}
+
+.lp-rechts-inhalt,
+.lp-neu:not(.handy) .lp-schritt-text {
+  flex: 1 0 auto;
+}
+
+.lp-neu:not(.handy) .lp-schritt {
+  flex: 1 0 auto;
+}
+
+.lp-neu:not(.handy) .lp-offen {
+  max-height: none;
+  overflow: visible;
+}
+
+.lp-neu:not(.handy) .lp-rechts .lp-knoepfe {
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+  padding-bottom: var(--lp-pad-y);
+  margin-bottom: calc(-1 * var(--lp-pad-y));
+  background: var(--bg);
+}
+
+.lp-neu .lp-titel .back-link {
+  margin-bottom: 2px;
+  min-height: 28px;
+}
+
+.lp-neu .lp-titel h1 {
+  margin: 0 0 4px;
+  font-size: var(--titel-groesse, 32px);
+  line-height: 1.15;
+}
+
+.lp-neu .lp-unter {
+  margin: 0 0 14px;
+  color: var(--text-soft);
+  font-size: 15px;
+}
+
+/* ------------------------------------------------------------------ board and extras */
+
+.lp-wahl {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: none;
+}
+
+.lp-reihe {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.lp-wofuer {
+  flex: none;
+  width: 58px;
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--text-soft);
+  line-height: 36px;
+}
+
+.lp-reihe:first-child .lp-wofuer {
+  line-height: 48px;
+}
+
+/* The extras run on under their label, like the lines of a page. */
+.lp-reihe:has(> .lp-chips) {
+  flex-wrap: wrap;
+}
+
+.lp-reihe > .lp-chips {
+  display: contents;
+}
+
+.lp-platinen,
+.lp-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.lp-neu .choice.lp-platine {
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  height: 48px;
+  padding: 0 14px 0 8px;
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.lp-platine svg,
+.lp-aufbau svg {
+  display: block;
+  flex: none;
+}
+
+.lp-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 36px;
+  padding: 0 11px 0 8px;
+  border: 0;
+  border-radius: 4px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow:
+    0 1.5px 0 var(--ink),
+    inset 0 0 0 1.5px var(--border-strong);
+}
+
+.lp-chip:hover {
+  background: var(--surface-hover);
+}
+
+.lp-chip.an {
+  background: var(--primary-soft);
+  font-weight: 700;
+  box-shadow:
+    0 1.5px 0 var(--ink),
+    inset 0 0 0 2px var(--primary);
+}
+
+/* Not possible with this board or with what is chosen: pale, but it still says why. */
+.lp-chip.aus {
+  color: var(--text-muted);
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px var(--border);
+  cursor: help;
+}
+
+.lp-chip:focus-visible,
+.lp-platine:focus-visible {
+  outline: 3px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.lp-mini svg {
+  display: block;
+}
+
+/* The ink of the small drawings turns light on the dark page. */
+:root[data-theme='dark'] .lp-mini [stroke='#1f1a16'] {
+  stroke: var(--text);
+}
+
+:root[data-theme='dark'] .lp-mini [fill='#1f1a16'] {
+  fill: var(--text);
+}
+
+.lp-kasten-rand {
+  fill: var(--surface);
+  stroke: var(--ink);
+}
+
+.lp-kasten-haken {
+  stroke: var(--ink);
+}
+
+.lp-chip-frage {
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1.6px dashed var(--pencil);
+  font-size: 13px;
+  font-weight: 800;
+  margin-left: 2px;
+}
+
+.lp-notiz {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-muted);
+  min-height: 20px;
+}
+
+.lp-frage-zeile {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.lp-frage-zeile .segmented button {
+  height: 34px;
+  margin: 0;
+  font-size: 14.5px;
+}
+
+/* The rest of the build, folded like a menu. */
+.lp-aufbau {
+  position: relative;
+  align-self: center;
+  margin-left: 6px;
+}
+
+.lp-aufbau > summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 8px;
+  list-style: none;
+  cursor: pointer;
+  font-size: 14.5px;
+  color: var(--text-soft);
+  border-radius: 4px;
+}
+
+.lp-aufbau > summary::-webkit-details-marker {
+  display: none;
+}
+
+.lp-aufbau > summary:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+
+.lp-aufbau[open] > summary svg:last-child {
+  transform: rotate(180deg);
+}
+
+.lp-aufbau-panel {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 6px);
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+  min-width: 360px;
+  background: var(--surface) var(--paper-grain);
+  border-radius: 4px;
+  box-shadow:
+    0 0 0 1.5px var(--ink),
+    5px 6px 0 rgb(31 26 22 / 0.16);
+}
+
+.lp-aufbau-zeile {
+  display: grid;
+  grid-template-columns: 82px auto;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.lp-aufbau-zeile .segmented button {
+  height: 36px;
+  margin: 0;
+  font-size: 14.5px;
+}
+
+/* ------------------------------------------------------------------ the sheet */
+
+.lp-neu .lp-blatt {
+  flex: 1;
+  min-height: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 3px;
+  background: var(--lp-blatt, #fffdf8);
+  box-shadow: 6px 7px 0 rgb(31 26 22 / 0.14);
+}
+
+.lp-blatt-kopf {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  padding: 12px 18px 0;
+  flex: none;
+}
+
+.lp-blatt-kopf b {
+  font-size: 17px;
+}
+
+.lp-blatt-kopf span {
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.lp-fit {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+}
+
+.lp-fit > .lp-svg {
+  position: absolute;
+  inset: 4px 10px 10px;
+  width: calc(100% - 20px);
+  height: calc(100% - 14px);
+  display: block;
+}
+
+.lp-svg text {
+  font-family: Roboto, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.lp-ti {
+  fill: var(--lp-tinte, #1f1a16);
+}
+
+.lp-hal {
+  stroke: var(--lp-blatt, #fffdf8);
+  stroke-width: 4px;
+  stroke-linejoin: round;
+  paint-order: stroke;
+}
+
+.lp-zettel {
+  fill: var(--lp-zettel, #fffbea);
+}
+
+.lp-papier {
+  fill: var(--lp-blatt, #fffdf8);
+}
+
+.lp-draht.schwarz .rand {
+  stroke: var(--lp-rand-schwarz, #1f1a16);
+}
+
+/* While a step is shown, the other wires step back. */
+.lp-blass {
+  opacity: 0.22;
+}
+
+.lp-neu .lp-alt .lp-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 8px 12px 12px;
+}
+
+/* ------------------------------------------------------------------ beside the sheet */
+
+.lp-legende {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 14px;
+  font-size: 14.5px;
+}
+
+.lp-legende > div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.lp-legende-draht {
+  flex: none;
+}
+
+.lp-legende-draht .rand {
+  stroke: var(--ink);
+}
+
+.lp-schritte {
+  list-style: none;
+  margin: 0 0 14px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.lp-schritte li + li {
+  border-top: 1.5px solid var(--border);
+}
+
+.lp-schritte button {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  width: 100%;
+  padding: 4px 4px 4px 0;
+  border: 0;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 14.5px;
+  line-height: 1.3;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 3px;
+}
+
+.lp-schritte button:hover {
+  background: var(--surface-hover);
+}
+
+.lp-nr {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: inline-grid;
+  place-items: center;
+  font-size: 13px;
+  font-weight: 800;
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1.8px var(--ink);
+  transform: translateY(4px);
+}
+
+.lp-schritte li.extra .lp-nr {
+  background: var(--note-paper);
+}
+
+.lp-offen {
+  flex: none;
+  max-height: 40vh;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  background: var(--note-paper);
+  border-radius: 3px;
+  padding: 10px 12px 10px 14px;
+  font-size: 14.5px;
+  line-height: 1.35;
+  margin-bottom: 12px;
+  box-shadow:
+    0 0 0 1.5px var(--ink),
+    3px 4px 0 rgb(31 26 22 / 0.12);
+}
+
+.lp-offen h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 4px;
+  font-size: 16px;
+}
+
+.lp-offen p {
+  margin: 0;
+}
+
+.lp-offen p + p {
+  margin-top: 4px;
+}
+
+.lp-offen-zeichen,
+.lp-info-zeichen,
+.lp-zeile-zeichen {
+  display: inline-flex;
+  flex: none;
+}
+
+.lp-offen-zeichen svg,
+.lp-info-zeichen svg,
+.lp-zeile-zeichen svg,
+.lp-legende-draht {
+  overflow: visible;
+}
+
+.lp-bitte {
+  color: var(--text-soft);
+}
+
+.lp-offen details {
+  margin-top: 2px;
+}
+
+.lp-offen summary {
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  color: var(--primary-text);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.lp-offen ul {
+  margin: 4px 0 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.lp-neu .lp-knoepfe {
+  display: flex;
+  gap: 10px;
+  margin-top: auto;
+  padding-top: 10px;
+}
+
+.lp-neu .lp-knoepfe .btn {
+  flex: 1;
+  height: 48px;
+  font-size: 17px;
+}
+
+/* ------------------------------------------------------------------ one step */
+
+.lp-schritt {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.lp-schritt-kopf {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 2px 0 8px;
+  font-size: 18px;
+}
+
+.lp-zu,
+.lp-rund {
+  width: 44px;
+  height: 44px;
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.lp-zu:hover,
+.lp-rund:hover {
+  background: var(--surface-hover);
+}
+
+.lp-ort {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-soft);
+}
+
+.lp-schritt-text h2 {
+  margin: 2px 0 8px;
+  font-size: 22px;
+}
+
+.lp-draehte {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.lp-draehte li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 30px;
+  font-size: 15.5px;
+  line-height: 1.25;
+}
+
+.lp-farbe {
+  flex: none;
+  width: 30px;
+  height: 9px;
+  border-radius: 5px;
+  box-shadow: 0 0 0 2px var(--ink);
+}
+
+.lp-farbe.blei {
+  box-shadow: none;
+  background: repeating-linear-gradient(90deg, var(--pencil) 0 8px, transparent 8px 13px);
+}
+
+.lp-farbe.leer {
+  box-shadow: none;
+}
+
+.lp-von {
+  flex: none;
+  min-width: 52px;
+}
+
+.lp-nach {
+  flex: 1;
+}
+
+.lp-hinweis {
+  margin: 8px 0 0;
+  font-size: 15px;
+  color: var(--text-soft);
+}
+
+.lp-neu .lp-achtung {
+  margin: 8px 0 0;
+  padding: 6px 10px;
+  border-radius: 3px;
+  font-size: 15px;
+  background: var(--warning-soft);
+  color: var(--text);
+}
+
+.lp-mehr-schritt {
+  margin-top: 6px;
+  font-size: 15px;
+}
+
+.lp-mehr-schritt summary {
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  color: var(--primary-text);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.lp-mehr-schritt ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.lp-punkte {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  padding: 12px 0 0;
+}
+
+.lp-punkte i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--border-strong);
+}
+
+.lp-punkte i.da {
+  background: var(--ink);
+}
+
+.lp-punkte i.jetzt {
+  width: 22px;
+  border-radius: 4px;
+  background: var(--primary);
+}
+
+.lp-klein {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+/* ------------------------------------------------------------------ below the first screen */
+
+.lp-neu .lp-mehr {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: 8px 28px 40px;
+  max-width: 1100px;
+}
+
+.lp-neu .lp-alt-text {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+  min-height: 0;
+  font-size: 15px;
+}
+
+/* ------------------------------------------------------------------ dark */
+
+@media screen {
+  :root[data-theme='dark'] .lp-neu {
+    --lp-blatt: #26231f;
+    --lp-tinte: #ece4d6;
+    --lp-zettel: #3a352c;
+  }
+
+  :root[data-theme='dark'] .lp-neu .lp-blatt {
+    box-shadow: 6px 7px 0 rgb(0 0 0 / 0.35);
+  }
+}
+
+/* ------------------------------------------------------------------ phone */
+
+.lp-neu.handy .lp-oben {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 0;
+  min-height: 0;
+}
+
+.lp-neu.handy .lp-bildseite {
+  flex: 1;
+  gap: 0;
+}
+
+.lp-neu.handy .lp-rechts {
+  flex: none;
+  overflow: visible;
+}
+
+.lp-handy-kopf {
+  flex: none;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 8px 0 4px;
+  background: var(--surface) var(--paper-grain);
+  box-shadow: inset 0 -1.5px 0 var(--ink);
+}
+
+.lp-handy-kopf h1 {
+  margin: 0;
+  flex: 1;
+  font-size: 21px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.lp-rund {
+  width: 48px;
+  height: 48px;
+}
+
+.lp-neu.handy .lp-wahl {
+  gap: 6px;
+  padding: 8px 0;
+  background: var(--bg);
+}
+
+.lp-wisch {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 2px 16px 4px;
+  scrollbar-width: none;
+}
+
+.lp-wisch::-webkit-scrollbar {
+  display: none;
+}
+
+.lp-wisch .lp-chip {
+  height: 44px;
+  flex: none;
+}
+
+.lp-neu.handy .lp-notiz,
+.lp-neu.handy .lp-frage-zeile {
+  margin: 0 16px;
+}
+
+.lp-aufbau.als-platine {
+  margin: 0;
+  flex: none;
+  align-self: auto;
+}
+
+.lp-aufbau.als-platine > summary {
+  height: 44px;
+  padding: 0 10px 0 8px;
+  background: var(--primary-soft);
+  color: var(--text);
+  font-size: 16px;
+  box-shadow:
+    0 1.5px 0 var(--ink),
+    inset 0 0 0 2px var(--primary);
+}
+
+.lp-aufbau.als-platine .lp-aufbau-panel {
+  position: fixed;
+  top: auto;
+  left: 8px;
+  right: 8px;
+  min-width: 0;
+  margin-top: 6px;
+}
+
+.lp-aufbau.als-platine .lp-aufbau-zeile {
+  grid-template-columns: 1fr;
+  gap: 4px;
+}
+
+.lp-neu.handy .lp-blatt {
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.lp-neu.handy .lp-blatt[data-fc-before]::before {
+  display: none;
+}
+
+.lp-zoombild {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  box-shadow:
+    inset 0 1.5px 0 var(--border-strong),
+    inset 0 -1.5px 0 var(--border-strong);
+}
+
+.lp-zoom {
+  position: absolute;
+  inset: 0;
+  overflow: auto;
+  touch-action: pan-x pan-y;
+  overscroll-behavior: contain;
+}
+
+.lp-zoom > .lp-svg {
+  display: block;
+  max-width: none;
+  max-height: none;
+  /* Room right of the picture: its right edge can come out from under + and − (Prüfrunde 2, bastler 2). */
+  box-sizing: content-box;
+  padding-right: 64px;
+}
+
+.lp-zoom-knoepfe {
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.lp-zoom-knoepfe .btn {
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  background: var(--surface);
+}
+
+.lp-minikarte {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  width: 132px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  cursor: pointer;
+  border-radius: 3px;
+  background: var(--lp-blatt, #fffdf8);
+  box-shadow:
+    0 0 0 1.5px var(--ink),
+    3px 4px 0 rgb(31 26 22 / 0.16);
+}
+
+.lp-minikarte svg {
+  display: block;
+}
+
+.lp-minikarte-rahmen {
+  position: absolute;
+  border: 2.5px solid var(--primary);
+  border-radius: 2px;
+  pointer-events: none;
+}
+
+.lp-wisch-hinweis {
+  position: absolute;
+  left: 156px;
+  right: 12px;
+  bottom: 14px;
+  margin: 0;
+  padding: 4px 8px;
+  border-radius: 3px;
+  font-size: 14px;
+  color: var(--text-soft);
+  background: color-mix(in srgb, var(--lp-blatt, #fffdf8) 92%, transparent);
+  pointer-events: none;
+}
+
+.lp-fest {
+  padding: 10px 16px 12px;
+  background: var(--surface) var(--paper-grain);
+  box-shadow: inset 0 1.5px 0 var(--ink);
+}
+
+.lp-info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 18px;
+  margin: 0 0 10px;
+  font-size: 14.5px;
+  color: var(--text-soft);
+}
+
+.lp-info > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.lp-neu.handy .lp-knoepfe {
+  margin-top: 0;
+  padding-top: 0;
+}
+
+.lp-neu.handy .lp-knoepfe .btn {
+  height: 52px;
+}
+
+.lp-neu.handy .lp-schritt {
+  max-height: 52vh;
+  background: var(--surface) var(--paper-grain);
+  box-shadow: inset 0 1.5px 0 var(--border-strong);
+}
+
+.lp-neu.handy .lp-schritt-text {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 12px 16px 8px;
+}
+
+.lp-neu.handy .lp-schritt .lp-knoepfe {
+  padding: 10px 16px 12px;
+  box-shadow: inset 0 1.5px 0 var(--ink);
+}
+
+.lp-neu.handy .lp-mehr {
+  padding: 16px;
+}
+
+.lp-neu.handy .lp-alt-text {
+  padding: 12px 16px;
+}
+
+/* ------------------------------------------------------------------ medium screens */
+
+@media (max-width: 1200px) {
+  .lp-neu:not(.handy) .lp-oben {
+    --lp-pad-y: 16px;
+    grid-template-columns: minmax(0, 1fr) 300px;
+    gap: 20px;
+    padding: 16px 20px;
+  }
+}
+
+@media (min-width: 1800px) {
+  .lp-neu:not(.handy) .lp-oben {
+    --lp-pad-y: 28px;
+    grid-template-columns: minmax(0, 1fr) 380px;
+    padding: 28px 40px;
+    gap: 36px;
+  }
+}
+
+/* ------------------------------------------------------------------ paper */
+
+@media print {
+  .schirm.lp-neu {
+    height: auto;
+    overflow: visible;
+    display: block;
+  }
+
+  .lp-neu .lp-oben {
+    display: block;
+    height: auto;
+    min-height: 0;
+    padding: 0;
+  }
+
+  .lp-neu .lp-rechts,
+  .lp-neu .lp-mehr {
+    display: none !important;
+  }
+
+  body:has(.lp-neu) :is(.kopf, .leiste) {
+    display: none !important;
+  }
+
+  /* On screen the picture side is sticky with the height of the window; on paper that height let the sheet lie over the key and the first steps (Prüfrunde 2, bastler 1). */
+  .lp-neu .lp-bildseite,
+  .lp-neu:not(.handy) .lp-bildseite {
+    display: block;
+    position: static;
+    height: auto;
+    min-height: 0;
+  }
+
+  .lp-neu .lp-zoombild,
+  .lp-neu .lp-handy-kopf {
+    display: none !important;
+  }
+
+  .lp-neu .lp-druck-bild {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+  }
+
+  .lp-neu .lp-blatt {
+    flex: none;
+    /* With every extra of the Classic, the steps below still end on the same page. */
+    height: 140mm;
+    box-shadow: none;
+    background: #fff;
+    --lp-blatt: #fff;
+    --lp-tinte: #1f1a16;
+    --lp-zettel: #fffbea;
+  }
+
+  /* The Classic without board: its whole wiring picture and, below it, its hints and the warning, as in 0.5. */
+  .lp-neu .lp-blatt.lp-alt {
+    height: auto;
+  }
+
+  .lp-neu .lp-alt .lp-scroll {
+    overflow: visible;
+  }
+
+  .lp-neu .lp-oben:has(.lp-alt) > .lp-rechts {
+    display: block !important;
+    min-height: 0;
+    margin-top: 3mm;
+  }
+
+  :root .lp-neu .lp-blatt[data-fc-before]::before {
+    inset: -1px !important;
+    border-color: #1f1a16 !important;
+    border-radius: inherit !important;
+    background: none !important;
+    clip-path: none !important;
+  }
+
+  .lp-neu .lp-blass {
+    opacity: 1;
+  }
+
+  .lp-neu .lp-zoombild {
+    overflow: visible;
+  }
+
+  .lp-neu .lp-druck {
+    display: block;
+    margin-top: 3mm;
+    font-size: 7.5pt;
+    line-height: 1.25;
+  }
+
+  .lp-druck-kopf {
+    margin: 0 0 2mm;
+  }
+
+  .lp-druck-schritte {
+    columns: 3;
+    column-gap: 5mm;
+    margin: 0;
+    padding-left: 0;
+    list-style: none;
+  }
+
+  .lp-druck-schritte > li {
+    break-inside: avoid;
+    margin-bottom: 2mm;
+  }
+
+  .lp-druck .lp-draehte li {
+    break-inside: avoid;
+    min-height: 0;
+    font-size: 7.5pt;
+    gap: 1.5mm;
+  }
+
+  .lp-druck .lp-von {
+    min-width: 9mm;
+  }
+
+  .lp-druck .lp-farbe {
+    width: 5mm;
+    height: 2mm;
+    box-shadow: 0 0 0 1px #1f1a16;
+  }
+
+  .lp-druck-achtung {
+    font-weight: 700;
+  }
+
+  .lp-druck .lp-zeile-zeichen svg {
+    width: 12px;
+    height: 12px;
+  }
 }

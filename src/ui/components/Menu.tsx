@@ -27,7 +27,7 @@ export function menuPlacement({ triggerTop, triggerBottom, menuHeight, limit }: 
 
 /** The lowest point a menu may reach: the window's bottom, or the top of the phone tab bar when it is shown. */
 function visibleBottom(): number {
-  const tabs = document.querySelector('.phone-tabs');
+  const tabs = document.querySelector('.leiste');
   const top = tabs && getComputedStyle(tabs).display !== 'none' ? tabs.getBoundingClientRect().top : Infinity;
   return Math.min(window.innerHeight, top);
 }
@@ -59,6 +59,25 @@ export function menuSpot({
   return align === 'right' ? { top, right: Math.max(0, width - button.right) } : { top, left: Math.max(0, button.left) };
 }
 
+/** How far the button of an open menu may move before the menu closes (a list that scrolls takes it away). */
+const MOVED_PX = 4;
+
+/**
+ * Whether an open menu stays open when the window changes size. Only a new
+ * width closes it (the window or the phone turned). A new height alone is
+ * the phone's keyboard going away, or its address bar: the first tap on
+ * "…" while the keyboard was open (a number typed, a title renamed) closes
+ * the keyboard, and the menu that just opened closed with it (0.6, 360 px).
+ */
+export function staysOpenOnResize(widthAtOpen: number, width: number): boolean {
+  return Math.abs(width - widthAtOpen) < 1;
+}
+
+/** Whether an open menu stays open when something scrolls: as long as its button stays where the menu was placed. */
+export function staysOpenOnScroll(placedAt: { top: number; left: number }, now: { top: number; left: number }): boolean {
+  return Math.abs(now.top - placedAt.top) <= MOVED_PX && Math.abs(now.left - placedAt.left) <= MOVED_PX;
+}
+
 /** A button that opens a small menu below it (or above it, e.g. in a bar at the bottom of the screen). */
 export function MenuButton({
   trigger,
@@ -75,16 +94,15 @@ export function MenuButton({
   const [spot, setSpot] = useState<{ top: number; left?: number; right?: number } | null>(null);
   const ref = useRef<HTMLDivElement>(null);
   const menu = useRef<HTMLDivElement>(null);
-  // Placed before it is painted: below the button, or above it when it would run under the phone tab bar or off the window.
-  useLayoutEffect(() => {
-    if (!open) {
-      setSpot(null);
-      return;
-    }
+  /** Where the button was when the menu was placed. */
+  const placedAt = useRef<{ top: number; left: number } | null>(null);
+  const place = () => {
     if (!ref.current || !menu.current) return;
+    const button = ref.current.getBoundingClientRect();
+    placedAt.current = { top: button.top, left: button.left };
     setSpot(
       menuSpot({
-        button: ref.current.getBoundingClientRect(),
+        button,
         menuHeight: menu.current.getBoundingClientRect().height,
         limit: visibleBottom(),
         width: document.documentElement.clientWidth,
@@ -92,6 +110,14 @@ export function MenuButton({
         placement,
       }),
     );
+  };
+  // Placed before it is painted: below the button, or above it when it would run under the phone tab bar or off the window.
+  useLayoutEffect(() => {
+    if (!open) {
+      setSpot(null);
+      return;
+    }
+    place();
   }, [open, placement, align]);
   useEffect(() => {
     if (!open) return;
@@ -100,22 +126,32 @@ export function MenuButton({
     };
     const key = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false);
     // A menu fixed to the window would stay behind when its list scrolls: it closes instead.
+    // Not for a scroll that leaves its button where it was (the page settling after the keyboard went).
     const scrolled = (e: Event) => {
-      if (!menu.current?.contains(e.target as Node)) setOpen(false);
+      if (menu.current?.contains(e.target as Node)) return;
+      const b = ref.current?.getBoundingClientRect();
+      if (b && placedAt.current && staysOpenOnScroll(placedAt.current, b)) return;
+      setOpen(false);
     };
-    const resized = () => setOpen(false);
+    const widthAtOpen = window.innerWidth;
+    // Turned or made narrower: closed. Only taller or lower (the keyboard, the address bar): placed again.
+    const resized = () => {
+      if (staysOpenOnResize(widthAtOpen, window.innerWidth)) place();
+      else setOpen(false);
+    };
+    const away = () => setOpen(false);
     document.addEventListener('mousedown', close);
     document.addEventListener('keydown', key);
     document.addEventListener('scroll', scrolled, true);
     window.addEventListener('resize', resized);
     // Another page under it (the back button of the phone or the mouse): the menu belongs to the page before.
-    window.addEventListener('hashchange', resized);
+    window.addEventListener('hashchange', away);
     return () => {
       document.removeEventListener('mousedown', close);
       document.removeEventListener('keydown', key);
       document.removeEventListener('scroll', scrolled, true);
       window.removeEventListener('resize', resized);
-      window.removeEventListener('hashchange', resized);
+      window.removeEventListener('hashchange', away);
     };
   }, [open]);
   return (

@@ -3,9 +3,13 @@
  * (src/core/library/tracklookup.ts): only an album with as many tracks and
  * fitting lengths counts.
  */
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
+import { resetNet } from '../../src/core/covers/net';
 import { RateLimiter } from '../../src/core/stickers/coversearch';
 import { lookupAlbumTracks, parseItunesTracks, parseMusicBrainzTracks, sameAlbum, tracksFit } from '../../src/core/library/tracklookup';
+
+// Each test its own answers: nothing kept from the one before, every service reachable.
+beforeEach(() => resetNet());
 
 const lengths = [66, 181, 125, 203];
 const songs = ['Igel sucht den Mond', 'Der Mond im Wald', 'Hip-Hop-Hase', 'Gute Nacht, Igel'];
@@ -107,6 +111,9 @@ describe('track lists from shops', () => {
     ]);
     expect(await lookupAlbumTracks({ album: 'Sommerträume', durations: lengths }, { fetchFn: none.fetchFn, rateLimiter: noWait })).toBeNull();
     const offline = { fetchFn: async () => Promise.reject(new TypeError('Failed to fetch')), rateLimiter: noWait };
+    // The same search a little later comes from memory, even offline.
+    expect(await lookupAlbumTracks({ album: 'Sommerträume', durations: lengths }, offline)).toBeNull();
+    resetNet();
     await expect(lookupAlbumTracks({ album: 'Sommerträume', durations: lengths }, offline)).rejects.toThrow();
     expect(await lookupAlbumTracks({ album: '', durations: lengths }, offline)).toBeNull();
   });

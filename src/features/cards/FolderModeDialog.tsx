@@ -72,6 +72,7 @@ export function FolderModeDialog({ folder, onClose }: { folder: number; onClose:
           advanced={settings.value.advancedModes}
           withTracks={withTracks}
           trackTitle={(n) => rows.find((r) => r.number === n)?.title}
+          onLeave={onClose}
         />
       </div>
     </Dialog>

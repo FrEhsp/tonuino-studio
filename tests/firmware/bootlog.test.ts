@@ -14,6 +14,7 @@ import {
   type LineExplanation,
 } from '../../src/core/firmware/bootlog';
 import { describeCard } from '../../src/core/tonuino/modes';
+import { CHECKED_TNG, standTitle } from '../../src/core/firmware/tngstands';
 
 /** Start of a Classic box with TonUINO TNG 3.3.3, as the firmware prints it (CR LF). */
 const CLASSIC_LOG =
@@ -293,7 +294,15 @@ describe('explainLine', () => {
     ['bad ver 3', {}, { id: 'card-bad-version', level: 'warn' }],
     ['BatVoltage empty', {}, { level: 'warn', title: 'Akku leer' }],
     ['clEEPROM', {}, { level: 'warn', title: 'Einstellungen gelöscht' }],
-    ['MFRC522:18', {}, { id: 'rfid-counterfeit', level: 'warn' }],
+    // A copied chip is a hint, no fault (forum 7700#1).
+    ['MFRC522:18', {}, { id: 'rfid-counterfeit', level: 'info' }],
+    // TonUINO 2.1 prints the reader's version register and its own warning.
+    ['Firmware Version: 0x12 = counterfeit chip', {}, { id: 'rfid-counterfeit', level: 'info' }],
+    ['Firmware Version: 0x92 = v2.0', {}, { id: 'rfid-ok', level: 'info' }],
+    ['Firmware Version: 0x0 = (unknown)', { board: 'classic' }, { id: 'rfid-none', level: 'error' }],
+    ['WARNING: Communication failure, is the MFRC522 properly connected?', { board: 'classic' }, { id: 'rfid-none', level: 'error' }],
+    ['Shortcut not configured!', {}, { id: 'shortcut-missing', level: 'info', title: 'Kein Startsound eingestellt' }],
+    ['Shortcut not configured!', { shortcutMisses: 4 }, { id: 'shortcut-repeat', level: 'warn' }],
     ['MFRC522:136', {}, { id: 'rfid-ok', level: 'info' }],
     ['MFRC522:255', {}, { id: 'rfid-none', level: 'error' }],
     ['MFRC522:42', {}, { id: 'rfid-unknown', level: 'warn' }],
@@ -390,10 +399,23 @@ describe('explainLine', () => {
 
   it('reads the date in the TNG version line and warns about the test build of 16.10.2026', () => {
     expect(explainLine('V3.3.3 25.02.26')?.explanation).toContain('Release vom 25.02.2026');
-    expect(explainLine('V3.3.3 17.09.26')).toMatchObject({ id: 'version', level: 'info', explanation: 'Diese Firmware-Version läuft auf der Box: Release vom 17.09.2026.' });
+    expect(explainLine('V3.3.3 17.09.26')).toMatchObject({ id: 'version', level: 'info' });
+    expect(explainLine('V3.3.3 17.09.26')?.explanation).toContain('Stand vom 17.09.2026. Diesen Stand spielt TonUINO Studio als fertige Firmware auf.');
     const preview = explainLine('V3.3.3 16.10.26')!;
     expect(preview).toMatchObject({ id: 'version-preview', level: 'warn', title: 'TonUINO TNG 3.3.3 vom 16.10.2026 (Testversion)' });
-    expect(preview.fix).toContain('Release vom 17.09.2026');
+    // The way back is the firmware the app puts on boxes, named from tngstands.ts, not written into the text.
+    expect(preview.fix).toContain(`(${standTitle(CHECKED_TNG)})`);
+    expect(analyzeBootLog('TonUINO Version 3.3.3\nV3.3.3 16.10.26\n').info.versionDate).toBe('2026-10-16');
+  });
+
+  it('reads the version line of TNG main from 26.10.2026 (V3.3.4, README says 3.4.0)', () => {
+    const v = explainLine('V3.3.4 26.10.26')!;
+    expect(v).toMatchObject({ id: 'version', level: 'info', title: 'TonUINO TNG 3.3.4 vom 26.10.2026' });
+    expect(v.explanation).toContain('Stand vom 26.10.2026');
+    expect(v.explanation).toContain('Version 3');
+    const later = explainLine('V3.4.0 12.12.26')!;
+    expect(later.explanation).toContain(`Neuer als die Firmware, die TonUINO Studio aufspielt (${standTitle(CHECKED_TNG)})`);
+    expect(analyzeBootLog('TonUINO Version 3.3.4\nV3.3.4 26.10.26\nC 5\nVer:3\n').info).toMatchObject({ version: '3.3.4', versionDate: '2026-10-26', settings: { version: 3 } });
     expect(analyzeBootLog('TonUINO Version 3.3.3\nV3.3.3 16.10.26\n').info.versionDate).toBe('2026-10-16');
   });
 
@@ -532,5 +554,21 @@ describe('end check: rebuild and battery warning', () => {
     const p = new BootLogParser();
     p.push('TonUINO Version 3.x - refactored by Boerge1\nBatVoltage: 2.86\nTonUINO Version 3.x - refactored by Boerge1\nplay adv: 262\n');
     expect(p.issues.map((i) => i.explanation.id)).not.toContain('battery-low');
+  });
+});
+
+describe('TonUINO 2.1: shortcuts without a sound', () => {
+  const start = ['TonUINO Version 2.1', 'Firmware Version: 0x12 = counterfeit chip', '=== playShortCut()', '3', 'Shortcut not configured!'];
+
+  it('takes one at the start as normal, and many as a key that triggers by itself', () => {
+    const once = analyzeBootLog(start.join('\n') + '\n');
+    expect(once.issues).toEqual([]);
+    expect(once.info.rfid).toMatchObject({ ok: true, version: 0x12 });
+    const again = [...start, '=== playShortCut()', '1', 'Shortcut not configured!', '=== playShortCut()', '1', 'Shortcut not configured!'];
+    const many = analyzeBootLog(again.join('\n') + '\n');
+    expect(many.issues.map((i) => i.explanation.id)).toEqual(['shortcut-repeat']);
+    expect(many.issues[0].explanation.explanation).toContain('3-mal');
+    // A new start counts from zero.
+    expect(analyzeBootLog([...again, ...start].join('\n') + '\n').issues.map((i) => i.explanation.id)).not.toContain('shortcut-repeat');
   });
 });

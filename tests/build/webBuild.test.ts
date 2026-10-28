@@ -27,7 +27,7 @@ import { describe, expect, it } from 'vitest';
 const root = fileURLToPath(new URL('../..', import.meta.url));
 
 /** The variables the builds below depend on; unset ones are left empty, so no .env file can switch anything on. */
-const SETTINGS = ['TAURI_ENV_PLATFORM', 'SOURCES_SNAPSHOT', 'SOURCES_RELEASE_CHECK', 'SOURCES_RELEASE_CHECK_REPORT', 'VITE_SOURCES_CONTACT', 'VITE_WEB_ORIGIN', 'VITE_SOURCES_INDEX_URL'] as const;
+const SETTINGS = ['TAURI_ENV_PLATFORM', 'SOURCES_SNAPSHOT', 'SOURCES_RELEASE_CHECK', 'SOURCES_RELEASE_CHECK_REPORT', 'VITE_SOURCES_CONTACT', 'VITE_WEB_ORIGIN', 'VITE_SOURCES_INDEX_URL', 'VITE_SELF_UPDATE'] as const;
 type Settings = Partial<Record<(typeof SETTINGS)[number], string>>;
 
 async function withSettings<T>(settings: Settings, run: () => Promise<T>): Promise<T> {
@@ -59,6 +59,8 @@ interface Bundle {
   maps: Map<string, string>;
   /** The source files the maps name. */
   sources: string[];
+  /** The other files (service worker, manifest, icons, index.html …), as text. */
+  files: Map<string, string>;
 }
 
 async function bundle(settings: Settings, sourcemap = false): Promise<Bundle> {
@@ -67,6 +69,7 @@ async function bundle(settings: Settings, sourcemap = false): Promise<Bundle> {
   const chunks = new Map<string, string>();
   const maps = new Map<string, string>();
   const sources: string[] = [];
+  const files = new Map<string, string>();
   for (const out of outputs) {
     for (const item of out.output) {
       if (item.type === 'chunk') {
@@ -74,10 +77,12 @@ async function bundle(settings: Settings, sourcemap = false): Promise<Bundle> {
         if (item.map) sources.push(...item.map.sources);
       } else if (item.fileName.endsWith('.map')) {
         maps.set(item.fileName, typeof item.source === 'string' ? item.source : new TextDecoder().decode(item.source));
+      } else {
+        files.set(item.fileName, typeof item.source === 'string' ? item.source : new TextDecoder().decode(item.source));
       }
     }
   }
-  return { chunks, maps, sources };
+  return { chunks, maps, sources, files };
 }
 
 let builds: Promise<{ web: Bundle; webSources: Bundle; desktop: Bundle; ownList: Bundle }> | undefined;
@@ -148,6 +153,34 @@ describe('the web build', () => {
     expect(count(ownList.chunks, 'sources_fetch')).toBeGreaterThan(0);
     expect(count(webSources.chunks, 'sources_fetch')).toBe(0);
     expect(count(ownList.chunks, 'quellen@studio.example.de')).toBe(0);
+  }, 300_000);
+
+  it('makes only the web app installable, with its service worker of this very build', async () => {
+    const { web, webSources, desktop, ownList } = await allBuilds();
+    for (const [label, b] of [
+      ['ohne Entdecken', web],
+      ['mit Entdecken', webSources],
+    ] as const) {
+      const version = /<meta name="tonuino-build" content="(\w+)"/.exec(b.files.get('index.html') ?? '')?.[1];
+      expect(version, label).toBeTruthy();
+      const sw = b.files.get('sw.js') ?? '';
+      expect(sw, label).toContain(`const VERSION = "${version}";`);
+      // The page's first files are kept at install, and all of them exist.
+      const shell = JSON.parse(/const SHELL = (\[.*?\]);/.exec(sw)![1]) as string[];
+      for (const f of shell.filter((x) => x.startsWith('assets/'))) expect(b.chunks.has(f) || b.files.has(f), `${label}: ${f}`).toBe(true);
+      expect(JSON.parse(b.files.get('manifest.webmanifest') ?? '{}').icons.length, label).toBeGreaterThan(2);
+      expect(b.files.has('icons/icon-maskable-512.png'), label).toBe(true);
+      expect(b.files.get('index.html'), label).toContain('rel="manifest"');
+    }
+    for (const [label, b] of [
+      ['Desktop', desktop],
+      ['Desktop, eigene Liste', ownList],
+    ] as const) {
+      expect([...b.files.keys()].filter((f) => f === 'sw.js' || f === 'manifest.webmanifest' || f.startsWith('icons/')), label).toEqual([]);
+      expect(b.files.get('index.html'), label).not.toContain('tonuino-build');
+      // Without VITE_SELF_UPDATE the desktop app has no updater code.
+      expect(count(b.chunks, 'plugin:updater|'), label).toBe(0);
+    }
   }, 300_000);
 
   it('publishes source maps without the source text', async () => {

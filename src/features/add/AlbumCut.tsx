@@ -11,13 +11,13 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { ChevronLeft, ChevronRight, Pause, Play, Scissors, Search } from 'lucide-preact';
 import { blobOfRange, frameAtTime, scanMp3, type Mp3Index } from '../../core/audio';
-import { albumCutsOf, cutsForStarts, kindOfAlbum, NUDGE_SEC, nudgeCut, SEARCH_SEC, shopSearchSec, startsFromLengths, wholeAlbumCandidate, wholeAlbumQueries } from '../../core/library/albumcut';
+import { albumCutsOf, cutsForStarts, kindOfAlbum, missingPiecesNote, NUDGE_SEC, nudgeCut, planShopCuts, SEARCH_SEC, wholeAlbumCandidate, wholeAlbumQueries } from '../../core/library/albumcut';
 import { cleanDownloadName } from '../../core/library/releasename';
 import type { ContentKind } from '../../core/tonuino/catalog';
 import { hasAlbumCuts, isPlayableAsIs, type DraftTrack } from '../../core/library/grouping';
 import { mimeTypeOf } from '../../core/library/tags';
 import { recase, tidyName } from '../../core/library/tidy';
-import { lookupCoverAlbum, lookupWholeAlbum, tracksTotal } from '../../core/library/tracklookup';
+import { lookupCoverAlbum, lookupWholeAlbum, wholeAlbumParts, type LookupTrack } from '../../core/library/tracklookup';
 import { lookupFailureMessage, OFFLINE_MESSAGE } from '../../core/stickers/bulkcover';
 import { isAbortError } from '../../core/stickers/image';
 import { plat, settings } from '../../app/state';
@@ -40,9 +40,47 @@ interface CutSource {
   kind?: ContentKind;
   titles: string[];
   starts: number[];
+  /**
+   * A shop's track list: which of its tracks the file holds, and where they
+   * begin, is found once the file is measured (planShopCuts, TODO 0.3 #129).
+   */
+  shop?: LookupTrack[];
   /** True when the starts are cuts made before (looked at again): they stay as they are. */
   final?: boolean;
   searchSec: number;
+}
+
+/** Cuts the file at `times` and, unless the cuts were made before, takes the list's name and artist for the album. */
+function takeCuts(a: ImportAlbum, t: DraftTrack, source: CutSource, titles: readonly string[], times: readonly number[]) {
+  const cuts = albumCutsOf(source.from, titles, times);
+  updateTracks(a.id, (list) => list.map((x) => (x.source === t.source ? { ...x, albumCuts: cuts } : x)));
+  const now = session.value.albums.find((x) => x.id === a.id);
+  if (now && !source.final) {
+    // The name the list gives the album, when it had only a folder or file name ("Apfelbaum",
+    // "Die Apfelbaum-Band - Lieder vom Apfelbaum"); a name from the tags only gets the list's spelling.
+    // A name with leftovers of a video site ("… | HÖRSPIEL DES MONATS OKTOBER [Xq7Lm2Pz9Rt]") gives way too.
+    const named = tidyName(source.album);
+    const leftovers = cleanDownloadName(now.title) !== now.title.trim();
+    const title = named && (!tidyName(t.info?.album) || leftovers) ? named : recase(now.title, named);
+    updateAlbum(a.id, { split: 'tracks', title, artist: now.artist ?? tidyName(source.artist), kind: source.kind ?? now.kind });
+  } else {
+    updateAlbum(a.id, { split: 'tracks' });
+  }
+}
+
+/** Files whose cue sheet was taken on its own already. */
+const cueTaken = new WeakSet<object>();
+
+/** What a cue sheet beside the file says: its names and where its tracks begin. */
+function cueSource(cue: NonNullable<ReturnType<typeof cueFor>>): CutSource {
+  return {
+    from: 'Cue-Datei',
+    album: cue.sheet.title,
+    artist: cue.sheet.performer,
+    titles: cue.tracks.map((x, i) => x.title ?? `Titel ${i + 1}`),
+    starts: [0, ...cue.tracks.slice(1).map((x) => x.startSec)],
+    searchSec: SEARCH_SEC.cue,
+  };
 }
 
 /** The one file of an album that may be a whole album, when it is not cut at its tracks yet. */
@@ -102,6 +140,19 @@ export function AlbumCutNote({ album: a }: { album: ImportAlbum }) {
     }
   };
 
+  // A cue sheet that fits says where the tracks begin, to the frame: the file is cut there straight away, with the
+  // sheet's name and artist, instead of at pauses (Prüfrunde 1, bastler 22). „Schnitte ansehen“ shows the cuts.
+  useEffect(() => {
+    if (!t || !cue || a.split === 'none' || cueTaken.has(t.source)) return;
+    // Once: choosing „An Sprechpausen“ afterwards stays chosen.
+    cueTaken.add(t.source);
+    const src = cueSource(cue);
+    const times = src.starts.slice(1);
+    const total = t.info?.durationSec ?? 0;
+    const fits = times.length > 0 && times.every((x, i) => x > (i ? times[i - 1] : 0) && (!total || x < total));
+    if (fits) takeCuts(a, t, src, src.titles, times);
+  }, [t?.source, !!cue]);
+
   // With the consent of "Fehlende Cover selbst suchen", one look per file, on its own. A cover chosen from the online
   // search names the album already (its shop was asked about it a moment ago): one look at its track list.
   useEffect(() => {
@@ -118,25 +169,18 @@ export function AlbumCutNote({ album: a }: { album: ImportAlbum }) {
   if (cue) {
     const n = cue.tracks.length;
     text = `Neben der Datei liegt eine Cue-Datei mit ${n} Titeln. Ich kann die Datei genau dort teilen, wo die Titel anfangen.`;
-    action = {
-      label: 'An den Titeln teilen',
-      icon: Scissors,
-      run: () =>
-        open({
-          from: 'Cue-Datei',
-          album: cue.sheet.title,
-          artist: cue.sheet.performer,
-          titles: cue.tracks.map((x, i) => x.title ?? `Titel ${i + 1}`),
-          starts: [0, ...cue.tracks.slice(1).map((x) => x.startSec)],
-          searchSec: SEARCH_SEC.cue,
-        }),
-    };
+    action = { label: 'An den Titeln teilen', icon: Scissors, run: () => open(cueSource(cue)) };
   } else if (answer?.state === 'found') {
     const found = answer.album;
-    const off = Math.round(Math.abs(total - (tracksTotal(found.tracks) ?? total)));
+    // The part of the list that fits the file's length best: maybe without an intro or the credits (#129).
+    const part = wholeAlbumParts(total, found.tracks, true)[0] ?? { from: 0, to: found.tracks.length, misfit: 0 };
+    const off = Math.round(part.misfit);
     const name = `„${found.album}“${found.artist ? ` von ${found.artist}` : ''}`;
-    const length = off <= 2 ? 'genau so lang sind' : `fast genau so lang sind (${formatDuration(off, { long: true })} Unterschied)`;
-    text = `Das sieht nach ${name} in einer Datei aus. Bei ${found.source} hat es ${found.tracks.length} Titel, die zusammen ${length}. Ich kann die Datei an den Titeln teilen.`;
+    const length = (than: string) => (off <= 2 ? `genau so lang${than}` : `fast genau so lang${than} (${formatDuration(off, { long: true })} Unterschied)`);
+    const left = [part.from > 0 ? found.tracks[0] : undefined, part.to < found.tracks.length ? found.tracks[found.tracks.length - 1] : undefined].filter((x): x is LookupTrack => !!x);
+    text = left.length
+      ? `Das sieht nach ${name} in einer Datei aus. Bei ${found.source} hat es ${found.tracks.length} Titel. Ohne ${left.map((x) => `„${x.title}“`).join(' und ')} sind sie zusammen ${length(' wie deine Datei')}. Ich kann die Datei an den Titeln teilen.`
+      : `Das sieht nach ${name} in einer Datei aus. Bei ${found.source} hat es ${found.tracks.length} Titel, die zusammen ${length(' sind')}. Ich kann die Datei an den Titeln teilen.`;
     action = {
       label: 'An den Titeln teilen',
       icon: Scissors,
@@ -147,8 +191,9 @@ export function AlbumCutNote({ album: a }: { album: ImportAlbum }) {
           artist: found.artist,
           kind: kindOfAlbum(found),
           titles: found.tracks.map((x) => x.title),
-          starts: startsFromLengths(found.tracks, total),
-          searchSec: shopSearchSec(found.tracks, total),
+          starts: [],
+          shop: found.tracks,
+          searchSec: SEARCH_SEC.shop,
         }),
     };
   } else if (answer?.state === 'none' || (answer?.state === 'searching' && answer.query !== undefined)) {
@@ -262,6 +307,8 @@ function AlbumCutDialog({ album: a, track: t, source, onClose }: { album: Import
   /** Cut times, one fewer than titles; null while the file is measured. */
   const [times, setTimes] = useState<number[] | null>(source.final ? source.starts.slice(1) : null);
   const [missed, setMissed] = useState<boolean[]>([]);
+  /** What the file lacks of the shop's list, in one sentence (#129). */
+  const [lacks, setLacks] = useState<string | undefined>(undefined);
   const [progress, setProgress] = useState(0);
   const [failed, setFailed] = useState<string | null>(null);
   const { toggle, stop, isPlaying } = useListen();
@@ -278,8 +325,24 @@ function AlbumCutDialog({ album: a, track: t, source, onClose }: { album: Import
           rememberMeasured(t.source, analysis);
         }
         if (c.signal.aborted) return;
-        const cuts = cutsForStarts(source.starts, analysis, source.searchSec);
-        if (cuts.length !== source.titles.length - 1) {
+        let starts = source.starts;
+        let searchSec = source.searchSec;
+        let names = source.titles;
+        if (source.shop) {
+          // Which tracks of the list the file holds; when the pauses do not say for sure, better no cuts than wrong ones.
+          const plan = planShopCuts(source.shop, analysis);
+          if (!plan) {
+            setFailed('Ich finde die Titel der Liste nicht sicher in deiner Datei. Darum teile ich lieber nicht danach. Die Datei wird geteilt wie bisher.');
+            return;
+          }
+          starts = plan.starts;
+          searchSec = plan.searchSec;
+          names = titles.slice(plan.from, plan.to);
+          setTitles(names);
+          setLacks(missingPiecesNote(source.shop, plan));
+        }
+        const cuts = cutsForStarts(starts, analysis, searchSec);
+        if (cuts.length !== names.length - 1) {
           setFailed('Die Titel passen nicht in die Datei. Sie wird geteilt wie bisher.');
           return;
         }
@@ -321,20 +384,7 @@ function AlbumCutDialog({ album: a, track: t, source, onClose }: { album: Import
   const apply = () => {
     if (!times) return;
     stop();
-    const cuts = albumCutsOf(source.from, titles, times);
-    updateTracks(a.id, (list) => list.map((x) => (x.source === t.source ? { ...x, albumCuts: cuts } : x)));
-    const now = session.value.albums.find((x) => x.id === a.id);
-    if (now && !source.final) {
-      // The name the list gives the album, when it had only a folder or file name ("Apfelbaum",
-      // "Die Apfelbaum-Band - Lieder vom Apfelbaum"); a name from the tags only gets the list's spelling.
-      // A name with leftovers of a video site ("… | HÖRSPIEL DES MONATS OKTOBER [Xq7Lm2Pz9Rt]") gives way too.
-      const named = tidyName(source.album);
-      const leftovers = cleanDownloadName(now.title) !== now.title.trim();
-      const title = named && (!tidyName(t.info?.album) || leftovers) ? named : recase(now.title, named);
-      updateAlbum(a.id, { split: 'tracks', title, artist: now.artist ?? tidyName(source.artist), kind: source.kind ?? now.kind });
-    } else {
-      updateAlbum(a.id, { split: 'tracks' });
-    }
+    takeCuts(a, t, source, titles, times);
     onClose();
   };
 
@@ -345,12 +395,16 @@ function AlbumCutDialog({ album: a, track: t, source, onClose }: { album: Import
       width="wide"
       onClose={onClose}
       footer={
-        <>
-          <Button onClick={onClose}>Abbrechen</Button>
-          <Button variant="primary" icon={Scissors} onClick={apply} disabled={!times}>
-            So teilen
-          </Button>
-        </>
+        failed ? (
+          <Button onClick={onClose}>Schließen</Button>
+        ) : (
+          <>
+            <Button onClick={onClose}>Abbrechen</Button>
+            <Button variant="primary" icon={Scissors} onClick={apply} disabled={!times}>
+              So teilen
+            </Button>
+          </>
+        )
       }
     >
       <div class="stack">
@@ -363,6 +417,7 @@ function AlbumCutDialog({ album: a, track: t, source, onClose }: { album: Import
           </div>
         ) : (
           <>
+            {lacks ? <Callout tone="info">{lacks}</Callout> : null}
             <span class="small">
               Hier fängt jeder Titel an{source.final ? '' : '. Jeder Schnitt liegt in der Pause davor'}. Höre kurz rein und schiebe einen Schnitt ein Stück, wenn er nicht sitzt. Die Liste kommt von {source.from === 'Cue-Datei' ? 'der Cue-Datei' : source.from}.
             </span>

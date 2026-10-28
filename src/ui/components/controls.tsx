@@ -1,4 +1,5 @@
 import type { ButtonHTMLAttributes, ComponentChildren } from 'preact';
+import { Fragment } from 'preact';
 import type { LucideIcon } from 'lucide-preact';
 import { CircleAlert, CircleCheck, Info, TriangleAlert } from 'lucide-preact';
 import { Bubble, bubblesShown } from './Sketch';
@@ -89,7 +90,8 @@ export function Spinner({ size = 20 }: { size?: number }) {
   return <span class="spinner" style={{ width: size, height: size }} aria-hidden="true" />;
 }
 
-const CALLOUT_ICONS = { info: Info, success: CircleCheck, warning: TriangleAlert, danger: CircleAlert, neutral: Info };
+// The plain hint has no (i): that is the pattern of a template (Prüfrunde 1 Aussehen 4).
+const CALLOUT_ICONS = { info: null, success: CircleCheck, warning: TriangleAlert, danger: CircleAlert, neutral: Info };
 
 export function Callout({ tone = 'info', children, icon }: { tone?: 'info' | 'success' | 'warning' | 'danger' | 'neutral'; children: ComponentChildren; icon?: LucideIcon | null }) {
   const Icon = icon === null ? null : (icon ?? CALLOUT_ICONS[tone]);
@@ -123,18 +125,40 @@ export function EmptyState({ art, note, title, children, actions }: { art?: Comp
   );
 }
 
-export function Steps({ steps, active }: { steps: string[]; active: number }) {
+/**
+ * The one step bar of every assistant: circle, name, a dashed line between
+ * (Prüfrunde 1 Aussehen 5, Bastler 1). With `onPick` the steps done are
+ * buttons back; `values` shows what was chosen in a step done.
+ */
+export function Steps({ steps, active, onPick, values }: { steps: string[]; active: number; onPick?: (index: number) => void; values?: readonly (string | undefined)[] }) {
   return (
-    <div class="steps" aria-label="Schritte">
-      {steps.map((s, i) => (
-        <>
-          {i > 0 ? <span class="sep" /> : null}
-          <span class={`step ${i === active ? 'active' : i < active ? 'done' : ''}`} aria-current={i === active ? 'step' : undefined}>
-            <span class="step-num">{i < active ? '✓' : i + 1}</span>
-            {s}
-          </span>
-        </>
-      ))}
-    </div>
+    <nav class="steps" aria-label="Schritte">
+      {steps.map((s, i) => {
+        const done = i < active;
+        const inner = (
+          <>
+            <span class="step-num" aria-hidden="true">
+              {done ? '✓' : i + 1}
+            </span>
+            <span class="step-name">{s}</span>
+            {done && values?.[i] ? <span class="step-wahl">{values[i]}</span> : null}
+          </>
+        );
+        return (
+          <Fragment key={s}>
+            {i > 0 ? <span class="sep" aria-hidden="true" /> : null}
+            {done && onPick ? (
+              <button type="button" class="step done" title={`Zurück zu „${s}“`} onClick={() => onPick(i)}>
+                {inner}
+              </button>
+            ) : (
+              <span class={`step ${i === active ? 'active' : done ? 'done' : ''}`} aria-current={i === active ? 'step' : undefined}>
+                {inner}
+              </span>
+            )}
+          </Fragment>
+        );
+      })}
+    </nav>
   );
 }

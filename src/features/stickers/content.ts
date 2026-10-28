@@ -9,9 +9,10 @@ import { LeaseCache, type Lease } from '../../core/stickers/cache';
 import { createCanvas, drawContain, fitWithin, get2d, imageSize, loadImageBitmap, MAX_PICTURE_EDGE, readPictureSize, resizeImage, sniffImageType, usedPictureSize, type DrawableImage } from '../../core/stickers/image';
 import type { ByteSource } from '../../platform/types';
 import { COVER_COLORS, inkOn, KIND_ICONS } from '../../ui/components/Cover';
+import { nextTask } from '../../ui/quiet';
 import { boxScan, catalog, coverUrlFor, coverUrlForCard, profile } from '../../app/state';
 import type { CatalogFolder } from '../../core/tonuino/catalog';
-import { cardItems, isSelected, type CardItem } from '../cards/items';
+import { cardItems, isSelected, setSelected, type CardItem } from '../cards/items';
 import { MODIFIER_ICONS } from '../cards/SpecialCardDialog';
 import { iconImage } from './icons';
 import { NO_RECIPE, SHIPPED_RECIPES, shelfChoice, shippedRecipeById } from '../../core/covers/shelf';
@@ -163,26 +164,28 @@ export function stickerFromCard(item: CardItem): StickerItem {
   const cat = catalog.value;
   const d = item.data;
   if (item.folder !== undefined) return folderSticker(item.folder, item.title, item.key);
-  // Special cards.
+  // Special cards: text and colour stay, so they are known at a glance; a Bildkarte may show a pictogram for the drawn motif.
+  const pictogram = item.extra?.sticker?.pictogram;
+  const special = (s: Omit<StickerItem, 'pictogram'>): StickerItem => (pictogram ? { ...s, pictogram } : s);
   if (d.folder === 0 && d.mode === ADMIN_MODE) {
-    return { key: item.key, title: 'Admin-Karte', subtitle: 'Öffnet das Admin-Menü', icon: KeyRound, flatColor: SPECIAL_COLORS.admin };
+    return special({ key: item.key, title: 'Admin-Karte', subtitle: 'Öffnet das Admin-Menü', icon: KeyRound, flatColor: SPECIAL_COLORS.admin });
   }
   if (d.folder === 0) {
     // A TNG card on a 2.1 box keeps its own symbol, as in the cards list; the key is the Admin-Karte's.
     const mod = modifiersFor(profile.value).find((m) => m.code === d.mode) ?? modifiersFor('tng').find((m) => m.code === d.mode);
-    if (!mod) return { key: item.key, title: item.title, icon: CircleHelp, flatColor: '#8a7866' };
+    if (!mod) return special({ key: item.key, title: item.title, icon: CircleHelp, flatColor: '#8a7866' });
     const minutes = d.special & 0x7f;
-    return {
+    return special({
       key: item.key,
       title: mod.params === 'sleep' ? 'Schlummerkarte' : mod.name,
       subtitle: mod.params === 'sleep' ? `${minutes} Minuten${d.special & 0x80 ? ', bis zum Titelende' : ''}` : undefined,
       detail: mod.params === 'sleep' ? `${minutes} Min.` : undefined,
       icon: MODIFIER_ICONS[mod.symbol],
       flatColor: SPECIAL_COLORS[mod.symbol],
-    };
+    });
   }
   if (d.folder === 0xff) {
-    return { key: item.key, title: 'Nochmal', subtitle: 'Spielt, was zuletzt lief', icon: RotateCcw, flatColor: SPECIAL_COLORS.again };
+    return special({ key: item.key, title: 'Nochmal', subtitle: 'Spielt, was zuletzt lief', icon: RotateCcw, flatColor: SPECIAL_COLORS.again });
   }
   // A second card for a folder, e.g. one part of an audiobook.
   const f = cat?.folders[pad2(d.folder)];
@@ -301,6 +304,31 @@ export function addLooseStickers(files: { name: string; blob: Blob }[]): number 
   return files.length - added.length;
 }
 
+/**
+ * A word card (TODO 0.3 #98): the word and an ARASAAC pictogram, without an SD card and without a
+ * picture file. `cover` is the pictogram on its white plate (pictogramCover.ts), so the sticker
+ * shows it in every style; a Bildkarte draws the pictogram itself (StickerItem.pictogram).
+ * False when the same word with the same pictogram is on the sheet already.
+ */
+export function addWordSticker(word: string, pictogram: number, cover: Blob): boolean {
+  const title = word.trim().replace(/\s+/g, ' ');
+  if (!title) return false;
+  const same = looseStickers.value.find((l) => l.pictogram === pictogram && l.title.toLowerCase() === title.toLowerCase());
+  if (same) {
+    // Left out earlier: back onto the sheet.
+    if (same.off) setLooseSelected(true, same.id);
+    return false;
+  }
+  const sticker: LooseSticker = { id: `w${Date.now().toString(36)}${looseStickers.value.length}`, title, blob: cover, url: URL.createObjectURL(cover), pictogram };
+  looseStickers.value = [...looseStickers.value, sticker];
+  return true;
+}
+
+/** Made with „Wort + Piktogramm“ (addWordSticker), not from a picture file or a cover. */
+export function isWordSticker(l: Pick<LooseSticker, 'id'>): boolean {
+  return l.id.startsWith('w');
+}
+
 /** Chooses own pictures for printing or leaves them out: one by its id, or all of them. */
 export function setLooseSelected(on: boolean, id?: string) {
   looseStickers.value = looseStickers.value.map((x) => (id === undefined || x.id === id ? { ...x, off: on ? undefined : true } : x));
@@ -365,6 +393,21 @@ function stickerFromLoose(l: LooseSticker, index: number): StickerItem {
     pictogram: l.pictogram,
     loose: true,
   };
+}
+
+/**
+ * Takes a sticker off the sheet ("Vom Bogen nehmen"): the card is no longer
+ * chosen for printing, an own picture stays in the list but unticked.
+ * Nothing on the SD card changes.
+ */
+export function removeFromSheet(item: Pick<StickerItem, 'key' | 'loose'>) {
+  const loose = looseIdOf(item);
+  if (loose) {
+    setLooseSelected(false, loose);
+    return;
+  }
+  const card = cardItems.value.find((c) => c.key === item.key);
+  if (card) setSelected(card, false);
 }
 
 /** The stickers to print: the cards chosen on the cards page, then the own pictures chosen. */
@@ -489,6 +532,8 @@ async function loadPicture(item: StickerItem, look: GeneratedLook): Promise<Load
   if (!item.picture) return loadGenerated(item, look);
   const source = item.picture.kind === 'url' ? item.picture.url : item.picture.blob;
   const image = await withDecodeSlot(async () => shrink(await loadImageBitmap(source)));
+  // Its colours in a task of their own (see renderItem).
+  await nextTask();
   return { image, palette: paletteOf(image), generated: false };
 }
 

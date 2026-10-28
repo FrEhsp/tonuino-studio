@@ -27,7 +27,7 @@
  * novels, a hand for diaries, and the plain grotesque of the ARD/WDR radio
  * plays and of grown-up albums. Round, the default, needs no entry.
  */
-import { recognize, type FolderFacts } from '../covers/recognize';
+import { factsKey, recognize, type FolderFacts } from '../covers/recognize';
 import type { FontChoice, Recipe, Recognition } from '../covers/recipe';
 
 /** The colours of one work. Hex colours as "#rrggbb". */
@@ -269,7 +269,11 @@ export function recognizeWork(f: FolderFacts): WorkScheme | null {
 }
 
 const byEntry = new WeakMap<object, WorkColors | null>();
+/** By the folder's names (factsKey): a catalog copied for a change keeps what was recognised. */
+const byFacts = new Map<string, WorkColors | null>();
 const byTitle = new Map<string, WorkColors | null>();
+/** Kept results by names or title: plenty for a few boxes, never without end. */
+const MAX_KEPT = 2000;
 
 /** The colours a sticker of this work carries. */
 export function colorsOf(s: WorkScheme): WorkColors {
@@ -281,8 +285,14 @@ export function workColors(entry: FolderFacts | undefined): WorkColors | undefin
   if (!entry) return undefined;
   let c = byEntry.get(entry);
   if (c === undefined) {
-    const s = recognizeWork(entry);
-    c = s ? colorsOf(s) : null;
+    const key = factsKey(entry);
+    c = byFacts.get(key);
+    if (c === undefined) {
+      const s = recognizeWork(entry);
+      c = s ? colorsOf(s) : null;
+      if (byFacts.size >= MAX_KEPT) byFacts.clear();
+      byFacts.set(key, c);
+    }
     byEntry.set(entry, c);
   }
   return c ?? undefined;
@@ -295,7 +305,7 @@ export function workColorsByTitle(title: string): WorkColors | undefined {
     const s = recognizeWork({ title });
     c = s ? colorsOf(s) : null;
     // A long list of own pictures stays cheap; the cache never grows without end.
-    if (byTitle.size >= 500) byTitle.clear();
+    if (byTitle.size >= MAX_KEPT) byTitle.clear();
     byTitle.set(title, c);
   }
   return c ?? undefined;

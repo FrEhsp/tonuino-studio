@@ -5,21 +5,16 @@
  * Built ahead: right after the SD card is read or something was added, one
  * card after the other while the computer is idle and nobody scrolls, cards
  * near the screen first. Finished cards are kept in memory and on this
- * computer (IndexedDB), so the shelf shows them at once next time. A folder
- * without a cover that the app recognises gets its original cover from the
- * cover search (iTunes, MusicBrainz) when the hit is sure; it is kept on this
- * computer only and goes on the SD card when someone takes it on the folder
- * page.
+ * computer (IndexedDB), so the shelf shows them at once next time. Folders
+ * without a cover get theirs from src/features/covers/autoCovers.ts.
  */
 import { effect, signal, untracked } from '@preact/signals';
-import { card, catalog, plat, settings } from '../../app/state';
+import { card, catalog } from '../../app/state';
 import { analyseImage } from '../../core/covers/build';
 import { paintCard, type FaceFor } from '../../core/covers/paint';
 import { planCard, type CardGeometry, type CardPlan, type CardText } from '../../core/covers/plan';
 import { resolveLayout, type CardFormat, type FontChoice, type Recipe } from '../../core/covers/recipe';
-import { coverWanted, SHIPPED_RECIPES, shelfCardText, shelfChoice, shippedRecipeById, type ShelfChoice } from '../../core/covers/shelf';
-import { isConfident, isUnreachable, searchSpacing } from '../../core/stickers/bulkcover';
-import { downloadCoverImage, searchCovers } from '../../core/stickers/coversearch';
+import { SHIPPED_RECIPES, shelfCardText, shelfChoice, shippedRecipeById, type ShelfChoice } from '../../core/covers/shelf';
 import { canvasToBlob, imageSize, loadImageBitmap, type CanvasLike } from '../../core/stickers/image';
 import { orientGeometry, type Orientation } from '../../core/stickers/layout';
 import { workColors, type WorkColors } from '../../core/stickers/works';
@@ -27,7 +22,6 @@ import { buildShelf, type CatalogFolder } from '../../core/tonuino/catalog';
 import { folderName } from '../../core/tonuino/sd';
 import { kv } from '../../platform/web/idb';
 import { hash } from '../../ui/drawnFrames';
-import { coverFetch } from '../box/CoverSearch';
 import { folderSticker } from '../stickers/content';
 import { design, template } from '../stickers/design';
 import type { BuiltCardRequest, BuiltCardSource, Finished } from '../stickers/FolderSticker';
@@ -321,7 +315,6 @@ function store<T>(prefix: string, max: number) {
 
 // Not 'shelf-card:': that is the finished pictures' store in FolderSticker.tsx.
 const cardStore = store<{ png: ArrayBuffer; orientation: Orientation; info: CardInfo }>('shelf-built:', 300);
-const foundStore = store<{ bytes?: ArrayBuffer; type?: string; source?: string; title?: string; artist?: string; at: number }>('shelf-found:', 200);
 
 async function fromStore(key: string): Promise<Built | null> {
   const v = await cardStore.get(key).catch(() => undefined);
@@ -489,7 +482,7 @@ async function build(spec: Spec): Promise<Built | null> {
 let aheadTimer = 0;
 let lastVolume: unknown = null;
 
-/** All cards of the card, built ahead; then the covers of recognised folders without one. */
+/** All cards of the card, built ahead. */
 function buildAhead() {
   const s = card.value;
   const c = catalog.value;
@@ -508,7 +501,6 @@ function buildAhead() {
   }
   // Built ahead for a shelf that is gone (other card, other format): not any more.
   for (const t of tasks.values()) if (t.ahead && !wanted.has(t.spec.key)) t.ahead = false;
-  void findCovers(shelf.flatMap((i) => (i.entry && i.state !== 'missing' ? [{ folder: i.number, entry: i.entry }] : [])));
 }
 
 if (typeof window !== 'undefined') {
@@ -528,83 +520,11 @@ if (typeof window !== 'undefined') {
   });
 }
 
-/* ------------------------------------------------------------------ finding covers */
+/* ------------------------------------------------------------------ found covers */
 
-const RETRY_NOTHING_MS = 7 * 24 * 3600 * 1000;
-let finding = false;
-let findAgain: { folder: number; entry: CatalogFolder }[] | null = null;
-/** Searches already done in this session, by query. */
-const searched = new Set<string>();
-let unreachable = 0;
-let answered = 0;
-
-async function findCovers(folders: { folder: number; entry: CatalogFolder }[]) {
-  // Switched off in the settings: only a click on „Cover suchen“ asks the internet.
-  if (!settings.value.findCovers) return;
-  if (finding) {
-    findAgain = folders;
-    return;
-  }
-  finding = true;
-  try {
-    for (const { folder, entry } of folders) {
-      const s = card.value;
-      if (!s || (entry.cover && s.covers.has(entry.cover))) continue;
-      const choice = choiceFor(entry);
-      if (choice.kind === 'sticker') continue;
-      const want = coverWanted(entry, choice);
-      if (!want?.specific) continue;
-      const name = folderName(folder);
-      if (foundCovers.value.get(name)?.query === want.query || searched.has(want.query)) continue;
-      searched.add(want.query);
-      const id = hash(want.query).toString(36);
-      const kept = await foundStore.get(id).catch(() => undefined);
-      if (kept?.bytes) {
-        addFound(name, { id: pictureId(new Uint8Array(kept.bytes)), blob: new Blob([kept.bytes], { type: kept.type }), source: kept.source ?? '', title: kept.title ?? '', artist: kept.artist ?? '', query: want.query });
-        continue;
-      }
-      if (kept && Date.now() - kept.at < RETRY_NOTHING_MS) continue;
-      if ((typeof navigator !== 'undefined' && navigator.onLine === false) || (unreachable >= 2 && !answered)) continue;
-      await whenIdle();
-      await searchSpacing.wait();
-      const result = await searchCovers({ query: want.query }, { fetchFn: coverFetch, limit: 5 }).catch(() => null);
-      if (!result || isUnreachable(result)) {
-        unreachable++;
-        // Asked again in the next session.
-        searched.delete(want.query);
-        continue;
-      }
-      answered++;
-      const best = result.candidates[0];
-      if (!isConfident(want, best)) {
-        void foundStore.set(id, { at: Date.now() }).catch(() => undefined);
-        continue;
-      }
-      try {
-        const blob = await downloadCoverImage(best, { fetchFn: (url, init) => plat().fetch(url, init) });
-        const bytes = await blob.arrayBuffer();
-        const source = best.source === 'itunes' ? 'iTunes' : 'MusicBrainz';
-        void foundStore.set(id, { bytes, type: blob.type, source, title: best.title, artist: best.artist, at: Date.now() }).catch(() => undefined);
-        addFound(name, { id: pictureId(new Uint8Array(bytes)), blob, source, title: best.title, artist: best.artist, query: want.query });
-      } catch {
-        searched.delete(want.query);
-      }
-    }
-  } finally {
-    finding = false;
-  }
-  if (findAgain) {
-    const next = findAgain;
-    findAgain = null;
-    void findCovers(next);
-  }
-}
-
-function addFound(name: string, f: FoundCover) {
-  const m = new Map(foundCovers.value);
-  m.set(name, f);
-  foundCovers.value = m;
-}
+// Covers of folders without one are found and put on the card by
+// src/features/covers/autoCovers.ts now (0.6); `foundCovers` stays empty
+// unless something sets it, and the folder page's "Übernehmen" keeps working for it.
 
 /** The found cover of a folder, for "Übernehmen" on the folder page. */
 export async function foundCoverBytes(f: FoundCover): Promise<Uint8Array> {

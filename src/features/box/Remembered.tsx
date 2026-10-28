@@ -164,7 +164,7 @@ export function RememberedShelf() {
               {total ? ` · ${formatDuration(total)}` : ''} · gemerkt am {day}
             </p>
           </div>
-          <Button icon={Printer} onClick={() => navigate({ page: 'stickers' })}>
+          <Button icon={Printer} onClick={() => navigate({ page: 'sticker' })}>
             Sticker drucken
           </Button>
           <Button icon={Nfc} onClick={() => navigate({ page: 'cards' })}>

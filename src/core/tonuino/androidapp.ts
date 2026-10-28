@@ -81,7 +81,7 @@ export function phoneAppSteps(several: boolean, paper = false): string[] {
   return [
     'Öffne in der App „Liste eingeben“ und tippe auf „QRCode einlesen“.',
     `Scanne ${several ? 'den ersten Code' : 'den Code'}${paper ? '' : ' unten'}. Die Karten erscheinen als Liste. Tippe auf „Abarbeiten starten“.`,
-    'Halte die erste Karte an die Rückseite des Handys. Sobald die App sie erkennt, tippe auf „Daten auf Tag … schreiben“.',
+    'Halte die erste Karte an die Rückseite des Handys. Sobald die App sie erkennt, tippe auf „Daten auf Tag … schreiben“ (der Tag ist die Karte).',
     'Meldet die App „Erfolg“, tippe auf „Nächste Zeile“ und halte die nächste Karte ans Handy. Nach der letzten Karte tippst du auf „OK“.',
     ...(several ? ['Für den nächsten Code gehst du in der App zurück zum Startbildschirm und öffnest „Liste eingeben“ neu. Sonst fängt die App nicht bei der ersten Karte an.'] : []),
   ];

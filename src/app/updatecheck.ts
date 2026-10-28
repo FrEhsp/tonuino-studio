@@ -1,15 +1,27 @@
 /**
- * "Neue Version von TonUINO Studio da": a one-line notice in the desktop app,
- * no updater. Off until the user switches it on in the settings, and only in
- * builds that name a public list of releases (VITE_RELEASES_URL at build
- * time); without it the switch is not shown and the app asks nobody. Then the
- * app asks that address at most once a day. The answer may be a GitHub
- * release ({tag_name, html_url}), a list of them, or {version, url}.
+ * "Neue Version von TonUINO Studio da": a one-line notice in the desktop app
+ * and the Android app. Off until the user switches it on in the settings,
+ * and only in builds that name a public list of releases (VITE_RELEASES_URL
+ * at build time); without it the switch is not shown and the app asks
+ * nobody. Then the app asks that address at most once a day. The answer may
+ * be a GitHub release ({tag_name, html_url, assets}), a list of them, or
+ * {version, url}. What to do with a new version on this system says
+ * updatesteps.ts; the web app learns of new versions from its service
+ * worker instead (src/app/pwa.ts).
  */
 import { signal } from '@preact/signals';
 
 export interface Release {
   version: string;
+  /** The release page (what is new, all files). */
+  url: string;
+  /** The files of the release, when the answer lists them (GitHub: assets). */
+  assets?: ReleaseAsset[];
+}
+
+/** One file of a release, with its direct download address. */
+export interface ReleaseAsset {
+  name: string;
   url: string;
 }
 
@@ -27,7 +39,7 @@ export const DAY_MS = 24 * 60 * 60 * 1000;
 /** The address of the release list, from the build; empty: no check at all. */
 export const RELEASES_URL: string = (import.meta.env.VITE_RELEASES_URL ?? '').trim();
 
-/** The switch is offered: the build names a list, and it is the desktop app (the web app is always the newest). */
+/** The switch is offered: the build names a list, and it is the desktop or Android app (the web app hears of new versions from its service worker, pwa.ts). */
 export function updateCheckOffered(kind: 'desktop' | 'web' | undefined, url = RELEASES_URL): boolean {
   return kind === 'desktop' && /^https:\/\//.test(url);
 }
@@ -76,10 +88,23 @@ export function parseRelease(json: unknown): Release | undefined {
     const version = typeof r.tag_name === 'string' ? r.tag_name : typeof r.version === 'string' ? r.version : undefined;
     const url = typeof r.html_url === 'string' ? r.html_url : typeof r.url === 'string' ? r.url : undefined;
     if (!version || !url || !/^https:\/\//.test(url) || !/\d/.test(version)) continue;
-    const release = { version: version.replace(/^v/i, ''), url };
+    const assets = parseAssets(r.assets);
+    const release: Release = { version: version.replace(/^v/i, ''), url, ...(assets.length ? { assets } : {}) };
     if (!best || compareVersions(release.version, best.version) > 0) best = release;
   }
   return best;
+}
+
+/** GitHub's assets ({name, browser_download_url}) or plain {name, url}; https only. */
+function parseAssets(v: unknown): ReleaseAsset[] {
+  if (!Array.isArray(v)) return [];
+  const out: ReleaseAsset[] = [];
+  for (const a of v) {
+    if (!isObj(a) || typeof a.name !== 'string') continue;
+    const url = typeof a.browser_download_url === 'string' ? a.browser_download_url : typeof a.url === 'string' ? a.url : undefined;
+    if (url && /^https:\/\//.test(url)) out.push({ name: a.name, url });
+  }
+  return out;
 }
 
 /* ------------------------------------------------------------ state */

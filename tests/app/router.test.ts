@@ -1,12 +1,19 @@
 import { describe, expect, it, vi } from 'vitest';
-import { parseHash, routeToHash, type Route } from '../../src/app/router';
+import { parseHash, previousPage, route, routeToHash, startsBare, type Route } from '../../src/app/router';
 import { resolveHelp } from '../../src/features/help/topics';
 
 describe('parseHash', () => {
   it('reads every page and goes back to the same hash', () => {
-    for (const hash of ['#/', '#/ordner/07', '#/hinzufuegen', '#/hinzufuegen/12', '#/sticker', '#/karten', '#/aufnehmen', '#/werkstatt', '#/werkstatt/logbuch', '#/hilfe', '#/hilfe/lautstaerke', '#/einstellungen']) {
+    for (const hash of ['#/', '#/ordner/07', '#/hinzufuegen', '#/hinzufuegen/12', '#/musik', '#/karte', '#/karte/14', '#/sticker', '#/sticker/alle', '#/karten', '#/aufnehmen', '#/werkstatt', '#/werkstatt/logbuch', '#/hilfe', '#/hilfe/lautstaerke', '#/einstellungen']) {
       expect(routeToHash(parseHash(hash)), hash).toBe(hash);
     }
+  });
+
+  it('only an address without a hash opens the start page; "#/" stays Meine Box', () => {
+    expect(startsBare('')).toBe(true);
+    expect(startsBare('#')).toBe(true);
+    expect(startsBare('#/')).toBe(false);
+    expect(parseHash('#/')).toEqual({ page: 'box' });
   });
 
   it('decodes escaped umlauts', () => {
@@ -46,6 +53,10 @@ describe('router', () => {
       { page: 'add', folder: 12 },
       { page: 'sources' },
       { page: 'sources', entry: 'global-storybooks-de' },
+      { page: 'musik' },
+      { page: 'karte' },
+      { page: 'karte', folder: 14 },
+      { page: 'sticker' },
       { page: 'stickers' },
       { page: 'cards' },
       { page: 'record' },
@@ -54,6 +65,12 @@ describe('router', () => {
       { page: 'settings' },
     ];
     for (const r of routes) expect(parseHash(routeToHash(r))).toEqual(r);
+  });
+
+  it('keeps the sticker page with all its settings under #/sticker/alle, the front task at #/sticker (0.6)', () => {
+    expect(parseHash('#/sticker')).toEqual({ page: 'sticker' });
+    expect(parseHash('#/sticker/alle')).toEqual({ page: 'stickers' });
+    expect(parseHash('#/karte/100')).toEqual({ page: 'karte' });
   });
 
   it('survives odd addresses', () => {
@@ -74,5 +91,19 @@ describe('router', () => {
       vi.unstubAllGlobals();
     }
     expect(parseHash('#/entdecken')).toEqual({ page: 'sources' });
+  });
+});
+
+describe('previousPage', () => {
+  it('remembers the page shown before, so the help leads back to the Werkstatt only from there (WebKit W5)', () => {
+    route.value = { page: 'musik' };
+    route.value = { page: 'help' };
+    expect(previousPage.value).toBe('musik');
+    route.value = { page: 'workshop' };
+    route.value = { page: 'help', topic: 'lautstaerke' };
+    expect(previousPage.value).toBe('workshop');
+    // Within the help, the page before stays the Werkstatt.
+    route.value = { page: 'help' };
+    expect(previousPage.value).toBe('workshop');
   });
 });

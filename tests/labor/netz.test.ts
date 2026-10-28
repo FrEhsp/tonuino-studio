@@ -1,6 +1,6 @@
 /**
  * Testlabor, schlechtes Internet (TODO #69): every online lookup of the app
- * (cover search at iTunes and MusicBrainz, the cover download, track names
+ * (cover search at iTunes, Deezer and MusicBrainz, the cover download, track names
  * from MusicBrainz, ARASAAC pictograms, the list and the files of
  * "Entdecken") against netz/stoersender.ts: offline, no answer, an answer
  * that stops halfway, a slow one, busy (429/503), an error page and a
@@ -9,6 +9,7 @@
  * and nothing else breaks.
  */
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { resetNet } from '../../src/core/covers/net';
 import { searchCovers, downloadCoverImage, RateLimiter } from '../../src/core/stickers/coversearch';
 import { BUSY_MESSAGE, lookupFailureMessage, runBulkSearch, UNREACHABLE_MESSAGE, UnreachableError } from '../../src/core/stickers/bulkcover';
 import { lookupAlbumTracks } from '../../src/core/library/tracklookup';
@@ -34,10 +35,13 @@ function canned(url: URL): Answer {
       results: [{ wrapperType: 'collection', collectionType: 'Album', collectionId: 1440729154, artistName: 'Die drei ???', collectionName: 'Folge 12: Der seltsame Wecker', artworkUrl100: art, trackCount: 9 }],
     });
   }
+  if (url.hostname === 'api.deezer.com') {
+    return json({ data: [{ id: 302127, title: 'Folge 12: Der seltsame Wecker', artist: { name: 'Die drei ???' }, cover_medium: 'https://e-cdns-images.dzcdn.net/images/cover/x/250x250.jpg' }], total: 1 });
+  }
   if (url.hostname === 'musicbrainz.org') return json({ created: '2026-10-20T12:00:00.000Z', count: 0, offset: 0, releases: [] });
   if (url.hostname === 'api.arasaac.org') return json([{ _id: 2382, keywords: [{ keyword: 'Katze', type: 2 }], schematic: false, sex: false, violence: false }]);
   if (url.hostname === 'static.arasaac.org') return { type: 'image/png', body: tinyPng() };
-  if (url.hostname.endsWith('mzstatic.com') || url.hostname === 'coverartarchive.org') return { type: 'image/jpeg', body: tinyJpeg() };
+  if (url.hostname.endsWith('mzstatic.com') || url.hostname.endsWith('dzcdn.net') || url.hostname === 'coverartarchive.org') return { type: 'image/jpeg', body: tinyJpeg() };
   if (url.pathname.endsWith('index-v1.json')) return json(sample);
   if (url.hostname === 'archive.org' && url.pathname.startsWith('/metadata/')) return json({ result: 'x' });
   if (url.pathname.endsWith('.mp3')) return { type: 'audio/mpeg', body: mp3 };
@@ -63,36 +67,51 @@ async function within<T>(ms: number, p: Promise<T>): Promise<{ value?: T; error?
 }
 
 const quick = new RateLimiter(0);
+const allQuick = { itunes: quick, deezer: quick, musicbrainz: quick };
 const T = 1500;
 
 describe.skipIf(!laborOn)('Testlabor: schlechtes Internet', () => {
   beforeAll(() => net.start());
   afterAll(() => net.stop());
-  beforeEach(() => net.clear());
+  beforeEach(() => {
+    net.clear();
+    // Nothing kept from the test before: no answers, no service left out.
+    resetNet();
+  });
 
-  describe('Cover-Suche (iTunes und MusicBrainz)', () => {
-    const search = (timeoutMs = T) => searchCovers({ query: 'Die drei ??? Der seltsame Wecker' }, { fetchFn: net.fetch, timeoutMs, rateLimiter: quick });
+  describe('Cover-Suche (iTunes, Deezer und MusicBrainz)', () => {
+    // No second try after a busy answer here: the app waits seconds for it (tests/covers/net.test.ts).
+    const search = (timeoutMs = T) => searchCovers({ query: 'Die drei ??? Der seltsame Wecker' }, { fetchFn: net.fetch, timeoutMs, limiters: allQuick, retries: 0 });
 
     it('offline: sofort eine Meldung zur Internetverbindung, keine Treffer', async () => {
       net.set('offline');
       const r = await within(T, search());
       expect(r.value?.candidates).toEqual([]);
-      expect(r.value?.warnings).toHaveLength(2);
+      expect(r.value?.warnings).toHaveLength(3);
       for (const w of r.value!.warnings) expect(w).toMatch(/Internetverbindung/);
     });
 
     it.each(['hang', 'stall', 'slow'] as const)('%s: endet nach der Wartezeit mit „antwortet gerade nicht“', async (weather) => {
       net.set(weather);
       const r = await within(T + 1500, search());
-      expect(r.value?.warnings).toHaveLength(2);
+      expect(r.value?.warnings).toHaveLength(3);
       for (const w of r.value!.warnings) expect(w).toMatch(/antwortet gerade nicht/);
     });
 
-    it('MusicBrainz ausgelastet (429): Treffer von iTunes kommen trotzdem, mit Hinweis', async () => {
+    it('MusicBrainz ausgelastet (429): Treffer von iTunes und Deezer kommen trotzdem, ohne Meldung', async () => {
       net.set('429', /musicbrainz/);
       const r = await within(T, search());
       expect(r.value?.candidates.length).toBeGreaterThan(0);
-      expect(r.value?.warnings).toEqual([expect.stringMatching(/MusicBrainz ist gerade ausgelastet.*nur Treffer von iTunes/)]);
+      expect(r.value?.warnings).toEqual([]);
+      expect(r.value?.failed).toEqual(['musicbrainz']);
+    });
+
+    it('Deezer gesperrt (Webfilter): die Suche geht ohne Deezer weiter', async () => {
+      net.set('garbage', /deezer/);
+      const r = await within(T, search());
+      expect(r.value?.candidates.length).toBeGreaterThan(0);
+      expect(r.value?.warnings).toEqual([]);
+      expect(r.value?.failed).toEqual(['deezer']);
     });
 
     it('WLAN-Anmeldeseite statt Daten: „unerwartete Antwort“', async () => {
@@ -119,21 +138,22 @@ describe.skipIf(!laborOn)('Testlabor: schlechtes Internet', () => {
     it('alle Cover suchen offline: gibt nach zwei Ordnern auf, eine Meldung statt dreißig', async () => {
       net.set('offline');
       const targets = Array.from({ length: 30 }, (_, i) => ({ folder: i + 1, query: `Hörspiel ${i + 1}` })) as never[];
-      const r = await within(3 * T, runBulkSearch(targets, { search: (q, signal) => searchCovers(q, { fetchFn: net.fetch, signal, timeoutMs: T, rateLimiter: quick }), spacing: quick }));
+      const r = await within(3 * T, runBulkSearch(targets, { search: (q, signal) => searchCovers(q, { fetchFn: net.fetch, signal, timeoutMs: T, limiters: allQuick, retries: 0 }), spacing: quick }));
       expect(r.error).toBeInstanceOf(UnreachableError);
-      expect(net.seen.length).toBeLessThanOrEqual(6);
+      // Four folders at a time, three services each, the fifth at most.
+      expect(net.seen.length).toBeLessThanOrEqual(15);
     });
 
     it('alle Cover suchen, beide Dienste ausgelastet (429): die Meldung schickt nicht zur Internetverbindung', async () => {
       net.set('429');
       const targets = Array.from({ length: 5 }, (_, i) => ({ folder: i + 1, query: `Hörspiel ${i + 1}` })) as never[];
-      const r = await within(3 * T, runBulkSearch(targets, { search: (q, signal) => searchCovers(q, { fetchFn: net.fetch, signal, timeoutMs: T, rateLimiter: quick }), spacing: quick }));
+      const r = await within(3 * T, runBulkSearch(targets, { search: (q, signal) => searchCovers(q, { fetchFn: net.fetch, signal, timeoutMs: T, limiters: allQuick, retries: 0 }), spacing: quick }));
       expect(r.error?.message).toMatch(/ausgelastet/);
     });
   });
 
   describe('Titelnamen von iTunes und MusicBrainz', () => {
-    const lookup = () => lookupAlbumTracks({ album: 'Der seltsame Wecker', artist: 'Die drei ???', durations: [60, 61, 62] }, { fetchFn: net.fetch, timeoutMs: T, rateLimiter: quick });
+    const lookup = () => lookupAlbumTracks({ album: 'Der seltsame Wecker', artist: 'Die drei ???', durations: [60, 61, 62] }, { fetchFn: net.fetch, timeoutMs: T, rateLimiter: quick, retries: 0 });
 
     it.each(['offline', 'hang', 'stall', '503'] as const)('%s: endet in der Zeit mit einem Fehler, den die Seite zeigt', async (weather) => {
       net.set(weather);
@@ -146,6 +166,7 @@ describe.skipIf(!laborOn)('Testlabor: schlechtes Internet', () => {
       const r = await within(2 * T, lookup());
       expect(lookupFailureMessage(r.error)).toBe(BUSY_MESSAGE);
       net.set('offline');
+      resetNet();
       expect(lookupFailureMessage((await within(2 * T, lookup())).error)).toBe(UNREACHABLE_MESSAGE);
     });
 

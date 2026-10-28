@@ -208,20 +208,20 @@ describe('labels', () => {
     expect(whichQuestion(entry('ohrka'))).toBe('Welcher Titel ist das?');
     // ARD pages kept as links hold episodes as well.
     expect(whichQuestion({ type: 'link', editPolicy: 'unchanged' })).toBe('Welche Folge ist das?');
-    expect(whichText(entry('global-storybooks-de'), { files: 1, known: 0, guessed: 0 })).toBe('Diese Datei erkennen wir nicht am Namen. Wähle aus, was es ist.');
+    expect(whichText(entry('global-storybooks-de'), { files: 1, known: 0, guessed: 0 })).toBe('Diese Datei erkenne ich nicht am Namen. Wähle aus, was es ist.');
     expect(whichText(entry('global-storybooks-de'), { files: 2, known: 1, guessed: 2 })).toBe(
-      'Diese Dateien erkennen wir nicht am Namen. Wir haben nach Länge und Name vorausgewählt. Prüfe kurz, ob es stimmt. Die andere Datei haben wir erkannt.',
+      'Diese Dateien erkenne ich nicht am Namen. Ich habe nach Länge und Name vorausgewählt. Prüfe kurz, ob es stimmt. Die andere Datei habe ich erkannt.',
     );
     // One of three guessed: not "vorausgewählt" for all of them.
     expect(whichText(entry('global-storybooks-de'), { files: 3, known: 0, guessed: 1 })).toBe(
-      'Diese Dateien erkennen wir nicht am Namen. Eine davon haben wir nach Länge und Name erkannt, bei den anderen wähle bitte aus.',
+      'Diese Dateien erkenne ich nicht am Namen. Eine davon habe ich nach Länge und Name erkannt, bei den anderen wähle bitte aus.',
     );
     // One left to choose: "bei der anderen", not "bei den anderen".
     expect(whichText(entry('global-storybooks-de'), { files: 2, known: 0, guessed: 1 })).toBe(
-      'Diese Dateien erkennen wir nicht am Namen. Eine davon haben wir nach Länge und Name erkannt, bei der anderen wähle bitte aus.',
+      'Diese Dateien erkenne ich nicht am Namen. Eine davon habe ich nach Länge und Name erkannt, bei der anderen wähle bitte aus.',
     );
     expect(whichText(entry('global-storybooks-de'), { files: 5, known: 0, guessed: 4 })).toBe(
-      'Diese Dateien erkennen wir nicht am Namen. 4 davon haben wir nach Länge und Name erkannt, bei der anderen wähle bitte aus.',
+      'Diese Dateien erkenne ich nicht am Namen. 4 davon habe ich nach Länge und Name erkannt, bei der anderen wähle bitte aus.',
     );
     expect(noneLabel(entry('global-storybooks-de'))).toBe('Keine davon (ohne Angaben zur Herkunft hinzufügen)');
     const ohrka = entry('ohrka');
@@ -240,7 +240,7 @@ describe('labels', () => {
     expect(canAddUnmatched(srf)).toBe(false);
     expect(canAddUnmatched(entry('global-storybooks-de'))).toBe(true);
     expect(whichText(srf, { files: 1, known: 0, guessed: 1 })).toBe(
-      'Diese Datei erkennen wir nicht am Namen. Wir haben nach Länge und Name vorausgewählt. Prüfe kurz, ob es stimmt. SRG SSR erlaubt keine Änderungen. Darum kommt die Datei genau so auf die Karte, wie du sie gespeichert hast.',
+      'Diese Datei erkenne ich nicht am Namen. Ich habe nach Länge und Name vorausgewählt. Prüfe kurz, ob es stimmt. SRG SSR erlaubt keine Änderungen. Darum kommt die Datei genau so auf die Karte, wie du sie gespeichert hast.',
     );
     expect(noneLabel(srf)).toBe('Keine davon (nicht hinzufügen)');
     expect(nothingToAddText(srf)).toBe('Ohne Zuordnung fügen wir nichts hinzu, weil SRG SSR keine Änderungen erlaubt.');
@@ -311,8 +311,8 @@ describe('labels', () => {
   });
 
   it('explains why adding waits', () => {
-    expect(blockerText({ kind: 'result' })).toBe('Schaue dir zuerst das Ergebnis der Übertragung an.');
-    expect(waitingText({ kind: 'result' })).toBe('Geladen. Schaue dir zuerst das Ergebnis der Übertragung an. Danach geht es von selbst weiter.');
+    expect(blockerText({ kind: 'result' })).toBe('Beim letzten Kopieren ist nicht alles gut gegangen. Schaue es dir zuerst an.');
+    expect(waitingText({ kind: 'result' })).toBe('Geladen. Beim letzten Kopieren ist nicht alles gut gegangen. Schaue es dir zuerst an, danach geht es von selbst weiter.');
     expect(blockerText({ kind: 'card' })).toBe('Stecke zuerst die SD-Karte ein.');
     // Paket mode: the card is read in, not plugged in.
     expect(blockerText({ kind: 'card' }, true)).toBe('Lies zuerst die SD-Karte ein.');

@@ -100,7 +100,8 @@ const mini = (page, n) => shown(page).getByRole('button', { name: `Bogen ${n}`, 
 
 export async function stickerMove(browser, { shots = OUT } = {}) {
   console.log('moving stickers on the sheet');
-  const { page, errors } = await openApp(browser, { mode: 'direct', width: 1280, height: 820, init: [{ fn: STUBS }], hash: '#/sticker' });
+  // 1000 px high: without the sidebar of 0.5 the sheet is wider and its labels taller; the drag from label 1 to 7 needs both in view.
+  const { page, errors } = await openApp(browser, { mode: 'direct', width: 1280, height: 1000, init: [{ fn: STUBS }], hash: '#/sticker/alle' });
   await drawPictures(page);
   await shown(page).getByRole('button', { name: 'Bilder hinzufügen' }).click();
   await sheetCount(page, '2 Bögen').waitFor({ timeout: 60_000 });
@@ -127,7 +128,7 @@ export async function stickerMove(browser, { shots = OUT } = {}) {
   await drag(page, c0, c3, {
     before: async () => {
       check(await page.locator('.sheet-ghost').isVisible(), 'the sticker in hand follows the pointer');
-      check((await page.locator('.sheet-drop').getAttribute('data-kind')) === 'swap', 'over another sticker the mark says "Tauschen"');
+      check((await shown(page).locator('.sheet-drop').getAttribute('data-kind')) === 'swap', 'over another sticker the mark says "Tauschen"');
       await shot(page, 'bogen-2-beim-ziehen-tauschen');
     },
   });
@@ -159,10 +160,12 @@ export async function stickerMove(browser, { shots = OUT } = {}) {
   // Onto a free label, in view: it moves there.
   await page.evaluate((y) => document.querySelector('main').scrollTo(0, y), top0);
   const c7 = await centre(page, 7);
-  await page.evaluate((dy) => document.querySelector('main').scrollBy(0, dy), c7.y - (bar.y - 120));
+  // Labels 1 and 7 both in view, between the bar on top and the print bar.
+  const mainTop = (await page.locator('main').boundingBox()).y;
+  await page.evaluate((dy) => document.querySelector('main').scrollBy(0, dy), (c1.y + c7.y) / 2 - (mainTop + bar.y) / 2);
   await drag(page, await centre(page, 1), await centre(page, 7), {
     before: async () => {
-      check((await page.locator('.sheet-drop').getAttribute('data-kind')) === 'move', 'over a free label the mark says "Hierhin"');
+      check((await shown(page).locator('.sheet-drop').getAttribute('data-kind')) === 'move', 'over a free label the mark says "Hierhin"');
       await shot(page, 'bogen-3-beim-ziehen-hierhin');
     },
   });
@@ -189,7 +192,7 @@ export async function stickerMove(browser, { shots = OUT } = {}) {
   const kb = await labels(page);
   await page.locator('.page-slot:not(.page-slot-hidden) .sheet-hit[data-slot="1"]').focus();
   await page.keyboard.press('ArrowRight');
-  check((await page.locator('.sheet-drop').getAttribute('data-kind')) === 'swap', 'keyboard: the arrow shows the mark on the next label');
+  check((await shown(page).locator('.sheet-drop').getAttribute('data-kind')) === 'swap', 'keyboard: the arrow shows the mark on the next label');
   const picked = await page.locator('.page-slot:not(.page-slot-hidden) [aria-live="assertive"]').textContent();
   check(/aufgenommen\. Pfeiltasten .*Escape bricht ab\. (Bogen 1, )?Etikett 3: tauschen/.test(picked ?? ''), 'keyboard: picking up says how to drop, together with the label', picked);
   const keysHint = await shown(page).locator('.print-bar .carry-note', { hasText: 'Bild auf und Bild ab den Bogen' }).count();
@@ -267,6 +270,27 @@ export async function stickerMove(browser, { shots = OUT } = {}) {
   await page.waitForTimeout(400);
   same(await labels(page), first, '"Reihenfolge zurücksetzen" puts them back in order');
   check((await shown(page).getByRole('button', { name: 'Reihenfolge zurücksetzen' }).count()) === 0, 'the link goes once the order is plain');
+
+  // Off the sheet (0.5.1): the × at a sticker's corner, shown with the pointer on it, and the button in "Sticker anpassen".
+  const sheetShown = page.locator('.page-slot:not(.page-slot-hidden) .sheet-preview');
+  await page.mouse.move(c0.x, c0.y);
+  await page.waitForTimeout(300);
+  const cross = sheetShown.getByRole('button', { name: `„${first[0]}“ vom Bogen nehmen` });
+  check((await cross.evaluate((b) => getComputedStyle(b).opacity)) === '1', 'the × shows at the sticker under the pointer');
+  await shot(page, 'bogen-7-kreuz');
+  await cross.click();
+  await page.waitForTimeout(600);
+  const afterCross = await labels(page);
+  check(!afterCross.includes(first[0]), 'the × takes the sticker off the sheet');
+  same(afterCross[0], first[1], 'the next sticker moves up');
+  check((await page.getByRole('dialog').count()) === 0, 'the × opens no dialog');
+  await page.mouse.click(c0.x, c0.y);
+  await dialog.waitFor();
+  await shot(page, 'bogen-8-anpassen-entfernen');
+  await dialog.getByRole('button', { name: 'Vom Bogen nehmen' }).click();
+  await dialog.waitFor({ state: 'detached' });
+  await page.waitForTimeout(600);
+  check(!(await labels(page)).includes(first[1]), '"Vom Bogen nehmen" in "Sticker anpassen" takes it off too');
 
   noErrors(errors);
   await page.context().close();

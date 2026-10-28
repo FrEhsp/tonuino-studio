@@ -1,5 +1,5 @@
 /**
- * "Box wird nicht erkannt?": the usual reasons why a computer does not see
+ * "Computer findet die Box nicht": the usual reasons why a computer does not see
  * a TonUINO box over USB, ordered for the system the app runs on. Plain
  * data, so the page stays thin and the choice of sections is tested.
  * A browser without USB access gets that one answer first; the fixes for the
@@ -25,6 +25,8 @@ export interface HelpSection {
   intro: string;
   steps: HelpStep[];
   action?: HelpAction;
+  /** Only with commands in a terminal (Linux): the page folds it away behind the simple steps (Prüfrunde 1 B6). */
+  terminal?: boolean;
 }
 
 export interface HelpContext {
@@ -99,6 +101,7 @@ function linuxSections(ctx: HelpContext): HelpSection[] {
             ...(ctx.kind === 'web' ? [{ text: 'Chromium aus dem Snap-Paket (Ubuntu) sieht keine USB-Geräte. Nimm dort Google Chrome von google.com oder die Desktop-App.' }] : []),
           ],
       action: desktop ? SETUP_ACCESS : undefined,
+      terminal: !desktop,
     },
     {
       id: 'linux-brltty',
@@ -111,6 +114,7 @@ function linuxSections(ctx: HelpContext): HelpSection[] {
         { text: 'Bei Fedora heißt der Befehl „sudo dnf remove brltty“.' },
         { text: 'Stecke die Box danach neu ein.' },
       ],
+      terminal: true,
     },
     {
       id: 'linux-modemmanager',
@@ -123,6 +127,7 @@ function linuxSections(ctx: HelpContext): HelpSection[] {
             { text: 'Benutzt du kein Mobilfunk-Modem, kannst du den ModemManager abschalten:', command: 'sudo systemctl disable --now ModemManager' },
           ],
       action: desktop ? SETUP_ACCESS : undefined,
+      terminal: !desktop,
     },
   ];
 }
@@ -297,7 +302,8 @@ export function usbHelp(ctx: HelpContext): UsbHelp {
   else if (ctx.os === 'windows') system.push(...windowsSections(ctx));
   else if (ctx.os === 'macos') system.push(...macSections());
   else system.push(...windowsSections(ctx), ...macSections());
-  const all = [...(ctx.mayAskForAddon && ctx.serialSupported ? [firefoxSection(ctx)] : []), ...system, ...commonSections(ctx)];
+  // The simple things first (cable, hub, another program), then the system's own; terminal commands last (Prüfrunde 1 B6).
+  const all = [...(ctx.mayAskForAddon && ctx.serialSupported ? [firefoxSection(ctx)] : []), ...commonSections(ctx), ...system.filter((x) => !x.terminal), ...system.filter((x) => x.terminal)];
   return ctx.serialSupported ? { sections: all, later: [] } : { sections: [browserSection()], later: all };
 }
 

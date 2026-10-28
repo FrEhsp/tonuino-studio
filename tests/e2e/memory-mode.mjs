@@ -8,7 +8,7 @@ import { execFileSync } from 'node:child_process';
 import { mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { saveThePaket } from './package-flow.mjs';
-import { addAlbum, check, chooseFolder, failed, launch, makeCard, MP3, noErrors, openApp, OUT, same, shot, shown, testZip, unpackOnto } from './lib.mjs';
+import { addAlbum, check, chooseFolder, failed, go, launch, makeCard, MP3, noErrors, openApp, OUT, same, shot, shown, testZip, unpackOnto } from './lib.mjs';
 
 const NO_OPFS = () => {
   if (window.StorageManager) delete StorageManager.prototype.getDirectory;
@@ -70,13 +70,13 @@ export async function memoryMode(browser) {
     const { page, errors } = await openApp(browser, { init: [{ fn: NO_OPFS }, { fn: BUDGET, arg: 3_000_000 }] });
     await chooseFolder(page, card, page.getByRole('button', { name: 'SD-Karte einlesen' }));
     await shown(page).locator('.page-header h1').waitFor();
-    await page.getByRole('link', { name: 'Hinzufügen' }).first().click();
+    await go(page, '#/hinzufuegen');
     const { chooseFiles } = await import('./lib.mjs');
     await chooseFiles(page, [join(big, '01.mp3'), join(big, '02.mp3'), join(big, '03.mp3')], page.getByRole('button', { name: 'Dateien auswählen' }));
     const into = page.getByRole('button', { name: 'Ins Paket für die Karte' });
     await into.waitFor({ timeout: 60_000 });
     await into.click();
-    const text = page.getByText('Dein Browser hält das Paket im Arbeitsspeicher, und der reicht für so viel Musik nicht. Nimm weniger Alben auf einmal oder einen neueren Browser.');
+    const text = shown(page).getByText('Dein Browser hält das Paket im Arbeitsspeicher, und der reicht für so viel Musik nicht. Nimm weniger Alben auf einmal oder einen neueren Browser.');
     try {
       await text.first().waitFor({ timeout: 60_000 });
       check(true, 'memory full: the app says what happened and what to do');

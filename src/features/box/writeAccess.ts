@@ -11,10 +11,11 @@ import { card, fixCardAccess, plat, platform } from '../../app/state';
 import { toast, type ToastAction } from '../../ui/components/Toast';
 import { isAccessLost, isWriteDenied, withoutBoxHint } from './writeDenied';
 
-export type WriteNoticeKind = 'fix' | 'denied' | 'read-only';
+export type WriteNoticeKind = 'fix' | 'denied' | 'read-only' | 'read-only-system';
 
 export const FIX_LABEL = 'Schreibrechte holen';
 export const WRITE_HELP = '#/hilfe/sd-karte-schreibrechte';
+export const CHECK_HELP = '#/hilfe/sd-karte-pruefen';
 
 export const WRITE_NOTICE_TITLE = 'Ich kann die Karte zeigen, aber nichts darauf ändern';
 
@@ -25,7 +26,7 @@ export function writeNoticeKind(
 ): WriteNoticeKind | null {
   // A card read as a snapshot (Firefox, Safari) is never written directly.
   if (state.volume.access === 'snapshot') return null;
-  if (state.info.readOnly) return 'read-only';
+  if (state.info.readOnly) return state.info.readOnlyBySystem ? 'read-only-system' : 'read-only';
   if (state.info.writable === false || state.writeDenied) return platformCanFix && state.info.canFixAccess ? 'fix' : 'denied';
   return null;
 }
@@ -43,6 +44,8 @@ export function writeNoticeText(kind: WriteNoticeKind, foreignOwner: boolean): s
       return 'Dein Benutzerkonto hat keine Schreibrechte für die SD-Karte. Deshalb klappen Löschen, Hinzufügen und neue Ordner nicht. Wirf die Karte im Dateimanager aus, ziehe sie heraus und stecke sie neu ein.';
     case 'read-only':
       return 'Die SD-Karte ist schreibgeschützt. Schiebe den kleinen Schalter an der Seite der Karte oder des Adapters nach oben und stecke sie neu ein.';
+    case 'read-only-system':
+      return 'Am Schalter liegt es nicht: Der Computer gibt die Karte nur zum Lesen frei. Das passiert, wenn die Verbindung beim Schreiben abgebrochen ist und auf der Karte etwas nicht mehr stimmt. Neu einstecken hilft dann nicht, die Karte muss einmal geprüft werden.';
   }
 }
 

@@ -495,7 +495,8 @@
     if (document.documentElement) begin();
     start.stopMo = () => mo.disconnect();
   }
-  watchStart();
+  // tempo.mjs measures from outside: without the watching in every frame, which costs time itself.
+  if (!window.__benchNoWatch) watchStart();
 
   async function runStart(opts) {
     const quiet = (opts && opts.quietMs) || 2500;

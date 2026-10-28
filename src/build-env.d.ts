@@ -30,3 +30,11 @@ declare const __LOCAL_SOURCES__: boolean;
  * list it came with and checks on opening which titles are still online.
  */
 declare const __SOURCES_BUNDLED__: boolean;
+
+/**
+ * True in a desktop build with Tauri's updater (VITE_SELF_UPDATE=on, see
+ * docs/BUILD.md "Automatische Updates"): "Neue Version da" then offers
+ * "Jetzt aktualisieren" on Windows, the Mac and with the AppImage
+ * (src/platform/tauri/updater.ts). False everywhere else, also in the tests.
+ */
+declare const __SELF_UPDATE__: boolean;

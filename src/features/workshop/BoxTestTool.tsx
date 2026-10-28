@@ -10,7 +10,7 @@ import '../../ui/styles/loetplan.css';
 import { signal } from '@preact/signals';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { ArrowLeft, ArrowRight, Check, Flag, Hammer, RotateCcw, SkipForward, X } from 'lucide-preact';
-import { Button, Callout } from '../../ui/components/controls';
+import { Button, Callout, Steps } from '../../ui/components/controls';
 import { toastError } from '../../ui/components/Toast';
 import { plat } from '../../app/state';
 import { route } from '../../app/router';
@@ -166,21 +166,22 @@ export function BoxTestTool() {
   );
 }
 
-/** "Schritt 3 von 8: Kartenleser" and a row of small dots. */
+/** The step bar of every assistant (Prüfrunde 1 Aussehen 5): the steps done lead back. */
 function Schritte({ t }: { t: BoxTest }) {
   // The test changes in place: reading the signal draws this again on every change.
   void rev.value;
   const s = t.schritte();
-  const { nr, von } = t.position();
+  const { nr } = t.position();
   return (
-    <div class="bt-steps" aria-label={`Schritt ${nr} von ${von}: ${SCHRITT_NAMEN[t.schritt]}`}>
-      <ol>
-        {s.map((x, i) => (
-          <li key={x} class={x === t.schritt ? 'is-now' : i < nr - 1 ? 'is-done' : ''} aria-current={x === t.schritt ? 'step' : undefined}>
-            <span>{SCHRITT_NAMEN[x]}</span>
-          </li>
-        ))}
-      </ol>
+    <div class="ws-steps bt-steps">
+      <Steps
+        steps={s.map((x) => SCHRITT_NAMEN[x])}
+        active={nr - 1}
+        onPick={(i) => {
+          t.gehe(s[i]);
+          bump();
+        }}
+      />
     </div>
   );
 }

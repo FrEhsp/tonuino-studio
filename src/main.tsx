@@ -9,10 +9,17 @@ import './ui/styles/stil-holz.css';
 import './ui/styles/handy.css';
 // Meine Box with a card as a workbench (0.4.1): after both, its rules only hang on .box-bench.
 import './ui/styles/box.css';
-import { boot } from './app/state';
+// 0.6 „Schlank neu“: the bars and the three screens in front, last of all.
+import './ui/styles/schlank.css';
+import { boot, card, remembered } from './app/state';
 import { route, startAt } from './app/router';
+import { startPage } from './app/Kopf';
+import { installKarteAhead } from './features/cards/KarteScreen';
 import { isTauri, isTauriAndroid } from './platform/tauri/detect';
 import { firstScreenFonts } from './ui/fontsReady';
+import { quietMoment } from './ui/quiet';
+import { installSmallCovers } from './ui/smallCovers';
+import { startServiceWorker } from './app/pwa';
 import type { Platform } from './platform/types';
 
 async function createPlatform(): Promise<Platform> {
@@ -58,16 +65,32 @@ Promise.all([createPlatform(), measureTarget(), firstScreenFonts(), preloadPage(
   boot(p);
   // Phones and tablets: the narrow menu of a tablet held sideways hangs on this (layout.css), set before the first frame.
   if (p.handheld) document.documentElement.setAttribute('data-handheld', '');
-  // The Android app opens at the cards, its main thing (Frank), also with a card reader plugged in: Meine Box then shows a dot (Sidebar.tsx).
-  if (p.mobile) {
-    startAt({ page: 'cards' });
-    await preloadPage(route.value.page);
-  }
+  // The start page: „Musik auf die SD-Karte“; the Android app opens at „Karte beschreiben“, its main thing (Frank),
+  // also with a card reader plugged in: „Musik“ then shows a dot (Kopf.tsx).
+  startAt(startPage(!!p.mobile));
+  await preloadPage(route.value.page);
   // The Android app answers a card held to the phone on every page (nfcTap.ts).
   if (__DESKTOP_BUILD__ && p.nfc.phone) void import('./features/cards/phoneTaps').then((m) => m.startPhoneTaps(p.nfc));
   render(<App />, document.getElementById('app')!);
+  // Missing covers by themselves, in the background (src/features/covers/autoCovers.ts); not for the made-up box of a measurement.
+  // Its code comes in the first quiet moment after the start, not with it (Prüfrunde 2, webkit W3); a search starts later anyway.
+  if (!m) void quietMoment(1500).then(() => import('./features/covers/autoCovers').then((a) => a.installAutoCovers()));
+  // Which known work each folder is, worked out in idle moments, so „Sticker drucken“ opens at once (stickers/warmup.ts).
+  // „Sticker“, the third of the three screens in the bar (Musik and Karte come with the start): its code soon after
+  // the first frame, not only in the first quiet moment, which may come long after the card was read (Tempo #121).
+  const stickerCode = () => void preloadPage('sticker');
+  if (typeof requestIdleCallback === 'function') requestIdleCallback(stickerCode, { timeout: 500 });
+  else setTimeout(stickerCode, 200);
+  // „Karte beschreiben“: the sticker on its card, drawn ahead once the card is read (KarteScreen.tsx).
+  installKarteAhead();
+  // Small copies of the covers for the tiny pictures in lists, made in quiet moments (src/ui/smallCovers.ts).
+  installSmallCovers(() => [...(card.value?.coverUrls.values() ?? []), ...(remembered.value?.coverUrls.values() ?? [])]);
+  // Its folders are gone over in idle moments only (warmup.ts), so it can watch the card from the start.
+  void import('./features/stickers/warmup').then((w) => w.installWarmup());
   // The logo of index.html goes with the first frame of the app.
   document.getElementById('boot')?.remove();
+  // The built web app: installable, offline, "Neue Version da" (src/app/pwa.ts); registered once the browser is idle.
+  if (!__DESKTOP_BUILD__ && import.meta.env.PROD) startServiceWorker();
   // "?messen=zeigen" only shows the made-up box (for screenshots).
   if (m && measure !== 'zeigen') void m.measureAndReport(measure!);
 });

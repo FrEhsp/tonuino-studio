@@ -4,6 +4,7 @@ import { newCatalog, newId, saveCatalog, type Catalog } from './catalog';
 import { saveCovers, type CoverMap } from './covers';
 import { bytesOnCard, copyEntries, folderFiles, systemFiles, totalBytes, type BackupEntry, type CopyProgress } from './rebuild';
 import { folderName, scanSd, type SdScan, type SystemDirName } from './sd';
+import { forgetUnreadable } from './unreadable';
 
 /**
  * Folders of this card onto another SD card (a second box, the one at
@@ -277,6 +278,8 @@ export async function executeClone(source: Dir, target: Dir, plan: ClonePlan, op
   // Every file checked like in a backup: a card that loses data shows here, not in the box.
   await copyEntries(source, target, plan.entries, { signal: opts.signal, onProgress: opts.onProgress, verify: true });
   opts.signal?.throwIfAborted();
+  // The plan replaces the other card's names and covers on purpose, broken files there included.
+  forgetUnreadable(target);
   await saveCatalog(target, opts.catalog);
   await saveCovers(target, opts.covers);
 }

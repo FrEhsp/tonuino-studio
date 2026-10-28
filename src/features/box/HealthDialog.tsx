@@ -15,7 +15,7 @@ import { SoundsDialog } from './SoundsDialog';
 import { ThoroughDialog } from './ThoroughDialog';
 import { canChangeCard } from '../../app/pending';
 import { openPackageDialog } from './PackageDialog';
-import { openRebuildDialog } from './RebuildDialog';
+import { openRebuildDialog } from './openDialogs';
 import { PackageWaitingDialog } from './PackageWaitingGate';
 import { fixableLine, WriteFixButton } from './WriteAccessNotice';
 

@@ -1,8 +1,9 @@
-import { KeyRound, Lock } from 'lucide-preact';
+import { KeyRound, Lock, RefreshCw } from 'lucide-preact';
 import type { Volume, VolumeInfo } from '../../platform/types';
-import { card, platform } from '../../app/state';
+import { card, openVolume, platform } from '../../app/state';
+import { CATALOG_FILE } from '../../core/tonuino/sd';
 import { Button, Callout } from '../../ui/components/controls';
-import { canFixOn, FIX_LABEL, fixing, fixTarget, fixWriteAccess, runFix, WRITE_HELP, WRITE_NOTICE_TITLE, writeNoticeKind, writeNoticeText } from './writeAccess';
+import { canFixOn, CHECK_HELP, FIX_LABEL, fixing, fixTarget, fixWriteAccess, runFix, WRITE_HELP, WRITE_NOTICE_TITLE, writeNoticeKind, writeNoticeText } from './writeAccess';
 import { isWriteDenied, withoutBoxHint } from './writeDenied';
 
 /** On "Meine Box": the app may not change anything on the open card (see writeAccess.ts). */
@@ -10,19 +11,39 @@ export function WriteAccessNotice() {
   const s = card.value;
   if (!s) return null;
   const kind = writeNoticeKind(s, canFixOn(platform.value));
-  if (!kind) return null;
+  if (!kind) return s.unreadable?.length ? <UnreadableNotice files={s.unreadable} /> : null;
   return (
-    <Callout tone="warning" icon={kind === 'read-only' ? Lock : undefined}>
+    <Callout tone="warning" icon={kind === 'read-only' || kind === 'read-only-system' ? Lock : undefined}>
       <div class="row wrap card-note">
         <span class="grow">
           <b>{WRITE_NOTICE_TITLE}.</b> {writeNoticeText(kind, !!s.info.foreignOwner)}{' '}
-          {kind === 'read-only' ? null : <a href={WRITE_HELP}>Mehr dazu</a>}
+          {kind === 'read-only' ? null : kind === 'read-only-system' ? <a href={CHECK_HELP}>So prüfst du die Karte</a> : <a href={WRITE_HELP}>Mehr dazu</a>}
         </span>
         {kind === 'fix' ? (
           <Button size="sm" variant="primary" icon={KeyRound} loading={fixing.value} onClick={() => void runFix()}>
             {FIX_LABEL}
           </Button>
         ) : null}
+      </div>
+    </Callout>
+  );
+}
+
+/**
+ * The card's names or covers are there but failed to read (unreadable.ts):
+ * the app changes nothing in them until a new reading works.
+ */
+function UnreadableNotice({ files }: { files: string[] }) {
+  const what = files.includes(CATALOG_FILE) ? (files.length > 1 ? 'die Namen und Cover' : 'die Namen') : 'die Cover';
+  return (
+    <Callout tone="warning">
+      <div class="row wrap card-note">
+        <span class="grow">
+          <b>Ich konnte {what} auf der Karte nicht lesen.</b> Damit nichts verloren geht, ändere ich daran nichts. Oft ist beim Schreiben die Verbindung zur Karte abgebrochen. Stecke die Karte neu ein und lies sie neu ein. Hilft das nicht, prüfe die Karte einmal. <a href={CHECK_HELP}>So prüfst du die Karte</a>
+        </span>
+        <Button size="sm" variant="primary" icon={RefreshCw} onClick={() => { const v = card.peek()?.volume; if (v) void openVolume(v); }}>
+          Neu einlesen
+        </Button>
       </div>
     </Callout>
   );

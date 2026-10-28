@@ -46,6 +46,10 @@ mod speech;
 // list of hosts (feature "quellen", on by default).
 #[cfg(all(desktop, feature = "quellen"))]
 mod sources_net;
+// The cover search at iTunes, Deezer and MusicBrainz with the app's own
+// User-Agent: HTTPS to the services' hosts only (same TLS as sources_net).
+#[cfg(all(desktop, feature = "quellen"))]
+mod cover_net;
 #[cfg_attr(mobile, allow(dead_code))]
 mod util;
 #[cfg(desktop)]
@@ -301,6 +305,7 @@ macro_rules! app_handlers {
             speech::speech_say,
             print::print_printers,
             print::print_pdf,
+            print::print_paper,
             $($extra)*
         ]
     };
@@ -320,7 +325,12 @@ macro_rules! app_handlers {
 pub fn run() {
     type Handlers = Box<dyn Fn(tauri::ipc::Invoke<tauri::Wry>) -> bool + Send + Sync>;
     #[cfg(all(desktop, feature = "quellen"))]
-    let handlers: Handlers = Box::new(app_handlers!(sources_net::sources_fetch, sources_net::sources_cache_read, sources_net::sources_cache_write,));
+    let handlers: Handlers = Box::new(app_handlers!(
+        sources_net::sources_fetch,
+        sources_net::sources_cache_read,
+        sources_net::sources_cache_write,
+        cover_net::cover_fetch,
+    ));
     #[cfg(any(mobile, not(feature = "quellen")))]
     let handlers: Handlers = Box::new(app_handlers!());
     let state: SharedState = Arc::new(AppState::default());

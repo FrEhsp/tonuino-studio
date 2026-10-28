@@ -14,6 +14,7 @@
  *   copied over a 2.1 set: TNG wins. Worked out each time, not stored.
  * - A choice someone made by hand always wins.
  */
+import { CHECKED_TNG, compareStand, isChecked, knownStand, standTitle, unknownStandLabel } from '../firmware/tngstands';
 import type { TngRelease } from './boxguide';
 import type { FirmwareProfile } from './card';
 import type { SdScan } from './sd';
@@ -89,43 +90,50 @@ export const TNG_SEPTEMBER_DATE = '2026-09-17';
  */
 export const TNG_OCTOBER_PREVIEW_DATE = '2026-10-16';
 
-/** Which build of TNG 3.3.3 a box runs, from the date in its version line ("V3.3.3 16.10.26"). */
+/** Which state of TNG a box runs, from the version line of its start ("V3.3.3 16.10.26"). */
 export interface TngStand {
-  /** E.g. "Release vom 17.09.2026". */
+  /** E.g. "Stand vom 17.09.2026". */
   label: string;
   /** What to know about it, in a sentence or two. */
   note?: string;
   /** Not released: a test build. */
   preview?: boolean;
+  /** The state TonUINO Studio puts on boxes (CHECKED_TNG). */
+  checked?: boolean;
 }
 
-function germanDate(iso: string): string {
-  const [y, m, d] = iso.split('-');
-  return `${d}.${m}.${y}`;
-}
+/** What to do on a box with a test build that hangs: the firmware of the app. */
+export const BACK_TO_CHECKED = `Spiele unter „Firmware“ die fertige Firmware auf (${standTitle(CHECKED_TNG)}).`;
 
 /**
- * The build of 3.3.3 a box runs: three are known (25.02., 17.09. and the
- * test build of 16.10.2026); other dates are builds in between or after.
- * Undefined for other versions or without a date.
+ * The state of TNG a box runs: the known ones by name (tngstands.ts:
+ * release of 25.02., main of 17.09., the test build of 16.10.2026, main of
+ * 26.10.2026); other dates are states in between or after. Undefined
+ * without a date or a readable version.
  */
 export function tngStandOf(fw: { version?: string; date?: string } | undefined): TngStand | undefined {
   const date = fw?.date;
-  if (fw?.version !== '3.3.3' || !date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return undefined;
-  if (date === TNG_FEBRUARY_DATE) {
-    return { label: 'Release vom 25.02.2026', note: 'Es gibt ein neueres Release vom 17.09.2026. Erst damit fragt die Box bei Hörbuch-Karten nach dem letzten Ordner und kennt die Endlos-Karte.' };
+  if (!fw?.version || !date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return undefined;
+  const known = knownStand(fw);
+  if (known) {
+    const out: TngStand = { label: known.label };
+    if (known.kind === 'preview') {
+      out.preview = true;
+      out.note = `${known.note ?? ''} Passiert dir das, spiele die fertige Firmware von TonUINO Studio auf (${standTitle(CHECKED_TNG)}).`.trim();
+    } else if (known.note) out.note = known.note;
+    if (isChecked(fw)) {
+      out.checked = true;
+      out.note = 'Diesen Stand spielt TonUINO Studio als fertige Firmware auf. Er ist mit der App geprüft.';
+    }
+    return out;
   }
-  if (date === TNG_SEPTEMBER_DATE) return { label: 'Release vom 17.09.2026' };
-  if (date === TNG_OCTOBER_PREVIEW_DATE) {
-    return {
-      label: 'Testversion vom 16.10.2026',
-      preview: true,
-      note: 'Noch nicht offiziell (TNG PR 352): Der MP3-Player startet damit schneller. In Tests blieb die Box manchmal nach einer Ansage hängen. Passiert dir das, spiele das Release vom 17.09.2026 auf.',
-    };
-  }
-  if (date < TNG_FEBRUARY_DATE) return { label: `Stand vom ${germanDate(date)}`, note: 'Älter als das Release vom 25.02.2026.' };
-  if (date < TNG_SEPTEMBER_DATE) return { label: `Zwischenstand vom ${germanDate(date)}`, note: 'Gebaut zwischen den Releases vom 25.02. und 17.09.2026.' };
-  return { label: `Stand vom ${germanDate(date)}`, note: 'Neuer als das Release vom 17.09.2026.' };
+  const order = compareStand(fw, CHECKED_TNG);
+  if (order === undefined) return undefined;
+  const label = unknownStandLabel(date);
+  if (order > 0) return { label, note: `Neuer als die Firmware, die TonUINO Studio aufspielt (${standTitle(CHECKED_TNG)}).` };
+  if (fw.version !== '3.3.3') return { label, note: `Älter als die Firmware, die TonUINO Studio aufspielt (${standTitle(CHECKED_TNG)}).` };
+  if (date < TNG_FEBRUARY_DATE) return { label, note: 'Älter als das Release vom 25.02.2026.' };
+  return { label: `Zwischenstand vom ${label.slice('Stand vom '.length)}`, note: 'Gebaut zwischen dem Release vom 25.02. und dem Stand vom 17.09.2026.' };
 }
 
 export interface ProfileDecision {

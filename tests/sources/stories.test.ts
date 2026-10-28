@@ -109,7 +109,7 @@ describe('the card of a story', () => {
       .flatMap((n) => [(n.props as { children?: unknown }).children].flat())
       .filter((c) => typeof c === 'string' || typeof c === 'number')
       .join(' | ');
-    expect(words).toMatch(/3 \|\s*Teile/);
+    expect(words).toContain('3 Teile');
     expect(words).toContain('1 Std. 30 Min.');
   });
 });

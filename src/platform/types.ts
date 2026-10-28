@@ -82,6 +82,11 @@ export interface VolumeInfo {
   writable?: boolean;
   /** Desktop: mounted read-only, e.g. by the lock slider of the card or its adapter. */
   readOnly?: boolean;
+  /**
+   * Desktop (Linux): read-only although the card is not locked. The system
+   * mounted it so, usually after the connection broke off while writing.
+   */
+  readOnlyBySystem?: boolean;
   /** Desktop (Linux): the mount belongs to another user account, e.g. root. */
   foreignOwner?: boolean;
   /** Desktop (Linux): the app can mount the card again for this user (VolumeWatcher.fixAccess). */
@@ -368,6 +373,11 @@ export interface Platform {
    * a desktop build that loads a published list (VITE_SOURCES_INDEX_URL).
    */
   readonly sourcesList?: SourcesListAccess;
+  /**
+   * Desktop app only: the cover search through the backend, with the app's
+   * own User-Agent and without CORS limits (src/core/covers/route.ts).
+   */
+  readonly coverNet?: CoverNetAccess;
   /** Desktop only: new files in the download folder (see DownloadsAccess). */
   readonly downloads?: DownloadsAccess;
   /** Desktop only: the computer's own voice, for spoken track titles (see SpeechAccess). */
@@ -562,13 +572,30 @@ export interface PrintJob {
   twoSided?: boolean;
   /** One of PrinterList.printers; missing: the default one. */
   printer?: string | null;
+  /** In colour (default); false: black and white. Never left to the printer's default. */
+  color?: boolean;
+  /** "high": the printer's best quality; missing or "normal": its normal one. */
+  quality?: 'normal' | 'high';
+  /** The kind of paper, said to the driver where it knows it; missing: the printer's own setting. */
+  paper?: PaperKind;
   /** Open the PDF in the PDF program instead. */
   open?: boolean;
+}
+
+export type PaperKind = 'plain' | 'photo' | 'labels';
+
+/** What a printer has in itself (lpoptions): its paper size and the kinds of paper its driver knows. */
+export interface PrinterPaper {
+  /** "A4", "Letter", …; null when unknown. */
+  size: string | null;
+  kinds: PaperKind[];
 }
 
 /** Desktop only: printing a PDF without the WebView. */
 export interface PrinterAccess {
   list(): Promise<PrinterList>;
+  /** The paper of `printer`; absent where the system cannot tell. */
+  paper?(printer: string): Promise<PrinterPaper>;
   /** "sent": to the printer; "opened": in the PDF program (where nothing prints without the user). */
   print(job: PrintJob): Promise<'sent' | 'opened'>;
 }
@@ -638,6 +665,12 @@ export interface PlayerAccess {
   closeAll(): Promise<void>;
   /** Every event of every voice; returns the function that stops listening. */
   onEvent(cb: (e: PlayerEvent) => void): () => void;
+}
+
+/** The cover search's requests through the desktop app's backend (src-tauri/src/cover_net.rs). */
+export interface CoverNetAccess {
+  /** GET over https to the cover services' hosts only; redirects come back as answers. */
+  fetch(url: string, init?: RequestInit): Promise<Response>;
 }
 
 /** The list of "Entdecken" built on this computer (desktop app, see __LOCAL_SOURCES__). */

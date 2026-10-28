@@ -13,6 +13,7 @@
  *   downloads downloads_recent (new audio files in the download folder, for "Entdecken")
  *   fetch     WebView fetch for https, http_plain for http:// boxes in the home network
  *   sourcesList  sources_fetch, sources_cache_read, sources_cache_write (the list of "Entdecken" built here)
+ *   coverNet  cover_fetch (the cover search with the app's own User-Agent)
  *   speech    speech_voice, speech_say (the computer's own voice, for spoken track titles)
  *   printer   print_printers, print_pdf (a PDF in real size to CUPS, or to the PDF program)
  *   player    player_warm/_load/_load_data/_queue/_play/_pause/_seek/_volume/_close/_close_all, event "player" ("Anhören")
@@ -29,6 +30,7 @@ import { onFileDrop, pickFiles, pickSaveFolder, recentDownloads } from './pick';
 import { TauriSerial } from './serial';
 import { pathWithin, toInfo, TauriVolumes, type VolumeInfoDto } from './volumes';
 import { TauriSourcesList } from './sourcesList';
+import { TauriCoverNet } from './coverNet';
 import { TauriSpeech } from './speech';
 import { TauriPlayer } from './player';
 import { TauriPrinter } from './printer';
@@ -50,6 +52,7 @@ export interface TauriPlatform extends Platform {
   readonly audio: TauriAudio;
   /** The list of "Entdecken" built on this computer (see __LOCAL_SOURCES__). */
   readonly sourcesList?: TauriSourcesList;
+  readonly coverNet?: TauriCoverNet;
   readonly speech: TauriSpeech;
   readonly player: TauriPlayer;
   onFileDrop(cb: (sources: ByteSource[]) => void): () => void;
@@ -95,6 +98,7 @@ export function createTauriPlatform(options: TauriPlatformOptions = {}): TauriPl
     files: new TauriFileSaver(bridge),
     audio: new TauriAudio(bridge),
     ...(__DESKTOP_BUILD__ && __LOCAL_SOURCES__ ? { sourcesList: new TauriSourcesList(bridge) } : {}),
+    ...(__DESKTOP_BUILD__ ? { coverNet: new TauriCoverNet(bridge) } : {}),
     downloads: { recent: (sinceMs, extensions) => recentDownloads(bridge, sinceMs, extensions) },
     speech: new TauriSpeech(bridge),
     player: new TauriPlayer(bridge),

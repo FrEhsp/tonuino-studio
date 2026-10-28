@@ -7,6 +7,7 @@
  */
 import { BootLogParser, type BoxInfo } from '../../core/firmware/bootlog';
 import type { BoardId } from '../../core/firmware/variants';
+import { factoryInvert, invertKind } from '../../core/firmware/tngstands';
 import { FACTORY_SETTINGS, volumeProblem } from '../../core/tonuino/settingsguide';
 import type { SerialAccess, SerialPortInfo } from '../../platform/types';
 import { openMonitor, type MonitorOptions } from './monitor';
@@ -106,7 +107,10 @@ export function judgeSettings(read: StartRead, board: BoardId): SettingsVerdict 
   if (v) facts.push({ label: 'Lautstärke', value: `${v.min} bis ${v.max}, beim Einschalten ${v.init}` });
   if (s.headphoneVolume) facts.push({ label: 'Kopfhörer', value: `${s.headphoneVolume.min} bis ${s.headphoneVolume.max}, beim Einschalten ${s.headphoneVolume.init}` });
   if (s.standbyTimerMinutes !== undefined) facts.push({ label: 'Ausschalt-Timer', value: s.standbyTimerMinutes ? `${s.standbyTimerMinutes} Minuten` : 'aus' });
-  if (s.invertVolumeButtons !== undefined) facts.push({ label: 'Kurz drücken', value: s.invertVolumeButtons ? 'lauter und leiser' : 'nächster Titel' });
+  // What „Tasten umdrehen“ does depends on the buttons and, with 5, on the firmware (tngstands.ts invertKind).
+  const invert = invertKind({ buttons: read.info.buttons ?? '3', version: read.info.version, date: read.info.versionDate });
+  if (s.invertVolumeButtons !== undefined && invert === 'three') facts.push({ label: 'Kurz drücken', value: s.invertVolumeButtons ? 'lauter und leiser' : 'nächster Titel' });
+  if (s.invertVolumeButtons !== undefined && invert === 'five') facts.push({ label: 'Tasten', value: s.invertVolumeButtons ? 'Vor/Zurück und Lauter/Leiser getauscht' : 'wie beschriftet' });
   if (s.adminLock) facts.push({ label: 'Sperre des Admin-Menüs', value: LOCK_NAMES[s.adminLock.kind] });
   if (s.pauseWhenCardRemoved !== undefined) facts.push({ label: 'Karte abnehmen', value: s.pauseWhenCardRemoved ? 'Musik hält an' : 'Musik läuft weiter' });
 
@@ -131,7 +135,7 @@ export function judgeSettings(read: StartRead, board: BoardId): SettingsVerdict 
     v.min === FACTORY_SETTINGS.volume.min &&
     v.init === FACTORY_SETTINGS.volume.init &&
     (s.standbyTimerMinutes ?? 0) === 0 &&
-    (s.invertVolumeButtons ?? true) === true &&
+    (s.invertVolumeButtons ?? factoryInvert(invert)) === factoryInvert(invert) &&
     (s.adminLock?.kind ?? 'none') === 'none' &&
     !s.pauseWhenCardRemoved;
   if (factory) findings.push({ tone: 'info', text: 'Die Box hat die Einstellungen ab Werk. Hattest du vorher eigene, zum Beispiel eine Lautstärke-Grenze? Dann stelle sie neu ein.' });

@@ -277,3 +277,37 @@
 .sticker-cover-note + .card-footer {
   border-top: 0;
 }
+
+/* ------------------------------------------------------------------ hits of the background search (covers/CoverOffer.tsx) */
+
+.vorschlaege {
+  align-items: center;
+}
+
+.vorschlaege .keins {
+  margin-left: var(--space-1);
+}
+
+.vorschlaege .bulk-alt[aria-busy='true'] {
+  border-color: var(--primary);
+}
+
+.vorschlag > .ellipsis {
+  display: block;
+}
+
+/* On the card page: small, under „Spielt Ordner …“. */
+.schirm .cover-zeile {
+  margin: 6px 0 0;
+  font-size: 15px;
+  color: var(--text-muted);
+}
+
+.schirm .cover-zeile .vorschlaege {
+  margin-top: 6px;
+}
+
+.schirm .cover-zeile .bulk-alt {
+  width: 44px;
+  height: 44px;
+}

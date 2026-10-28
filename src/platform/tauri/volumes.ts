@@ -27,6 +27,7 @@ export interface VolumeDto {
   readOnly?: boolean;
   foreignOwner?: boolean;
   canFixAccess?: boolean;
+  readOnlyBySystem?: boolean;
 }
 
 export interface VolumeInfoDto {
@@ -43,6 +44,7 @@ export interface VolumeInfoDto {
   readOnly?: boolean;
   foreignOwner?: boolean;
   canFixAccess?: boolean;
+  readOnlyBySystem?: boolean;
 }
 
 interface PickedFolderDto {
@@ -62,6 +64,7 @@ export function toInfo(dto: Omit<VolumeInfoDto, 'mountPath' | 'canEject'>): Volu
   if (dto.readOnly) info.readOnly = true;
   if (dto.foreignOwner) info.foreignOwner = true;
   if (dto.canFixAccess) info.canFixAccess = true;
+  if (dto.readOnly && dto.readOnlyBySystem) info.readOnlyBySystem = true;
   return info;
 }
 

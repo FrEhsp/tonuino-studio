@@ -21,7 +21,10 @@ import {
 import type { FirmwareProfile } from '../../core/tonuino/card';
 import type { FolderCard } from '../../core/tonuino/catalog';
 import { foldersInRowAfter, modeByCode, modesFor, QUIZ_VARIANTS, TNG_SEPTEMBER_2026 } from '../../core/tonuino/modes';
+import { routeToHash } from '../../app/router';
 import { Field } from '../../ui/components/controls';
+import { ChoiceList, type Choice } from '../../ui/components/Schlank';
+import { FRONT_MODES, modeName } from './single';
 
 export const MODE_ICONS: Record<number, LucideIcon> = {
   1: Shuffle,
@@ -42,10 +45,18 @@ export const MODE_ICONS: Record<number, LucideIcon> = {
 };
 
 const REQUIRES: Record<string, string> = {
-  quiz: 'Braucht eine Firmware mit Quiz-Funktion.',
-  memory: 'Braucht eine Firmware mit Memory-Funktion.',
-  teapot: 'Braucht eine Firmware mit Teekesselchen.',
-  bluetooth: 'Nur für Boxen mit Bluetooth-Modul.',
+  quiz: 'Braucht die Firmware „5 Tasten mit allen Extras“.',
+  memory: 'Braucht die Firmware „5 Tasten mit allen Extras“.',
+  teapot: 'Braucht eine selbst gebaute Firmware mit Teekesselchen.',
+  bluetooth: 'Nur für Boxen mit Bluetooth-Modul und selbst gebauter Firmware.',
+};
+
+/** The switch in TonUINO TNG's constants.hpp that turns the mode on; off in every official build and in the Baukasten. */
+const SWITCH: Record<string, string> = {
+  quiz: 'QUIZ_GAME',
+  memory: 'MEMORY_GAME',
+  teapot: 'TEAPOT_GAME',
+  bluetooth: 'BT_MODULE',
 };
 
 /** The modes most families need. The others hide behind "Weitere Möglichkeiten". */
@@ -81,6 +92,8 @@ export function ModePicker({
   advanced,
   withTracks,
   trackTitle,
+  list,
+  onLeave,
 }: {
   profile: FirmwareProfile;
   value: FolderCard;
@@ -92,6 +105,10 @@ export function ModePicker({
   withTracks?: ReadonlySet<number>;
   /** The title of a track, so the choices name the songs and not only their numbers. */
   trackTitle?: (track: number) => string | undefined;
+  /** As the calm list of „So spielt die Karte“, with its names: the four in front, then the rarer ones (Prüfrunde 1, aussehen 17). */
+  list?: boolean;
+  /** Called before the link to the firmware leaves the page, so a dialog around can close. */
+  onLeave?: () => void;
 }) {
   const modes = modesFor(profile, { advanced: advanced || !!modeByCode(value.mode)?.advanced });
   const current = modeByCode(value.mode);
@@ -110,7 +127,7 @@ export function ModePicker({
     if (!picked.current) return;
     picked.current = false;
     const fields = root.current?.lastElementChild;
-    if (current?.params === 'none' || !fields?.childElementCount || fields.classList.contains('choices') || fields.classList.contains('link-button')) return;
+    if (current?.params === 'none' || !fields?.childElementCount || fields.classList.contains('choices') || fields.classList.contains('liste') || fields.classList.contains('link-button')) return;
     fields.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   }, [value.mode]);
   const trackOption = (n: number) => {
@@ -151,13 +168,55 @@ export function ModePicker({
       </button>
     );
   };
+  const front = (code: number) => FRONT_MODES.find((f) => f.mode === code);
+  const listed = [...modes.filter((m) => front(m.code)).sort((a, b) => FRONT_MODES.indexOf(front(a.code)!) - FRONT_MODES.indexOf(front(b.code)!)), ...modes.filter((m) => !front(m.code))];
+  const rows: Choice<number>[] = listed.map((m) => ({
+    value: m.code,
+    name: modeName(m.code),
+    text: front(m.code)?.text ?? (m.requires ? `${m.tagline} ${REQUIRES[m.requires]}` : m.tagline),
+  }));
+  // Said plainly, and the same as the settings (options.ts): Quiz and Memory come in the ready
+  // „5 Tasten mit allen Extras“ (AiO+, Nano Every, ESP32); Teekesselchen and Bluetooth only in a
+  // firmware built by hand (Prüfrunde 1, bastler 18; Prüfrunde 2, bastler 6; Prüfrunde 3, M2).
+  const fertig = current?.requires === 'quiz' || current?.requires === 'memory';
+  const toFirmware = (
+    <a href={routeToHash({ page: 'workshop', tool: 'firmware' })} onClick={() => onLeave?.()}>
+      Werkstatt › Firmware aufspielen
+    </a>
+  );
+  const needs = current?.requires ? (
+    fertig ? (
+      <p class="soft small">
+        Das geht mit der fertigen Firmware „5 Tasten mit allen Extras“. Die gibt es für die AiO+, den Nano Every und den ESP32, nicht für Boxen mit Arduino Nano oder AiO. Aufspielen kannst du sie unter {toFirmware}.
+      </p>
+    ) : (
+      <p class="soft small">
+        Das kann keine fertige Firmware. Dafür baust du TonUINO TNG selbst, mit eingeschaltetem {SWITCH[current.requires]} in constants.hpp. Die fertige Datei spielst du unter {toFirmware} mit „Eigene Datei aufspielen“ auf.
+      </p>
+    )
+  ) : null;
   return (
     <div class="stack" ref={root}>
-      <div class="choices" role="radiogroup" aria-label="Wiedergabe">
-        {primary.map(choice)}
-        {more ? others.map(choice) : null}
-      </div>
-      {others.length && !more ? (
+      {list ? (
+        <ChoiceList
+          class="liste-arten"
+          label="Wiedergabe"
+          value={value.mode}
+          choices={rows}
+          onChange={(code) => {
+            if (code === value.mode) return;
+            picked.current = true;
+            onChange(defaultsFor(code, trackCount));
+          }}
+        />
+      ) : (
+        <div class="choices" role="radiogroup" aria-label="Wiedergabe">
+          {primary.map(choice)}
+          {more ? others.map(choice) : null}
+        </div>
+      )}
+      {needs}
+      {!list && others.length && !more ? (
         <button type="button" class="link-button" onClick={() => setMore(true)}>
           <ChevronDown size={16} /> Weitere Möglichkeiten, z. B. nur einen Teil des Ordners spielen
         </button>

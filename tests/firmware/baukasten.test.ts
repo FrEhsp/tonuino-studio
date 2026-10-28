@@ -1,5 +1,6 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { CHECKED_TNG } from '../../src/core/firmware/tngstands';
 import { describe, expect, it } from 'vitest';
 import { CHIP_DEFINES, OTHER_CHIPS, chipFromDefines } from '../../src/core/firmware/mp3chip';
 import {
@@ -190,6 +191,10 @@ describe('Baukasten manifest', () => {
     expect(manifest.tng.commit).toBe('d527ca5f3c5090a74ccdf5505202db352d7531c8');
     expect(manifest.tng.versionString).toContain('V3.3.3');
     expect(manifest.tng.license).toBe('GPL-3.0');
+    // The app calls this state checked: both must move together (docs/FIRMWARE-BAUKASTEN.md, „Geprüfter Stand“).
+    expect(manifest.tng.versionString).toBe(CHECKED_TNG.versionString);
+    expect(manifest.tng.commit).toBe(CHECKED_TNG.commit);
+    expect(manifest.tng.date).toBe(CHECKED_TNG.date);
   });
 
   it('has a build or a "does not fit" for every allowed choice, and nothing else', () => {

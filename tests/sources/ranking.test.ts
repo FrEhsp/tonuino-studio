@@ -165,7 +165,7 @@ describe('commercial series', () => {
     expect(h.title).toBe('„TKKG“ gibt es hier nicht');
     expect(h.text).toContain('kostenlos und legal herunterladen');
     expect(h.text).toContain('ohne Kopierschutz');
-    expect(h.text).toContain('„Hinzufügen“');
+    expect(h.text).toContain('„Musik auf die SD-Karte“');
     expect(h.help).toBe(BUY_HELP_ID);
     const t = commercialHint(commercialSeriesIn('tonies')!);
     expect(t.title).toBe('Inhalte von Tonies gibt es hier nicht');

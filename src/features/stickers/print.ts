@@ -77,7 +77,7 @@ export async function printDocument(p: PrintPlatform, doc: PrintDocument): Promi
     return true;
   }
   if (p.printer) {
-    return printWithSystem(p.printer, { name: doc.name, page: doc.page, twoSided: !!doc.twoSided, ...(doc.pages ? { pages: doc.pages } : {}), pdf: await doc.pdf() });
+    return printWithSystem(p.printer, { name: doc.name, page: doc.page, twoSided: !!doc.twoSided, ...(doc.pages ? { pages: doc.pages } : {}), pdf: doc.pdf });
   }
   await printSheets(await doc.pictures(), doc.page);
   return true;

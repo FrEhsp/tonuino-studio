@@ -17,16 +17,15 @@ import { albumWantsLookup, NameLookup } from './NameLookup';
 import { AlbumCutNote, AlbumCutsButton } from './AlbumCut';
 import { AudioSeekBar } from '../../ui/components/SeekBar';
 import { after, useListen, type ListenNext } from '../../ui/useListen';
-import { SdCardArt } from '../../ui/components/Art';
+import { KisteArt, SdCardArt } from '../../ui/components/Art';
 import { Bild, Haken, Hinweis, Hoch, Kreuz, Mehr, Pause, Play, Runter, SdAuswerfen, Winkel, WinkelHoch } from '../../ui/icons';
-import { ArrowLeft, Compass, FileAudio, FolderOpen, FolderPlus, ListOrdered, ListPlus, Mic, Nfc, Plus, Printer, Scissors, Search, SlidersHorizontal, Upload, Wrench, X, type LucideIcon } from 'lucide-preact';
-import { Bubble } from '../../ui/components/Sketch';
+import { ArrowLeft, FolderOpen, FolderPlus, ListOrdered, Mic, Nfc, Plus, Printer, Scissors, Search, Upload, Wrench, X } from 'lucide-preact';
 import { ShelfSticker } from '../covers/ShelfSticker';
 import { useFileDrop } from '../../ui/useFileDrop';
 import { navigate, routeToHash } from '../../app/router';
 import { cardIntoDevice, handheldWord } from '../../app/device';
 import { usePageShown } from '../../app/pageAlive';
-import { card, catalog, coverUrlFor, ejectCard, openVolume, plat, platform, recordingOffered, selection, settings } from '../../app/state';
+import { card, catalog, coverUrlFor, ejectCard, openVolume, plat, platform, recordingOffered, revealPicked, selection, settings } from '../../app/state';
 import { canChangeCard, chooseCardFolder, foldersNotOnCard, packageState, scratchAvailable } from '../../app/pending';
 import { PackageWaitingPage } from '../box/PackageWaitingGate';
 import { fixableLine, WriteFixButton } from '../box/WriteAccessNotice';
@@ -62,6 +61,8 @@ import {
   shownTitle,
   totalBytes,
   trackCountOf,
+  trimPendingProblem,
+  untrimTrack,
   updateAlbum,
   updateTracks,
   waitingFolders,
@@ -76,6 +77,13 @@ import { PlaylistPanel } from '../playlist/PlaylistPanel';
 import { CoverSearch } from '../box/CoverSearch';
 import { playlist } from '../playlist/store';
 import { ImportBarFlag } from '../../ui/rootFlag';
+import { lazyPage } from '../../app/lazyPage';
+import { CutFromHere } from '../trim/CutFromHere';
+import { ArcadeCap, CapSd } from '../../ui/icons/caps';
+import { BackToWorkshop } from '../../ui/components/BackToWorkshop';
+
+// The trim editor comes when it is opened.
+const TrimPendingDialog = lazyPage(() => import('./TrimPendingDialog').then((m) => m.TrimPendingDialog));
 
 /** Formats named in the drop zone; the desktop app has no Opus decoder. */
 const FORMATS = { web: 'MP3, M4A, M4B, AAC, FLAC, OGG, OPUS, WAV und mehr, auch als ZIP', desktop: 'MP3, M4A, M4B, AAC, FLAC, OGG, WAV und mehr, auch als ZIP' };
@@ -244,22 +252,22 @@ async function pick(directory: boolean): Promise<ByteSource[]> {
 }
 
 /** `main`: the purple button of the page; while the list panel is open, its own button is. */
-function PickButtons({ size = 'lg', main = true }: { size?: 'md' | 'lg'; main?: boolean }) {
+function PickButtons({ main = true }: { main?: boolean }) {
   const add = useAddFiles();
   // Firefox asks before it hands a whole folder to a page.
   const asks = !!platform.value?.capabilities.sdPackage;
   return (
-    <div class="stack tight" style={{ alignItems: 'center' }}>
-      <div class="row wrap" style={{ justifyContent: 'center' }}>
-        <Button variant={main ? 'primary' : 'default'} size={size} icon={FileAudio} onClick={async () => add(await pick(false))}>
-          Dateien auswählen
+    <>
+      <div class="knopfzeile">
+        <Button variant={main ? 'primary' : 'default'} size="lg" onClick={async () => add(await pick(false))}>
+          Dateien auswählen …
         </Button>
-        <Button size={size} icon={FolderOpen} onClick={async () => add(await pick(true))}>
-          Ordner auswählen
-        </Button>
+        <button type="button" class="link-button" onClick={async () => add(await pick(true))}>
+          Ganzen Ordner auswählen …
+        </button>
       </div>
-      {asks ? <p class="small muted">Fragt der Browser nach „Hochladen“? Keine Sorge, die Dateien bleiben auf deinem Computer.</p> : null}
-    </div>
+      {asks ? <p class="small">Fragt der Browser nach „Hochladen“? Keine Sorge, die Dateien bleiben auf deinem Computer.</p> : null}
+    </>
   );
 }
 
@@ -288,51 +296,45 @@ function PickStep({ folder }: { folder?: number }) {
       {folder ? <BackToFolder folder={folder} /> : null}
       <header class="page-header">
         <div class="titles">
+          {folder ? null : <BackToWorkshop />}
           <h1>{folder ? `Titel zu „${entry?.title ?? `Ordner ${folderName(folder)}`}“ hinzufügen` : 'Hinzufügen'}</h1>
           <p>{folder ? 'Die neuen Titel kommen hinten an den Ordner.' : `Hörspiele, Hörbücher und Musik von deinem ${platform.value?.mobile ? handheldWord() : 'Computer'} auf die SD-Karte.`}</p>
         </div>
       </header>
-      {/* Nothing is dragged on a phone or tablet: there the field is for picking, without the tip about dragging. */}
-      <div class={`dropzone ${over ? 'over' : ''}`}>
-        {platform.value?.handheld ? null : (
-          <Bubble tail="left" class="dropzone-bubble">
-            {folder ? 'Tipp: Ziehe die neuen Folgen einfach hier rein!' : 'Tipp: Ziehe einfach den ganzen Album-Ordner rein!'}
-          </Bubble>
-        )}
-        <div class="dropzone-icon">
-          <Upload size={30} strokeWidth={2} />
-        </div>
-        <div class="stack tight" style={{ alignItems: 'center' }}>
-          <h2>{platform.value?.handheld ? 'Suche die Dateien aus' : 'Dateien oder ganze Ordner hierher ziehen'}</h2>
-          <p class="muted">
-            {FORMATS[plat().kind]}
-            {/* Parents often start with a CD in hand, and nothing here said how it becomes files (Prüfrunde 0.5-1). */}
-            {' · '}
-            <a href="#/hilfe/cd-und-streaming">Von einer CD?</a>
-          </p>
-        </div>
+      {/* The field of „Musik auf die SD-Karte“: calm, on the left, with the drawn box (Prüfrunde 1 Aussehen 8). */}
+      <div class={`ablage leer add-ablage ${over ? 'over' : ''}`}>
+        <p class="gross-satz">{platform.value?.handheld ? 'Suche die Dateien aus.' : folder ? 'Ziehe die neuen Folgen hier hinein.' : 'Ziehe ein Hörspiel oder Musik hier hinein.'}</p>
+        <p>
+          {FORMATS[plat().kind]}
+          {/* Parents often start with a CD in hand, and nothing here said how it becomes files (Prüfrunde 0.5-1). */}
+          {' · '}
+          <a href="#/hilfe/cd-und-streaming">Von einer CD?</a>
+        </p>
         <PickButtons main={!listOpen} />
+        <div class="kiste nur-rechner">
+          <KisteArt width={240} />
+        </div>
       </div>
       {!folder && !free ? <Callout tone="warning">Alle 99 Ordner sind belegt. Lösche zuerst einen Ordner oder hänge Titel an einen vorhandenen an.</Callout> : null}
-      <PlaylistPanel folder={folder} />
-      <div class="feature-grid">
-        {folder ? (
-          <Tip icon={ListPlus} title="Alles kommt in diesen Ordner" text="Auch wenn du mehrere Alben oder Ordner wählst: Die Titel kommen der Reihe nach hinten an. Die Reihenfolge prüfst du gleich." />
-        ) : (
-          <Tip icon={FolderOpen} title="Ein Ordner pro Album" text="Ich erkenne Alben an den Infos in den Dateien und an deinen Ordnern. Jedes bekommt eine eigene Nummer." />
-        )}
-        <Tip icon={Scissors} title="Lange Hörbücher werden geteilt" text="Bei einer Datei mit drei Stunden merkt sich die Box sonst nicht, wo ihr wart. Ich teile an Kapiteln oder Sprechpausen." />
-        <Tip icon={SlidersHorizontal} title="Alles wird passend gemacht" text="Andere Formate werden zu MP3, die Lautstärke wird angeglichen und die Titel kommen in der richtigen Reihenfolge auf die Karte." />
+      {/* The three tips in one sentence instead of three tiles. */}
+      <p class="add-tipps soft">
+        {folder ? 'Alles kommt der Reihe nach hinten an diesen Ordner.' : 'Jedes Album bekommt einen eigenen Ordner.'} Lange Hörbücher teile ich an Kapiteln oder Pausen, andere Formate werden zu MP3, die Lautstärke gleiche ich an.
         {discover ? (
-          <Tip
-            icon={Compass}
-            title="Freie Hörspiele entdecken"
-            text="Kostenlose Hörspiele, Hörbücher und Lieder für Kinder, legal und von mir ausgesucht."
-            action={{ label: 'Entdecken', onClick: () => navigate({ page: 'sources' }) }}
-            wide
-          />
+          <>
+            {' '}
+            <a
+              href={routeToHash({ page: 'sources' })}
+              onClick={(e) => {
+                e.preventDefault();
+                navigate({ page: 'sources' });
+              }}
+            >
+              Freie Hörspiele entdecken
+            </a>
+          </>
         ) : null}
-      </div>
+      </p>
+      <PlaylistPanel folder={folder} />
       {/* The Android app records on its own page (a tab), else a dialog opens here. Almost every laptop has a
           microphone, so it stands here without the switch in the settings (audit 0.4 #9); that one is for the folder menu. */}
       {recordingOffered() || (canRecord() && !platform.value?.capabilities.sdPackage) ? (
@@ -349,28 +351,6 @@ function PickStep({ folder }: { folder?: number }) {
         </section>
       ) : null}
       {recording ? <RecordDialog folder={folder} onClose={() => setRecording(false)} /> : null}
-    </div>
-  );
-}
-
-/** A tip under the drop zone; `wide` takes a whole row, with its button at the end. */
-function Tip({ icon: Icon, title, text, action, wide }: { icon: LucideIcon; title: string; text: string; action?: { label: string; onClick: () => void }; wide?: boolean }) {
-  const button = action ? (
-    <Button size="sm" variant="soft" class="feature-action" onClick={action.onClick}>
-      {action.label}
-    </Button>
-  ) : null;
-  return (
-    <div class={wide ? 'feature feature-wide' : 'feature'}>
-      <span class="feature-icon">
-        <Icon size={20} />
-      </span>
-      <div class="stack tight grow">
-        <strong>{title}</strong>
-        <span class="small muted">{text}</span>
-        {wide ? null : button}
-      </div>
-      {wide ? button : null}
     </div>
   );
 }
@@ -1137,77 +1117,95 @@ function TrackTable({ album: a }: { album: ImportAlbum }) {
       list.splice(to, 0, x);
       return list;
     });
+  /** „Zuschneiden …“ of a title; `from`: „Ab hier abschneiden“ while it played. */
+  const [trimming, setTrimming] = useState<{ source: ByteSource; from?: number } | null>(null);
+  const trim = (t: DraftTrack, from?: number) => {
+    const problem = trimPendingProblem(a, t);
+    if (problem) {
+      toast.info(problem.title, problem.text);
+      return;
+    }
+    stop();
+    setTrimming({ source: t.source, from });
+  };
   return (
-    <div class="list import-tracks">
-      {a.tracks.map((t, i) => {
-        // The kind of file as parents know it (WAV, FLAC, M4A), not the codec inside ("PCM"); an MP3 that is none tells its codec.
-        const ext = extensionOf(t.source.name);
-        const codec = isPlayableAsIs(t) ? undefined : (ext && ext !== 'mp3' ? ext : (t.info?.codec ?? ext)).toUpperCase();
-        const cut = isSplit(a, t);
-        const started = a.resume?.parts.get(t.source);
-        const rebuild = a.unchanged ? undefined : rebuildOf(t);
-        return (
-          <div class="list-row" key={`${t.source.relativePath ?? t.source.name}-${i}`}>
-            <span class="mono muted" style={{ width: 34 }}>
-              {anyCut ? '' : String(start + i).padStart(3, '0')}
-            </span>
-            <IconButton label={isPlaying(keyOf(t)) ? 'Anhalten' : 'Anhören'} icon={isPlaying(keyOf(t)) ? Pause : Play} size="sm" onClick={() => play(t)} />
-            <div class="grow stack" style={{ gap: 0, minWidth: 0 }}>
-              <WrapInput
-                class="track-title"
-                value={t.title}
-                label={`Titel ${i + 1}`}
-                onValue={(title) => updateTracks(a.id, (list) => list.map((x, k) => (k === i ? { ...x, title, titleAuto: undefined } : x)))}
-              />
-              <span class="tiny muted ellipsis" style={{ paddingLeft: 8 }} title={t.source.relativePath ?? t.source.name}>
-                {t.titleAuto ? <span class="auto-title">automatisch erkannt · </span> : null}
-                {t.source.relativePath ?? t.source.name}
+    <>
+      {trimming ? <TrimPendingDialog albumId={a.id} source={trimming.source} cutFrom={trimming.from} beforePlay={stop} onClose={() => setTrimming(null)} /> : null}
+      <div class="list import-tracks">
+        {a.tracks.map((t, i) => {
+          // The kind of file as parents know it (WAV, FLAC, M4A), not the codec inside ("PCM"); an MP3 that is none tells its codec.
+          const ext = extensionOf(t.source.name);
+          const codec = isPlayableAsIs(t) ? undefined : (ext && ext !== 'mp3' ? ext : (t.info?.codec ?? ext)).toUpperCase();
+          const cut = isSplit(a, t);
+          const started = a.resume?.parts.get(t.source);
+          const rebuild = a.unchanged ? undefined : rebuildOf(t);
+          return (
+            <div class="list-row" key={`${t.source.relativePath ?? t.source.name}-${i}`}>
+              <span class="mono muted" style={{ width: 34 }}>
+                {anyCut ? '' : String(start + i).padStart(3, '0')}
               </span>
-              {rebuild ? (
-                // Visible on phones too, where the badge's title never shows.
-                <span class="tiny" style={{ paddingLeft: 8, color: 'var(--warning-text)' }}>
-                  {REBUILD_REASON[rebuild]}
+              <IconButton label={isPlaying(keyOf(t)) ? 'Anhalten' : 'Anhören'} icon={isPlaying(keyOf(t)) ? Pause : Play} size="sm" onClick={() => play(t)} />
+              <div class="grow stack" style={{ gap: 0, minWidth: 0 }}>
+                <WrapInput
+                  class="track-title"
+                  value={t.title}
+                  label={`Titel ${i + 1}`}
+                  onValue={(title) => updateTracks(a.id, (list) => list.map((x, k) => (k === i ? { ...x, title, titleAuto: undefined } : x)))}
+                />
+                <span class="tiny muted ellipsis" style={{ paddingLeft: 8 }} title={t.source.relativePath ?? t.source.name}>
+                  {t.titleAuto ? <span class="auto-title">automatisch erkannt · </span> : null}
+                  {t.source.relativePath ?? t.source.name}
+                </span>
+                {rebuild ? (
+                  // Visible on phones too, where the badge's title never shows.
+                  <span class="tiny" style={{ paddingLeft: 8, color: 'var(--warning-text)' }}>
+                    {REBUILD_REASON[rebuild]}
+                  </span>
+                ) : null}
+                {listen?.key === keyOf(t) ? <AudioSeekBar audio={listen.audio} label={t.title || t.source.name} durationSec={listen.durationSec} onSeek={listen.seek} /> : null}
+                {listen?.key === keyOf(t) && !trimPendingProblem(a, t) ? <CutFromHere audio={listen.audio} title={t.title || t.source.name} onCut={(sec) => trim(t, sec)} /> : null}
+              </div>
+              {codec !== undefined || cut || started || rebuild || t.trimmed ? (
+                // On phones these go below the title, which keeps its width.
+                <span class="import-track-badges">
+                  {codec !== undefined ? (
+                    <span class="badge" title="Wird in MP3 umgewandelt">
+                      {codec}
+                    </span>
+                  ) : null}
+                  {rebuild ? (
+                    <span class="badge warning" title={REBUILD_TITLE[rebuild]}>
+                      Wird neu erstellt
+                    </span>
+                  ) : null}
+                  {cut ? <span class="badge accent">wird geteilt</span> : null}
+                  {t.trimmed ? <span class="badge">zugeschnitten</span> : null}
+                  {started ? <span class="badge">ab Teil {started.done + 1}</span> : null}
                 </span>
               ) : null}
-              {listen?.key === keyOf(t) ? <AudioSeekBar audio={listen.audio} label={t.title || t.source.name} durationSec={listen.durationSec} onSeek={listen.seek} /> : null}
-            </div>
-            {codec !== undefined || cut || started || rebuild ? (
-              // On phones these go below the title, which keeps its width.
-              <span class="import-track-badges">
-                {codec !== undefined ? (
-                  <span class="badge" title="Wird in MP3 umgewandelt">
-                    {codec}
-                  </span>
-                ) : null}
-                {rebuild ? (
-                  <span class="badge warning" title={REBUILD_TITLE[rebuild]}>
-                    Wird neu erstellt
-                  </span>
-                ) : null}
-                {cut ? <span class="badge accent">wird geteilt</span> : null}
-                {started ? <span class="badge">ab Teil {started.done + 1}</span> : null}
+              <span class="muted small nowrap import-track-duration">
+                {formatDuration(listen?.key === keyOf(t) ? (listen.durationSec ?? t.info?.durationSec) : t.info?.durationSec)}
               </span>
-            ) : null}
-            <span class="muted small nowrap import-track-duration">
-              {formatDuration(listen?.key === keyOf(t) ? (listen.durationSec ?? t.info?.durationSec) : t.info?.durationSec)}
-            </span>
-            <MenuButton
-              trigger={(openMenu) => <IconButton label="Mehr" icon={Mehr} size="sm" onClick={openMenu} />}
-              items={[
-                // With one title there is nowhere to move it: no "Nach oben/unten" (Frank 2026-10-17).
-                ...(a.tracks.length > 1
-                  ? [
-                      { label: 'Nach oben', icon: Hoch, disabled: i === 0, onSelect: () => move(i, i - 1) },
-                      { label: 'Nach unten', icon: Runter, disabled: i === a.tracks.length - 1, onSelect: () => move(i, i + 1) },
-                    ]
-                  : []),
-                { label: 'Weglassen', danger: true, separatorBefore: a.tracks.length > 1, onSelect: () => updateTracks(a.id, (list) => list.filter((_, k) => k !== i)) },
-              ]}
-            />
-          </div>
-        );
-      })}
-    </div>
+              <MenuButton
+                trigger={(openMenu) => <IconButton label="Mehr" icon={Mehr} size="sm" onClick={openMenu} />}
+                items={[
+                  // With one title there is nowhere to move it: no "Nach oben/unten" (Frank 2026-10-17).
+                  ...(a.tracks.length > 1
+                    ? [
+                        { label: 'Nach oben', icon: Hoch, disabled: i === 0, onSelect: () => move(i, i - 1) },
+                        { label: 'Nach unten', icon: Runter, disabled: i === a.tracks.length - 1, onSelect: () => move(i, i + 1) },
+                      ]
+                    : []),
+                  { label: 'Zuschneiden …', icon: Scissors, separatorBefore: a.tracks.length > 1, onSelect: () => trim(t) },
+                  ...(t.trimmed ? [{ label: 'Schnitt zurücknehmen', onSelect: () => untrimTrack(a.id, t.source) }] : []),
+                  { label: 'Weglassen', danger: true, separatorBefore: true, onSelect: () => updateTracks(a.id, (list) => list.filter((_, k) => k !== i)) },
+                ]}
+              />
+            </div>
+          );
+        })}
+      </div>
+    </>
   );
 }
 
@@ -1309,8 +1307,9 @@ function DoneStep() {
   const all = useMemo(() => [...folders, ...(r?.partial && !folders.includes(r.partial.folder) ? [r.partial.folder] : [])], [r]);
   const [discard, setDiscard] = useState(false);
   if (!r || !s) return null;
-  const go = (page: 'cards' | 'stickers') => {
+  const go = (page: 'cards' | 'sticker') => {
     selection.value = new Set(all);
+    revealPicked.value = page === 'cards';
     navigate({ page });
   };
   const ok = !r.error && !r.cancelled && !r.refused.length && !r.skipped.length;
@@ -1494,7 +1493,7 @@ function DoneStep() {
             <Button variant={rest.length || waits ? 'default' : 'primary'} size="lg" icon={Nfc} onClick={() => go('cards')}>
               {all.length === 1 ? 'Karte beschreiben' : 'Karten beschreiben'}
             </Button>
-            <Button size="lg" icon={Printer} onClick={() => go('stickers')}>
+            <Button size="lg" icon={Printer} onClick={() => go('sticker')}>
               Sticker drucken
             </Button>
           </>
@@ -1570,9 +1569,7 @@ function SafeRemoval() {
     // The button stands next to the text, or below it where the text would get too narrow (phones).
     return (
       <div class="feature safe-removal">
-        <span class="feature-icon">
-          <SdAuswerfen size={22} />
-        </span>
+        <ArcadeCap icon={CapSd} color="gruen" size={36} />
         <div class="safe-removal-body">
           <div class="stack tight safe-removal-text">
             <strong>Fertig für heute?</strong>
@@ -1600,9 +1597,7 @@ function SafeRemoval() {
   }
   return (
     <div class="feature">
-      <span class="feature-icon">
-        <SdAuswerfen size={22} />
-      </span>
+      <ArcadeCap icon={CapSd} color="gruen" size={36} />
       <div class="stack tight">
         <strong>Bevor du die Karte herausziehst</strong>
         <span class="small muted">

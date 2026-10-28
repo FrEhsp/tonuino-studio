@@ -1,3 +1,4 @@
+import { factoryInvert, type InvertKind } from '../firmware/tngstands';
 import type { KeyCount } from './adminkeys';
 import type { FirmwareProfile } from './card';
 import { adminEntry, describePresses, menuPresses, menuStep, type AdminAccess, type BoxGuide, type BoxStep, type KeyPress } from './boxguide';
@@ -49,7 +50,12 @@ export interface BoxSettingValues {
   volume?: Volumes;
   /** Minutes without music until the box switches off; 0: never. */
   standby?: number;
-  /** Boxes with 3 buttons: true when a short press changes the volume, as from the factory. */
+  /**
+   * invertVolumeButtons. Boxes with 3 buttons: true when a short press changes
+   * the volume, as from the factory. Boxes with 5 buttons and TNG from
+   * 26.10.2026: true when Vor/Zurück change the volume while music plays
+   * (from the factory false; tngstands.ts invertKind).
+   */
   shortPressVolume?: boolean;
   /** TNG only: stop when the card is taken off the box. */
   pauseWhenCardRemoved?: boolean;
@@ -310,7 +316,7 @@ export function settingsGuide(
   profile: FirmwareProfile,
   wish: SettingsWish,
   now: BoxSettingValues = {},
-  opts: { access?: AdminAccess; open?: AdminAccess; buttons?: KeyCount } = {},
+  opts: { access?: AdminAccess; open?: AdminAccess; buttons?: KeyCount; invert?: InvertKind } = {},
 ): SettingsGuideResult {
   const problem = settingsProblem(profile, wish);
   if (problem) return { ok: false, reason: problem };
@@ -325,7 +331,7 @@ export function settingsGuide(
     const step = plan.choose(ENTRY.reset, 'Lösche alle Einstellungen');
     step.text += ' Die Box löscht sofort und sagt „Reset wurde durchgeführt!“.';
     plan.saved('Die Box sagt „Reset wurde durchgeführt!“ und verlässt das Admin-Menü.');
-    cur = { ...FACTORY_SETTINGS, volume: { ...FACTORY_SETTINGS.volume } };
+    cur = { ...FACTORY_SETTINGS, volume: { ...FACTORY_SETTINGS.volume }, shortPressVolume: factoryInvert(opts.invert) };
     plan.access = 'buttons';
     notes.push('Das Löschen setzt alles auf den Stand ab Werk: auch die Sperre des Admin-Menüs und die Kurzwahlen. Hörbücher fangen wieder vorn an. Karten und SD-Karte bleiben, wie sie sind.');
   }
@@ -372,9 +378,15 @@ export function settingsGuide(
     if (cur.shortPressVolume === wish.shortPressVolume) unchanged.push('Tasten');
     else {
       plan.choose(ENTRY.buttons);
-      const what = wish.shortPressVolume
-        ? 'Die Box fragt, ob sie die Funktion der Tasten umdrehen soll. Damit kurz drücken die Lautstärke ändert, wähle „Ja“'
-        : 'Die Box fragt, ob sie die Funktion der Tasten umdrehen soll. Damit kurz drücken den Titel wechselt, wähle „Nein“';
+      // 5 buttons on TNG from 26.10.2026: the same menu swaps Vor/Zurück with Lauter/Leiser (tngstands.ts invertKind).
+      const what =
+        opts.invert === 'five'
+          ? wish.shortPressVolume
+            ? 'Die Box fragt, ob sie die Funktion der Tasten umdrehen soll. Damit Vor und Zurück beim Abspielen die Lautstärke ändern, wähle „Ja“'
+            : 'Die Box fragt, ob sie die Funktion der Tasten umdrehen soll. Damit alle Tasten tun, was draufsteht, wähle „Nein“'
+          : wish.shortPressVolume
+            ? 'Die Box fragt, ob sie die Funktion der Tasten umdrehen soll. Damit kurz drücken die Lautstärke ändert, wähle „Ja“'
+            : 'Die Box fragt, ob sie die Funktion der Tasten umdrehen soll. Damit kurz drücken den Titel wechselt, wähle „Nein“';
       plan.add(menuStep(what, 0, wish.shortPressVolume ? 2 : 1, 2, wish.shortPressVolume ? 'Ja.' : 'Nein.'));
       plan.saved();
     }

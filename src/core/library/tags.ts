@@ -30,7 +30,16 @@ export interface TrackInfo {
   chapters?: { startSec: number; title?: string }[];
   /** What a look at every frame of an MP3 found while reading it: damaged or joined files are converted anew. */
   mp3Check?: Mp3Check;
+  /**
+   * The name of the box folder given in Tonuino-Manager (from 1.5.0): an ID3
+   * frame TXXX "TONUINO_FOLDER_NAME" in every track of the folder; it reads
+   * the one of the first track, before the album.
+   */
+  folderName?: string;
 }
+
+/** Description of the TXXX frame Tonuino-Manager keeps a folder's name in. */
+export const MANAGER_FOLDER_NAME_TXXX = 'TONUINO_FOLDER_NAME';
 
 export const AUDIO_EXTENSIONS = ['mp3', 'm4a', 'm4b', 'aac', 'mp4', 'flac', 'ogg', 'oga', 'opus', 'wav', 'wma', 'aif', 'aiff', 'webm', 'weba', 'mka', 'mkv', 'mov'];
 
@@ -124,7 +133,22 @@ export function toTrackInfo(meta: IAudioMetadata, cover: IPicture | null): Track
     vbr: f.codecProfile ? /^V\d|VBR/i.test(f.codecProfile) : undefined,
     picture: cover ? { data: cover.data, mimeType: cover.format.includes('/') ? cover.format : `image/${cover.format}` } : undefined,
     chapters,
+    ...(managerFolderName(meta) ? { folderName: managerFolderName(meta) } : {}),
   };
+}
+
+/** TXXX:TONUINO_FOLDER_NAME from the ID3v2 tag (music-metadata names a TXXX tag "TXXX:<description>"). */
+function managerFolderName(meta: IAudioMetadata): string | undefined {
+  const wanted = `TXXX:${MANAGER_FOLDER_NAME_TXXX}`.toLowerCase();
+  for (const [format, tags] of Object.entries(meta.native ?? {})) {
+    if (!format.startsWith('ID3v2')) continue;
+    for (const t of tags) {
+      if (t.id.toLowerCase() !== wanted) continue;
+      const value = clean(typeof t.value === 'string' ? t.value : Array.isArray(t.value) ? t.value.join(' / ') : undefined);
+      if (value) return value;
+    }
+  }
+  return undefined;
 }
 
 function codecName(codec?: string, container?: string): string | undefined {

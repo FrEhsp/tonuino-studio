@@ -305,15 +305,15 @@ describe('the choice of kind', () => {
 });
 
 describe('handing loaded files to the add flow', () => {
-  it('opens the add page with the files, their order and their origin', async () => {
+  it('opens „Musik auf die SD-Karte“ with the files, their order and their origin', async () => {
     const t = setup();
     expect(t.state.addFromSources(STORIES, STORIES.items, 'all')).toBe(true);
     await until(() => t.added.length === 1, 'files added');
     expect(t.added[0].names).toEqual(['geschichte-1.mp3', 'geschichte-2.mp3', 'geschichte-3.mp3']);
     expect([...(t.added[0].opts.origins?.values() ?? [])].map((o) => o.item.key)).toEqual(STORIES.items.map((i) => i.key));
     expect(t.state.run.value).toBeNull();
-    expect(t.route.value).toEqual({ page: 'add' });
-    expect(t.toasts.at(-1)?.title).toBe('Geladen. Prüfe die Auswahl und übertrage sie dann auf die SD-Karte.');
+    expect(t.route.value).toEqual({ page: 'musik' });
+    expect(t.toasts.at(-1)?.title).toBe('Geladen. Kopiere sie jetzt auf die SD-Karte.');
   });
 
   it('stays on the page the family reads and leads to the files from the message', async () => {
@@ -323,10 +323,10 @@ describe('handing loaded files to the add flow', () => {
     // The overview (or another source) stays; the toast offers the way.
     expect(t.route.value).toEqual({ page: 'sources' });
     const last = t.toasts.at(-1)!;
-    expect(last.title).toContain('unter „Hinzufügen“');
-    expect(last.action?.label).toBe('Jetzt prüfen');
+    expect(last.title).toBe('Geladen. Liegt bereit unter „Musik auf die SD-Karte“.');
+    expect(last.action?.label).toBe('Jetzt kopieren');
     last.action!.run();
-    expect(t.route.value).toEqual({ page: 'add' });
+    expect(t.route.value).toEqual({ page: 'musik' });
   });
 
   it('names the chapter that loads, not the book again', async () => {
@@ -343,7 +343,7 @@ describe('handing loaded files to the add flow', () => {
     const t = setup({ packaged: true });
     t.state.addFromSources(STORIES, STORIES.items, 'all');
     await until(() => t.added.length === 1, 'files added');
-    expect(t.toasts.at(-1)?.title).toBe('Geladen. Prüfe die Auswahl und lege sie dann ins Paket für die Karte.');
+    expect(t.toasts.at(-1)?.title).toBe('Geladen. Lege sie jetzt ins Paket für die Karte.');
   });
 
   it('keeps the result of a transfer that ends while the files wait for it', async () => {
@@ -372,7 +372,7 @@ describe('handing loaded files to the add flow', () => {
     t.route.value = { page: 'box' };
     await until(() => t.added.length === 1, 'files added after the result was seen');
     expect(t.route.value).toEqual({ page: 'box' });
-    expect(t.toasts.at(-1)?.title).toContain('unter „Hinzufügen“');
+    expect(t.toasts.at(-1)?.title).toContain('unter „Musik auf die SD-Karte“');
   });
 
   it('waits on the result screen until the family starts something new', async () => {
@@ -387,6 +387,22 @@ describe('handing loaded files to the add flow', () => {
     await until(() => t.added.length === 1, 'files added');
     expect(t.added[0].names).toEqual(['geschichte-2.mp3']);
     expect(t.route.value).toEqual({ page: 'add' });
+  });
+
+  it('does not hold files back for a copy that went well (Prüfrunde 1 B7)', async () => {
+    const clean: ImportResult = { folders: [3], refused: [], skipped: [], rest: [], reordered: [] };
+    const t = setup({ session: { phase: 'done', albums: [], rejected: [], result: clean }, route: { page: 'sources', entry: STORIES.id } });
+    expect(t.state.handOffBlocker.value).toBeNull();
+    t.state.addFromSources(STORIES, [STORIES.items[0]], 'each');
+    await until(() => t.added.length === 1, 'files added');
+    expect(t.route.value).toEqual({ page: 'musik' });
+  });
+
+  it('counts a result on „Musik auf die SD-Karte“ as seen', async () => {
+    const t = setup({ session: { phase: 'done', albums: [], rejected: [], result: DONE_WITH_ERROR }, route: { page: 'musik' } });
+    t.route.value = { page: 'sources', entry: STORIES.id };
+    await settle();
+    expect(t.state.handOffBlocker.value).toBeNull();
   });
 
   it('does not wait for a result the family has already seen', async () => {
@@ -601,8 +617,8 @@ describe('files saved from the publisher\'s page', () => {
     );
     expect(t.route.value).toEqual({ page: 'sources', entry: STORIES.id });
     const last = t.toasts.at(-1)!;
-    expect(last.title).toContain('unter „Hinzufügen“');
-    expect(last.action?.label).toBe('Jetzt prüfen');
+    expect(last.title).toBe('Hinzugefügt. Liegt bereit unter „Musik auf die SD-Karte“.');
+    expect(last.action?.label).toBe('Jetzt kopieren');
     // One card for all: the source is the album.
     expect([...(t.added[0].opts.hints?.values() ?? [])].map((h) => h.album)).toEqual([STORIES.title, STORIES.title]);
   });

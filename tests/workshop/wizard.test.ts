@@ -8,6 +8,7 @@ import { getBoard, type BoardId, type ButtonVariant, type Esp32Board, type Shutd
 import type { ByteSource } from '../../src/platform/types';
 import type { BoxInfo } from '../../src/core/firmware/bootlog';
 import {
+  acceptUnchecked,
   applyGuess,
   baukastenChoice,
   chooseExtras,
@@ -55,9 +56,11 @@ import {
   variantAdvice,
   variantsFor,
   versionFacts,
+  uncheckedText,
   type FirmwareChoice,
   type WizardState,
 } from '../../src/features/workshop/wizard';
+import { CHECKED_TNG, isChecked, standTitle } from '../../src/core/firmware/tngstands';
 import { firmwareBytes } from '../firmware/simulator';
 
 const classic = getBoard('classic');
@@ -70,8 +73,11 @@ function source(name: string, bytes: Uint8Array | string): ByteSource {
 
 type Download = Extract<FirmwareChoice, { kind: 'download' }>;
 
+/** The ready-made build as the page gets it: Classic and AiO from the Baukasten (the checked state, no extras), others downloaded. */
 function download(board: BoardId = 'classic', variant: ButtonVariant = '3'): Download {
-  return { kind: 'download', board, variant, fileName: `TonUINO_Classic_${variant}.hex`, url: 'https://example.invalid/x.hex', fileBytes: 100, image: parseIntelHex(toIntelHex(firmwareBytes(64))) };
+  const fw: Download = { kind: 'download', board, variant, fileName: `TonUINO_Classic_${variant}.hex`, url: 'https://example.invalid/x.hex', fileBytes: 100, image: parseIntelHex(toIntelHex(firmwareBytes(64))) };
+  if (board === 'classic' || board === 'aio') fw.baukasten = { id: `${board}-${variant}`, summary: '', stand: 'TonUINO TNG 3.3.3 vom 17.09.2026', source: '', needsNewBootloader: false };
+  return fw;
 }
 
 /** Firmware bytes with a text inside, as the compiler leaves strings in flash. */
@@ -91,9 +97,12 @@ function boxInfo(info: Partial<BoxInfo>): BoxInfo {
 }
 
 describe('wizard steps', () => {
-  it('has four steps for USB boards, three for ESP32 and one for boards it cannot flash', () => {
-    expect(stepsFor(classic).map((s) => s.label)).toEqual(['Platine', 'Tasten', 'Firmware', 'Aufspielen']);
-    expect(stepsFor(undefined)).toHaveLength(4);
+  it('has four steps for USB boards, five with the Baukasten, three for ESP32 and one for boards it cannot flash', () => {
+    // Classic and AiO: the Firmware-Baukasten with „Extras“ and „Verhalten“ (0.6).
+    expect(stepsFor(classic).map((s) => s.label)).toEqual(['Platine', 'Tasten', 'Extras', 'Verhalten', 'Aufspielen']);
+    expect(stepsFor(getBoard('aio')).map((s) => s.id)).toEqual(['board', 'variant', 'source', 'verhalten', 'flash']);
+    expect(stepsFor(aioplus).map((s) => s.label)).toEqual(['Platine', 'Tasten', 'Firmware', 'Aufspielen']);
+    expect(stepsFor(undefined)).toHaveLength(5);
     expect(stepsFor(getBoard('esp32wroom')).map((s) => s.label)).toEqual(['Platine', 'Tasten', 'Update über WLAN']);
     expect(stepsFor(getBoard('every')).map((s) => s.id)).toEqual(['board']);
   });
@@ -119,9 +128,28 @@ describe('wizard steps', () => {
     // The Classic is asked how it switches off before the ready-made build may go on.
     expect(nextStep(s)).toBeNull();
     s = chooseShutdown(s, 'switch');
+    // The Baukasten goes through „Verhalten“ before the upload.
+    expect(nextStep(s)).toBe('verhalten');
+    s = goTo(s, 'verhalten');
+    expect(s.step).toBe('verhalten');
     expect(nextStep(s)).toBe('flash');
-    expect(previousStep(goTo(s, 'flash'))).toBe('source');
+    expect(previousStep(s)).toBe('source');
+    expect(previousStep(goTo(s, 'flash'))).toBe('verhalten');
     expect(previousStep(initialWizard())).toBeNull();
+  });
+
+  it('takes a file of your own past „Verhalten“ straight to the upload, and back', () => {
+    const own: FirmwareChoice = { kind: 'file', board: 'classic', fileName: 'mine.hex', fileBytes: 10, image: parseIntelHex(toIntelHex(firmwareBytes(8))) };
+    let s: WizardState = { ...chooseFirmware(chooseVariant(chooseBoard(initialWizard(), 'classic'), '3'), own), step: 'source' };
+    expect(canEnter(s, 'verhalten')).toBe(false);
+    expect(nextStep(s)).toBe('flash');
+    s = goTo(s, 'flash');
+    expect(previousStep(s)).toBe('source');
+    // The other boards keep their four steps.
+    let p = chooseVariant(chooseBoard(initialWizard(), 'aioplus'), '5');
+    p = goTo(goTo(p, 'variant'), 'source');
+    expect(canEnter(p, 'verhalten')).toBe(false);
+    expect(nextStep(chooseFirmware(p, download('aioplus', '5')))).toBe('flash');
   });
 
   it('never offers USB flashing for ESP32 boxes', () => {
@@ -189,8 +217,10 @@ describe('wizard steps', () => {
     s = pickReadyMade(s);
     expect(s.firmware).toBeUndefined();
     expect(nextStep(s)).toBeNull();
-    // Answering „Mit CubieKid- oder Trägerplatine“ does not bring the old file back either.
-    expect(nextStep(chooseShutdown(s, 'traeger'))).toBeNull();
+    // Answering „Mit CubieKid- oder Trägerplatine“ does not bring the old file back either: on to „Verhalten“, but no upload yet.
+    expect(nextStep(chooseShutdown(s, 'traeger'))).toBe('verhalten');
+    expect(chooseShutdown(s, 'traeger').firmware).toBeUndefined();
+    expect(canEnter(goTo(chooseShutdown(s, 'traeger'), 'verhalten'), 'flash')).toBe(false);
     // A ready-made build already loaded stays.
     const ready = chooseFirmware(s, download('classic', '3'));
     expect(pickReadyMade(ready)).toBe(ready);
@@ -276,14 +306,17 @@ describe('Firmware-Baukasten', () => {
   it('wants a build with extras only when something is ticked or the carrier board needs it', () => {
     const s = chooseShutdown(at('classic'), 'switch');
     expect(wantsBaukasten(s)).toBe(false);
-    expect(wantedBuildId(s)).toBeUndefined();
+    // Without extras the plain build of the checked state, not the newest from the server.
+    expect(wantedBuildId(s)).toBe('classic-3');
+    expect(wantedBuildId(at('aio', '5'))).toBe('aio-5');
+    expect(wantedBuildId(at('aioplus', '5'))).toBeUndefined();
     expect(wantedBuildId(chooseExtras(s, { knob: 'encoder' }))).toBe('classic-3-encoder');
     expect(wantedBuildId(chooseShutdown(s, 'traeger'))).toBe('classic-3-traeger');
     expect(wantedBuildId(chooseExtras(chooseShutdown(s, 'traeger'), { knob: 'poti', preset: 'weiter' }))).toBe('classic-3-poti-traeger-weiter');
     // Another MP3 chip alone already needs a build of the Baukasten.
     expect(wantedBuildId(chooseExtras(s, { chip: 'mh2024k24ss' }))).toBe('classic-3-mh2024k24ss');
     expect(wantedBuildId(chooseExtras(at('aio', '5'), { chip: 'gd3200b' }))).toBe('aio-5-gd3200b');
-    expect(wantedBuildId(chooseExtras(s, { chip: 'standard' }))).toBeUndefined();
+    expect(wantedBuildId(chooseExtras(s, { chip: 'standard' }))).toBe('classic-3');
     // What the buttons cannot have is left out: with 5 buttons A3/A4 are taken.
     expect(baukastenChoice(chooseVariant(chooseExtras(s, { knob: 'encoder', light: 'ring' }), '5'))?.choice).toEqual({ light: 'ring' });
     // Boards without the Baukasten never want it.
@@ -320,9 +353,24 @@ describe('Firmware-Baukasten', () => {
     expect(successFacts({ ok: true, baud: 57600, signature: [0x1e, 0x95, 0x0f], bootloaderVersion: '1.16', bytesWritten: fw.fileBytes, verified: true, durationMs: 20_000 }, classic, fw).find((f) => f.label === 'Extras')?.value).toBe(fw.baukasten?.summary);
   });
 
+  it('gives Classic and AiO the checked state that came with the app as the ready-made firmware', async () => {
+    for (const [board, variant] of [['classic', '3'], ['classic', '5'], ['aio', '3'], ['aio', '5']] as const) {
+      const s = chooseShutdown(at(board, variant), 'switch');
+      const fw = await loadBaukasten(fileFetch, './', manifest, s);
+      expect(fw).toMatchObject({ kind: 'download', board, variant, fileName: `TonUINO-TNG_${board}-${variant}.hex` });
+      if (fw.kind !== 'download') throw new Error('download expected');
+      expect(fw.baukasten).toMatchObject({ id: `${board}-${variant}`, summary: '', stand: standTitle(CHECKED_TNG) });
+      expect(fw.unchecked).toBeUndefined();
+      // The image carries the version line of the checked state.
+      expect(isChecked(firmwareVersion(fw.image))).toBe(true);
+      expect(canEnter(chooseFirmware(s, fw), 'flash')).toBe(true);
+      expect(successFacts({ ok: true, baud: 57600, signature: [0x1e, 0x95, 0x0f], bootloaderVersion: '1.16', bytesWritten: fw.fileBytes, verified: true, durationMs: 20_000 }, getBoard(board), fw).map((f) => f.label)).not.toContain('Extras');
+    }
+  });
+
   it('refuses what was not built', async () => {
     const s = chooseShutdown(at('classic'), 'switch');
-    await expect(loadBaukasten(fileFetch, './', manifest, s)).rejects.toThrow(RangeError);
+    await expect(loadBaukasten(fileFetch, './', manifest, at('aioplus', '5'))).rejects.toThrow(RangeError);
     const big = chooseExtras(s, { light: 'ringVolume', knob: 'encoderSkip', headphones: true, speakerOff: true, preset: 'weiter' });
     expect(manifest.notFitting).toContain(wantedBuildId(big));
     await expect(loadBaukasten(fileFetch, './', manifest, big)).rejects.toThrow(/too-big/);
@@ -342,6 +390,30 @@ describe('firmware sources', () => {
     expect(choice).toMatchObject({ kind: 'download', board: 'classic', variant: '5', fileName: 'TonUINO_Classic_5.hex', fileBytes: hex.length });
     expect(choice.image.data).toEqual(firmwareBytes(3000));
     expect(firmwareLabel(choice)).toBe('TonUINO_Classic_5.hex · 3 KB');
+  });
+
+  it('marks a download that is not the checked state, and lets it go on only after a yes', async () => {
+    const serve = (text?: string): FetchFn => async () => new Response(toIntelHex(text ? textBytes(text) : firmwareBytes(3000)));
+    const newer = await loadReadyMade(serve('V3.3.4 26.10.26'), aioplus, '5');
+    expect(newer.kind === 'download' && newer.unchecked).toEqual({ version: '3.3.4', date: '2026-10-26' });
+    expect(await loadReadyMade(serve(CHECKED_TNG.versionString), aioplus, '5')).not.toHaveProperty('unchecked');
+    const blank = await loadReadyMade(serve(), aioplus, '5');
+    expect(blank.kind === 'download' && blank.unchecked).toEqual({});
+
+    let s = chooseFirmware(chooseVariant(chooseBoard(initialWizard(), 'aioplus'), '5'), newer);
+    expect(canEnter(s, 'flash')).toBe(false);
+    s = acceptUnchecked(s, true);
+    expect(canEnter(s, 'flash')).toBe(true);
+    expect(canEnter(acceptUnchecked(s, false), 'flash')).toBe(false);
+    // The yes is for that one download only.
+    expect(canEnter(chooseFirmware(s, blank), 'flash')).toBe(false);
+
+    const t = uncheckedText({ version: '3.3.4', date: '2026-10-26' });
+    expect(t.text).toContain('TonUINO TNG 3.3.4 vom 26.10.2026');
+    expect(t.text).toContain(standTitle(CHECKED_TNG));
+    expect(t.text).toContain('Einstellungen in neuer Form');
+    expect(uncheckedText({}).text).toContain('ohne Versionsangabe');
+    expect(uncheckedText({}).text).not.toContain('neuer Form');
   });
 
   it('explains a broken download and a missing build', async () => {
@@ -373,6 +445,10 @@ describe('firmware sources', () => {
 
     const bin = await readOwnFirmware(source('firmware.bin', firmwareBytes(500)), classic);
     expect('problem' in bin && bin.problem.explanation).toBe('„firmware.bin“ ist eine .bin-Datei. Für „Classic“ brauchst du die Firmware als .hex-Datei.');
+
+    // Named .hex, but no HEX inside: no „Endung .hex“ for a file that has it (Prüfrunde 1, bastler 4).
+    const garbage = await readOwnFirmware(source('kaputt.hex', 'PK\u0003\u0004 kein HEX'), classic);
+    expect('problem' in garbage && garbage.problem.explanation).toBe('„kaputt.hex“ ist keine gültige Firmware im HEX-Format. Ist die Datei vollständig heruntergeladen?');
 
     const page = await readOwnFirmware(source('firmware.hex', '<!DOCTYPE html><html>'), classic);
     expect('problem' in page && page.problem.explanation).toContain('Das ist eine Webseite und keine Firmware-Datei');
@@ -440,6 +516,17 @@ describe('after flashing', () => {
     // Afterwards everything is set anew in the Werkstatt tool.
     expect(RESET_GUIDE).toContain('„Box einstellen“');
     expect(reset.link?.href).toBe('#/werkstatt/einstellen');
+  });
+
+  it('puts what was chosen under „Verhalten“ for the box first, right after the upload', () => {
+    const steps = nextSteps(classic, download(), 'tng', { einstellen: ['Karte wegnehmen = Pause', 'Lautstärke 20 / 1 / 8'] });
+    expect(steps.map((s) => s.id)).toEqual(['power', 'sounds', 'einstellen', 'logbook', 'reset']);
+    const step = steps.find((s) => s.id === 'einstellen')!;
+    expect(step.title).toBe('Jetzt an der Box einstellen');
+    expect(step.text).toContain('Karte wegnehmen = Pause, Lautstärke 20 / 1 / 8');
+    expect(step.link).toEqual({ label: 'Jetzt an der Box einstellen', href: '#/werkstatt/einstellen' });
+    // Nothing chosen: the general hint stays.
+    expect(nextSteps(classic, download(), 'tng', { einstellen: [] }).find((s) => s.id === 'einstellen')!.title).toBe('Box einstellen');
   });
 
   it('points to the settings tool after a download, because the timer is off from the factory', () => {
@@ -513,6 +600,8 @@ describe('after flashing', () => {
 describe('versions', () => {
   it('reads the version a firmware carries', () => {
     expect(firmwareVersion(hexWithText('V3.3.3 17.09.26'))).toEqual({ family: 'tng', version: '3.3.3', date: '2026-09-17' });
+    // TNG main of 26.10.2026 (the README calls it 3.4.0, the firmware says 3.3.4).
+    expect(firmwareVersion(hexWithText('V3.3.4 26.10.26'))).toEqual({ family: 'tng', version: '3.3.4', date: '2026-10-26' });
     expect(firmwareVersion(hexWithText('V3.2.1 3.1.2025'))).toEqual({ family: 'tng', version: '3.2.1', date: '2025-01-03' });
     expect(firmwareVersion(hexWithText('TonUINO Version 2.1'))).toEqual({ family: 'classic21', version: '2.1' });
     expect(firmwareVersion(hexWithText('TonUINO Version 3.x - refactored by Boerge1'))).toEqual({ family: 'tng' });
@@ -528,7 +617,7 @@ describe('versions', () => {
     expect(versionFacts({ family: 'classic21', version: '2.1' }, v('3.3.3')).note).toContain('älter');
     // Back from the test build of 16.10.2026 to the release: older, but the way out of its hang.
     const back = versionFacts(v('3.3.3', '2026-09-17'), v('3.3.3', '2026-10-16'));
-    expect(back.note).toBe('Auf der Box läuft eine Testversion. Diese hier ist älter, aber ein erprobtes Release.');
+    expect(back.note).toBe('Auf der Box läuft eine Testversion. Diese hier ist älter, aber erprobt.');
     expect(back.facts[1].value).toBe('TonUINO TNG 3.3.3 vom 16.10.2026 (Testversion)');
 
     const both = versionFacts(v('3.4.0', '2026-10-01'), v('3.3.3', '2026-09-17'));

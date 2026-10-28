@@ -1,5 +1,6 @@
 import type { Dir } from '../../platform/types';
 import { COVERS_FILE, folderName } from './sd';
+import { assertWritable, noteRead, UnreadableCardFile } from './unreadable';
 
 /**
  * Covers travel with the card in one zip file, because extra folders on the
@@ -58,20 +59,30 @@ export function swapCovers(covers: CoverMap, a: number, b: number): { covers: Co
   return { covers: out, renamed };
 }
 
+/**
+ * The covers on the card. A cover file that is there but cannot be read or
+ * unpacked throws, and saveCovers leaves it alone until a later reading
+ * works: the next change would else write an empty or nearly empty zip over
+ * pictures that may still be rescued (0.5.1, cover loss after a reader dropped off).
+ */
 export async function loadCovers(root: Dir): Promise<CoverMap> {
   const map: CoverMap = new Map();
-  if (!(await root.exists(COVERS_FILE))) return map;
-  // Loaded outside the try: a library that does not come is an error, not a broken zip without covers.
-  const { default: JSZip } = await import('jszip');
   try {
+    if (!(await root.exists(COVERS_FILE))) {
+      noteRead(root, COVERS_FILE, true);
+      return map;
+    }
+    const { default: JSZip } = await import('jszip');
     const zip = await JSZip.loadAsync(await root.read(COVERS_FILE));
     for (const f of Object.values(zip.files)) {
       if (f.dir) continue;
       map.set(f.name, await f.async('uint8array'));
     }
-  } catch {
-    // A broken zip only costs the covers; the catalog still knows the titles.
+  } catch (e) {
+    noteRead(root, COVERS_FILE, false);
+    throw e instanceof UnreadableCardFile ? e : Object.assign(new UnreadableCardFile(COVERS_FILE), { cause: e });
   }
+  noteRead(root, COVERS_FILE, true);
   return map;
 }
 
@@ -84,6 +95,7 @@ export async function packCovers(covers: CoverMap): Promise<Uint8Array> {
 }
 
 export async function saveCovers(root: Dir, covers: CoverMap): Promise<void> {
+  assertWritable(root, COVERS_FILE);
   if (!covers.size) {
     if (await root.exists(COVERS_FILE)) await root.remove(COVERS_FILE);
     return;

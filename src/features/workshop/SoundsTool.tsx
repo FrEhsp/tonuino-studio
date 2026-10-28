@@ -3,8 +3,8 @@
  * against what the firmware expects and installs them with the same dialog
  * the start page uses. Without a card it offers the start page's way in.
  */
-import { useState } from 'preact/hooks';
-import { CardSim, CircleAlert, CircleCheck, FolderSearch, HardDrive, Megaphone, RefreshCw, ShieldCheck, TriangleAlert } from 'lucide-preact';
+import { useEffect, useRef, useState } from 'preact/hooks';
+import { CardSim, FolderSearch, HardDrive, Megaphone, Play, RefreshCw, ShieldCheck, Square } from 'lucide-preact';
 import { CardNoteCallout, CardReader, UPLOAD_HINT } from '../box/CardReader';
 import { SoundsDialog } from '../box/SoundsDialog';
 import { PendingChanges } from '../box/PendingChanges';
@@ -12,12 +12,17 @@ import { systemSoundsPending } from '../../app/pending';
 import { useCardDrop } from '../../ui/useCardDrop';
 import { SdCardArt } from '../../ui/components/Art';
 import { Button, Callout, Spinner } from '../../ui/components/controls';
-import { toastError } from '../../ui/components/Toast';
+import { toast, toastError } from '../../ui/components/Toast';
 import { navigate } from '../../app/router';
-import { card, needsPermission, openVolume, plat, profile, releaseDecision, volumes } from '../../app/state';
+import { card, needsPermission, openVolume, plat, profile, releaseDecision, rescan, volumes } from '../../app/state';
+import { canChangeCard } from '../../app/pending';
+import { writeGuard } from '../../app/writeguard';
+import { openPlayer } from '../../ui/nativeAudio';
+import { istStill, stillesMp3 } from '../../core/tonuino/stillerTon';
 import { Facts, ToolHeader } from './common';
 import { soundsSummary } from './sounds';
 import { cardIntoDevice } from '../../app/device';
+import { ArcadeCap, CapHaken, CapLautsprecher } from '../../ui/icons/caps';
 
 export function SoundsTool() {
   const p = plat();
@@ -75,13 +80,11 @@ function SoundsState({ onInstall }: { onInstall: () => void }) {
     summary.facts = summary.facts.filter((f) => f.label !== 'Installiert');
   }
   const ok = summary.state === 'ok' && !inPackage;
-  const Icon = ok ? CircleCheck : summary.state === 'outdated' ? TriangleAlert : CircleAlert;
   return (
     <section class="card pad stack loose" aria-labelledby="ws-sounds-title">
       <div class="ws-sounds-state">
-        <span class={`ws-tool-icon ${ok ? 'success' : 'warning'}`} aria-hidden="true">
-          <Icon size={22} strokeWidth={2.2} />
-        </span>
+        {/* A real cap in full colour: green when all is there, red when something is missing (Prüfrunde 1 Aussehen 3). */}
+        <ArcadeCap icon={ok ? CapHaken : CapLautsprecher} color={ok ? 'gruen' : 'rot'} size={40} />
         <div class="stack tight">
           <h2 id="ws-sounds-title">{summary.title}</h2>
           <p class="soft">{summary.text}</p>
@@ -91,6 +94,8 @@ function SoundsState({ onInstall }: { onInstall: () => void }) {
       <details class="ws-sounds-more">
         <summary class="link-button">Mehr</summary>
         <Facts facts={summary.facts} />
+        <Piepton />
+        <Anhoeren />
       </details>
       {summary.duplicates ? <Callout tone="warning">{summary.duplicates}</Callout> : null}
       {summary.oversized ? <Callout tone="warning">{summary.oversized}</Callout> : null}
@@ -207,5 +212,108 @@ function NoSdAccess() {
         </div>
       </div>
     </Callout>
+  );
+}
+
+/**
+ * TonUINO TNG plays mp3/0262 each time a card is put on. Who does not want
+ * the beep gets a silent file in its place: deleting it would stop the box
+ * after the first card (Prüfrunde 1, bastler 14; help topic „Ansagen“).
+ */
+function Piepton() {
+  const s = card.value!;
+  const mp3 = s.scan?.system.mp3;
+  const piep = mp3?.files.find((f) => f.number === 262 && f.ext === 'mp3');
+  const [busy, setBusy] = useState(false);
+  if (profile.value !== 'tng' || !mp3 || !piep) return null;
+  if (istStill(piep.size))
+    return (
+      <p class="small">
+        <b>Piepton beim Auflegen:</b> aus. Wieder an mit „{soundsSummary(s.scan!, profile.value, s.catalog?.systemSounds, releaseDecision.value).action}“.
+      </p>
+    );
+  const aus = async () => {
+    if (!canChangeCard()) {
+      toastError('Gerade nicht möglich', new Error('Das Paket ist schon heruntergeladen. Lies die Karte neu ein, dann geht es.'));
+      return;
+    }
+    setBusy(true);
+    try {
+      await writeGuard.during('sounds', async () => {
+        const dir = await s.volume.root.dir(mp3.dirName);
+        await dir.write(piep.name, stillesMp3());
+      });
+      await rescan();
+      if (s.volume.access === 'snapshot') toast.success('Piepton aus, im Paket', 'Lade das Paket herunter und entpacke es auf die Karte.');
+      else toast.success('Piepton aus', 'Beim Auflegen bleibt die Box jetzt still.');
+    } catch (e) {
+      toastError('Den Piepton konnte ich nicht ausschalten', e);
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <p class="small row wrap tight">
+      <span>
+        <b>Piepton beim Auflegen:</b> an.
+      </span>
+      <button type="button" class="link-button" disabled={busy} onClick={() => void aus()}>
+        Ausschalten
+      </button>
+      <span class="soft">Die Datei bleibt da, nur still: Ohne sie spielt die Box nur die erste Karte.</span>
+    </p>
+  );
+}
+
+/** Every announcement on the card, to listen to one by one (Prüfrunde 1, bastler 14). */
+function Anhoeren() {
+  const s = card.value!;
+  const scan = s.scan!;
+  const files = (['mp3', 'advert'] as const).flatMap((d) => {
+    const sys = scan.system[d];
+    return sys ? sys.files.map((f) => ({ key: `${sys.dirName}/${f.name}`, dir: sys.dirName, name: f.name })) : [];
+  });
+  const [pick, setPick] = useState(files[0]?.key ?? '');
+  const [playing, setPlaying] = useState(false);
+  const player = useRef<{ free: () => void } | null>(null);
+  useEffect(() => () => player.current?.free(), []);
+  if (!files.length) return null;
+  const stop = () => {
+    player.current?.free();
+    player.current = null;
+    setPlaying(false);
+  };
+  const play = async () => {
+    stop();
+    const f = files.find((x) => x.key === pick);
+    if (!f) return;
+    try {
+      const dir = await s.volume.root.dir(f.dir);
+      const p = await openPlayer(await dir.source(f.name), f.name);
+      player.current = p;
+      p.el.addEventListener('ended', stop);
+      setPlaying(true);
+      await p.el.play();
+    } catch (e) {
+      stop();
+      toastError('Diese Ansage ließ sich nicht abspielen', e);
+    }
+  };
+  return (
+    <div class="row wrap tight small">
+      <label for="ws-ansage">
+        <b>Ansage anhören:</b>
+      </label>
+      <select id="ws-ansage" class="select" style={{ width: 220 }} value={pick} onChange={(e) => (stop(), setPick(e.currentTarget.value))}>
+        {files.map((f) => (
+          <option key={f.key} value={f.key}>
+            {f.key}
+          </option>
+        ))}
+      </select>
+      <Button size="sm" icon={playing ? Square : Play} onClick={() => (playing ? stop() : void play())}>
+        {playing ? 'Stopp' : 'Abspielen'}
+      </Button>
+    </div>
   );
 }

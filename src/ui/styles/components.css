@@ -459,12 +459,13 @@ input[type='radio'] {
 
 /* ------------------------------------------------------------------ callouts */
 
+/* A hint is a calm note in the margin, not a blue box (Prüfrunde 1 Aussehen 4); warnings keep their colour. */
 .callout {
   display: flex;
   gap: var(--space-3);
-  padding: var(--space-3) var(--space-4);
-  background: var(--info-soft);
-  color: var(--info-text);
+  padding: var(--space-2) var(--space-4);
+  background: transparent;
+  color: var(--text);
   font-size: var(--text-sm);
   line-height: 1.5;
 }
@@ -1028,6 +1029,40 @@ a.sounds-warning-action:hover {
 
 .steps .sep {
   width: 24px;
+}
+
+/* A step done is a button back: it looks like the others and answers the pointer. */
+.steps button.step {
+  min-height: 32px;
+  padding: 0 4px;
+  margin: 0 -4px;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.steps button.step:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+
+.steps button.step:hover .step-name {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.steps .step-wahl {
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+@media (pointer: coarse) {
+  .steps button.step {
+    min-height: 44px;
+  }
 }
 
 /* ------------------------------------------------------------------ tabs */

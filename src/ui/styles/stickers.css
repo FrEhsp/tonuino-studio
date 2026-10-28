@@ -651,7 +651,7 @@
 /* Phones: the bar with its two buttons above the tab bar, the link and the note under it. */
 @media (max-width: 560px) {
   .page.sticker-bench {
-    padding: var(--space-4) var(--space-4) var(--space-12);
+    padding: var(--space-5) var(--space-4) var(--space-12);
   }
 
   .bench-head p {
@@ -746,7 +746,8 @@
   white-space: nowrap;
 }
 
+/* Chosen is purple, as the chosen sticker looks (Prüfrunde 2, eltern 9). */
 .pictogram-hit.chosen,
 .pictogram-hit:hover {
-  border-color: var(--accent);
+  border-color: var(--primary);
 }

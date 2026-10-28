@@ -132,6 +132,10 @@ export async function remember(browser) {
   check((await offer.count()) === 0, 'no question when the card was only read');
   await transferOnce(page, card);
   await shown(page).getByRole('heading', { name: 'Emmas TonUINO' }).waitFor();
+  // One note at a time (Prüfrunde 1 Aussehen 11): the others wait behind „Zeigen“.
+  await page.waitForTimeout(500);
+  const more = shown(page).locator('.box-notes-more button');
+  if (await more.count()) await more.click();
   await offer.waitFor();
   check((await offer.textContent()).includes('Box auf diesem Gerät merken?'), 'the shelf asks whether to remember the box');
   check((await stored(page)).memory === null, 'nothing is remembered before the answer');
@@ -165,7 +169,8 @@ export async function remember(browser) {
   check((await tiles.nth(0).textContent()).includes('Bibi Blocksberg') && (await tiles.nth(1).textContent()).includes('Gute-Nacht-Lieder'), 'with their names');
   await page.waitForFunction(() => [...document.querySelectorAll('.page-slot:not(.page-slot-hidden) .shelf .tile img.cover-img')].some((i) => i.complete && i.naturalWidth > 0));
   check((await tiles.nth(0).locator('img.cover-img').count()) === 1, 'folder 01 shows its remembered cover');
-  check(/Keine SD-Karte/.test(await page.locator('.sidebar .sd-status').textContent()) && /gemerkten Stand von „Emmas TonUINO“/.test(await page.locator('.sidebar .sd-status').textContent()), 'the sidebar says: no card, the remembered box');
+  // 0.6: the bar on top says it when the pointer rests on the card's line.
+  check(/Keine SD-Karte/.test(await page.locator('.kopf .sd-zeile').textContent()) && /gemerkten Stand von „Emmas TonUINO“/.test((await page.locator('.kopf .sd-zeile .sd-none').getAttribute('title')) ?? ''), 'the bar on top says: no card, the remembered box');
   await shots(page, '03-gemerkte-box');
   await tiles.nth(0).click();
   const dialog = page.getByRole('dialog');
@@ -189,7 +194,7 @@ export async function remember(browser) {
   await shots(page, '04-karten');
 
   // 5. Sticker drucken: the remembered folders with their small covers.
-  await go('#/sticker');
+  await go('#/sticker/alle');
   const stickers = shown(page);
   await stickers.getByText(/Gemerkter Stand von „Emmas TonUINO“/).waitFor();
   // The folder picked for cards is the one sticker here: the short line of question 1 says so, "Ändern …" opens the list.
@@ -272,6 +277,10 @@ export async function remember(browser) {
     await chooseFolder(page, card, page.getByRole('button', { name: 'SD-Karte einlesen' }));
     await shown(page).getByRole('heading', { name: 'Emmas TonUINO' }).waitFor();
     await transferOnce(page, card);
+    await shown(page).getByRole('heading', { name: 'Emmas TonUINO' }).waitFor();
+    await page.waitForTimeout(500);
+    const more = shown(page).locator('.box-notes-more button');
+    if (await more.count()) await more.click();
     const offer = shown(page).locator('.remember-offer');
     await offer.waitFor();
     await offer.getByRole('button', { name: 'Nein' }).click();

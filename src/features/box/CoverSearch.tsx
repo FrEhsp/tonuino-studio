@@ -1,7 +1,10 @@
+import type { ComponentChildren } from 'preact';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { Search } from 'lucide-preact';
 import { downloadCoverImage, keepShownOrder, searchCovers, type CoverCandidate, type CoverKind, type CoverSearchResult } from '../../core/stickers/coversearch';
-import { isAbortError } from '../../core/stickers/image';
+import { isAbortError, type FetchLike } from '../../core/stickers/image';
+import { routedFetch } from '../../core/covers/route';
+import type { Platform } from '../../platform/types';
 import { Button, Callout, Segmented, Spinner } from '../../ui/components/controls';
 import { toastError } from '../../ui/components/Toast';
 import { plat } from '../../app/state';
@@ -10,7 +13,7 @@ import { plat } from '../../app/state';
 const FIRST_HITS_GRACE_MS = 700;
 
 /** Names of the services for the credit line of a cover. */
-export const SOURCE_LABEL: Record<CoverCandidate['source'], string> = { itunes: 'iTunes', musicbrainz: 'MusicBrainz' };
+export const SOURCE_LABEL: Record<CoverCandidate['source'], string> = { itunes: 'iTunes', deezer: 'Deezer', musicbrainz: 'MusicBrainz' };
 
 /** CD or cassette, remembered for this visit: someone looking for cassette covers usually wants more of them. */
 let lastKind: CoverKind = 'cd';
@@ -25,10 +28,14 @@ let lastKind: CoverKind = 'cd';
  * another one is still loading drops the earlier one; leaving the search
  * (other tab, closed dialog) stops the download.
  */
-/** `quiet`: „Suchen“ as a plain button, where the dialog has its own purple one („Übernehmen“). */
-export function CoverSearch({ initialQuery, onPick, quiet = false }: { initialQuery: string; onPick: (blob: Blob, source: string, kind: CoverKind, hit: CoverCandidate) => void; quiet?: boolean }) {
+/**
+ * `quiet`: „Suchen“ as a plain button, where the dialog has its own purple one („Übernehmen“).
+ * `pictograms`: a third choice „Piktogramm“ beside the two kinds of cover, showing what it returns (TODO #113).
+ */
+export function CoverSearch({ initialQuery, onPick, quiet = false, pictograms }: { initialQuery: string; onPick: (blob: Blob, source: string, kind: CoverKind, hit: CoverCandidate) => void; quiet?: boolean; pictograms?: () => ComponentChildren }) {
   const [q, setQ] = useState(initialQuery);
   const [kind, setKind] = useState<CoverKind>(lastKind);
+  const [picto, setPicto] = useState(false);
   const [state, setState] = useState<{ status: 'idle' | 'busy' | 'done'; kind: CoverKind; results: CoverCandidate[]; warnings: string[] }>({ status: 'idle', kind, results: [], warnings: [] });
   const [loading, setLoading] = useState<string | null>(null);
   // Thumbnails that did not load: hits without a picture (MusicBrainz often has none) are left out.
@@ -46,7 +53,7 @@ export function CoverSearch({ initialQuery, onPick, quiet = false }: { initialQu
     let onScreen: CoverCandidate[] = [];
     const show = (status: 'busy' | 'done', r: CoverSearchResult) => {
       onScreen = keepShownOrder(onScreen, r.candidates);
-      setState({ status, kind: as, results: onScreen, warnings: r.warnings });
+      setState({ status, kind: as, results: onScreen, warnings: [...r.warnings, ...(r.notes ?? [])] });
     };
     // The first service to answer shows its hits only if the other one takes a while: answering
     // within the grace time, both come out ranked together.
@@ -74,7 +81,7 @@ export function CoverSearch({ initialQuery, onPick, quiet = false }: { initialQu
       show('done', r);
     } catch (e) {
       stopEarly();
-      if (!isAbortError(e)) setState({ status: 'done', kind: as, results: [], warnings: ['Die Suche hat nicht geklappt. Prüfe die Internetverbindung.'] });
+      if (!isAbortError(e)) setState({ status: 'done', kind: as, results: [], warnings: ['Die Suche hat nicht geklappt. Prüfe die Internetverbindung. Blockiert vielleicht ein Filter? Welche Adressen frei sein müssen, steht in der Hilfe unter „Internetfilter und Firewall“.'] });
     }
   };
 
@@ -131,17 +138,34 @@ export function CoverSearch({ initialQuery, onPick, quiet = false }: { initialQu
   const waitingForPictures = state.results.some((c) => c.source === 'musicbrainz' && !broken.has(c.thumbUrl) && !ready.has(c.thumbUrl));
   const cassette = state.kind === 'cassette';
 
+  const chooser = (
+    <Segmented<CoverKind | 'pictogram'>
+      label="Was für ein Cover?"
+      value={picto ? 'pictogram' : kind}
+      options={[
+        { value: 'cd', label: 'CD-Cover' },
+        { value: 'cassette', label: 'Kassetten-Cover' },
+        ...(pictograms ? [{ value: 'pictogram' as const, label: 'Piktogramm' }] : []),
+      ]}
+      onChange={(k) => {
+        setPicto(k === 'pictogram');
+        if (k !== 'pictogram') switchKind(k);
+      }}
+    />
+  );
+
+  if (picto && pictograms) {
+    return (
+      <div class="stack cover-search">
+        {chooser}
+        {pictograms()}
+      </div>
+    );
+  }
+
   return (
     <div class="stack cover-search">
-      <Segmented<CoverKind>
-        label="Was für ein Cover?"
-        value={kind}
-        options={[
-          { value: 'cd', label: 'CD-Cover' },
-          { value: 'cassette', label: 'Kassetten-Cover' },
-        ]}
-        onChange={switchKind}
-      />
+      {chooser}
       <form
         class="row"
         onSubmit={(e) => {
@@ -205,7 +229,7 @@ export function CoverSearch({ initialQuery, onPick, quiet = false }: { initialQu
         <p class="hint">
           {cassette
             ? 'Kassetten-Cover sind hoch wie eine aufgestellte Karte: Der Sticker wird dafür hochkant. Bilder von MusicBrainz (Cover Art Archive). Nur für den privaten Gebrauch.'
-            : 'Bilder von iTunes und MusicBrainz (Cover Art Archive). Nur für den privaten Gebrauch.'}
+            : 'Bilder von iTunes, Deezer und MusicBrainz (Cover Art Archive). Nur für den privaten Gebrauch.'}
         </p>
       ) : null}
     </div>
@@ -214,22 +238,29 @@ export function CoverSearch({ initialQuery, onPick, quiet = false }: { initialQu
 
 /** Loads a hit of the search in the largest size the server gives out (see downloadCoverImage). */
 export function loadSearchCover(c: Pick<CoverCandidate, 'fullUrl' | 'mediumUrl' | 'thumbUrl'>, signal?: AbortSignal): Promise<Blob> {
-  return downloadCoverImage(c, { fetchFn: (url, init) => plat().fetch(url, init), signal });
+  return downloadCoverImage(c, { fetchFn: coverFetch, signal });
 }
 
+let routed: FetchLike | undefined;
+let routedFor: Platform | undefined;
+
 /**
- * fetch for the search requests. The iTunes Search API does not always allow
- * requests from web pages (CORS); it answers JSONP instead, so that is the
- * fallback.
+ * fetch for the search requests and pictures (src/core/covers/route.ts): in
+ * the desktop app through the backend with the app's own User-Agent, else
+ * the WebView's fetch, and JSONP for iTunes and Deezer when their answer
+ * has no CORS header.
  */
-export async function coverFetch(url: string, init?: RequestInit): Promise<Response> {
-  try {
-    return await plat().fetch(url, init);
-  } catch (e) {
-    if (isAbortError(e) || !url.startsWith('https://itunes.apple.com/') || typeof document === 'undefined') throw e;
-    const json = await jsonp(url, init?.signal ?? undefined);
-    return new Response(JSON.stringify(json), { status: 200, headers: { 'Content-Type': 'application/json' } });
+export function coverFetch(url: string, init?: RequestInit): Promise<Response> {
+  const p = plat();
+  if (!routed || routedFor !== p) {
+    routedFor = p;
+    routed = routedFetch({
+      native: p.coverNet ? (u, i) => p.coverNet!.fetch(u, i) : undefined,
+      web: (u, i) => p.fetch(u, i),
+      jsonp: typeof document === 'undefined' ? undefined : (u, signal) => jsonp(u, signal),
+    });
   }
+  return routed(url, init);
 }
 
 function jsonp(url: string, signal?: AbortSignal, timeoutMs = 12_000): Promise<unknown> {

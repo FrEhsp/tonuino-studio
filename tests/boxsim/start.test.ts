@@ -5,8 +5,9 @@
  */
 import { afterEach, describe, expect, it } from 'vitest';
 import { analyzeBootLog, BootLogParser } from '../../src/core/firmware/bootlog';
+import { invertKind, invertText } from '../../src/core/firmware/tngstands';
 import { boxFacts } from '../../src/features/workshop/boxfacts';
-import { BoxSim, canSimulate } from './boxsim';
+import { BoxSim, SIM_TNG, canSimulate } from './boxsim';
 
 let sim: BoxSim | undefined;
 afterEach(async () => {
@@ -29,25 +30,30 @@ const fact = (facts: { box: { id: string; value: string }[]; settings: { id: str
   [...facts.box, ...facts.settings].find((f) => f.id === id)?.value;
 
 describe.skipIf(!canSimulate)('Steckbrief from the real start', () => {
+  const tngDate = SIM_TNG.date.split('-').reverse().join('.');
   it.each([
-    ['classic-3', 'classic', '3', 'Classic, 3 Tasten', '17.09.2026'],
-    ['classic-5', 'classic', '5', 'Classic, 5 Tasten', '17.09.2026'],
-    ['aio-5', 'aio', '5', 'AiO, 5 Tasten', '17.09.2026'],
-    ['classic-3-writeCard', 'classic', '3', 'Classic, 3 Tasten', '08.10.2026'],
-  ])('%s', async (build, board, buttons, boardText, date) => {
+    ['classic-3', 'classic', '3', 'Classic, 3 Tasten', SIM_TNG.version, tngDate],
+    ['classic-5', 'classic', '5', 'Classic, 5 Tasten', SIM_TNG.version, tngDate],
+    ['aio-5', 'aio', '5', 'AiO, 5 Tasten', SIM_TNG.version, tngDate],
+    // The write-card preview comes from TNG's work branch issue_345, whatever state the others are.
+    ['classic-3-writeCard', 'classic', '3', 'Classic, 3 Tasten', '3.3.3', '08.10.2026'],
+  ])('%s', async (build, board, buttons, boardText, version, date) => {
     const a = analyze(await boot(build));
-    expect(a.info).toMatchObject({ firmware: 'tng', version: '3.3.3', board, buttons, volume: 15, mp3: { connected: true, trackCount: 708 } });
+    expect(a.info).toMatchObject({ firmware: 'tng', version, board, buttons, volume: 15, mp3: { connected: true, trackCount: 708 } });
     expect(a.info.settings).toMatchObject({ speakerVolume: { min: 5, max: 25, init: 15 }, eq: 1, standbyTimerMinutes: 0, adminLock: { kind: 'none' } });
     expect(a.bootCount).toBe(1);
-    expect(fact(a.facts, 'firmware')).toBe(`TonUINO TNG 3.3.3 vom ${date}`);
+    expect(fact(a.facts, 'firmware')).toBe(`TonUINO TNG ${version} vom ${date}`);
     expect(fact(a.facts, 'board')).toBe(boardText);
     // The AiO prints no MFRC522 line, so the Steckbrief says nothing about its reader.
     if (board === 'aio') expect(a.info.rfid).toBeUndefined();
     else expect(fact(a.facts, 'rfid')).toBe('antwortet (MFRC522 v2.0)');
     // Only the timer hint on the AiO (it runs on a battery); nothing else to complain about.
     expect(a.issueTitles).toEqual(board === 'aio' ? ['warn: Ausschalt-Timer ist aus'] : []);
-    // Short/long on 3 keys is a setting; 5 keys have their own volume keys.
+    // Short/long on 3 keys is a setting. With 5 keys it does nothing before TNG of 26.10.2026; since then it
+    // swaps the keys and a new box has them as printed (IB:0).
+    const kind = invertKind({ buttons: buttons as '3' | '5', version: SIM_TNG.version, date: SIM_TNG.date });
     if (buttons === '3') expect(fact(a.facts, 'buttons')).toBe('kurz drücken: Lautstärke, lang: Titel');
+    else if (kind === 'five') expect(fact(a.facts, 'buttons')).toBe(invertText('five', false));
     else expect(fact(a.facts, 'buttons')).toBeUndefined();
   });
 
@@ -70,7 +76,8 @@ describe.skipIf(!canSimulate)('faults the Logbuch has to name', () => {
 
   it.each([
     ['0x88', 'FM17522 (Nachbau)', []],
-    ['0x12', 'MFRC522 (Nachbau)', ['warn: Kartenleser: Nachbau-Chip']],
+    // A hint in its line, no issue: most of these readers work (forum 7700#1).
+    ['0x12', 'MFRC522 (Nachbau)', []],
   ])('reader chip %s', async (version, chip, issues) => {
     const a = analyze(await boot('classic-3', ['--rfid-version', version]));
     expect(a.info.rfid).toMatchObject({ ok: true, chip });

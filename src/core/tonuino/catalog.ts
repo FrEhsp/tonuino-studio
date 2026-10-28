@@ -2,6 +2,7 @@ import type { Dir } from '../../platform/types';
 import type { FirmwareProfile } from './card';
 import { modeByCode } from './modes';
 import type { PlanStep, RepairPlan } from './repair';
+import { assertWritable, noteRead, UnreadableCardFile } from './unreadable';
 import {
   CATALOG_FILE,
   folderName,
@@ -402,10 +403,27 @@ export function serializeCatalog(c: Catalog): string {
   return JSON.stringify({ ...c, folders: sortedFolders }, (_k, v) => (v === undefined ? undefined : v), 1) + '\n';
 }
 
+/**
+ * The card's catalog, or null when the card has none. A catalog that is
+ * there but cannot be read or understood throws UnreadableCardFile, and
+ * saveCatalog leaves it alone until a later reading works: else the next
+ * change would put a new, empty list over the names (0.5.1).
+ */
 export async function loadCatalog(root: Dir): Promise<Catalog | null> {
-  if (!(await root.exists(CATALOG_FILE))) return null;
-  const bytes = await root.read(CATALOG_FILE);
-  return parseCatalog(new TextDecoder().decode(bytes));
+  let catalog: Catalog | null;
+  try {
+    if (!(await root.exists(CATALOG_FILE))) {
+      noteRead(root, CATALOG_FILE, true);
+      return null;
+    }
+    catalog = parseCatalog(new TextDecoder().decode(await root.read(CATALOG_FILE)));
+  } catch (e) {
+    noteRead(root, CATALOG_FILE, false);
+    throw e;
+  }
+  noteRead(root, CATALOG_FILE, !!catalog);
+  if (!catalog) throw new UnreadableCardFile(CATALOG_FILE);
+  return catalog;
 }
 
 /** The catalog without the time it was saved: equal for two catalogs that say the same. */
@@ -418,6 +436,7 @@ export function catalogContent(c: Catalog): string {
  * the file as it is, so a card read for a Paket gets no change from it.
  */
 export async function saveCatalog(root: Dir, c: Catalog): Promise<void> {
+  assertWritable(root, CATALOG_FILE);
   const before = (await root.exists(CATALOG_FILE)) ? new TextDecoder().decode(await root.read(CATALOG_FILE)) : null;
   const at = before === null ? undefined : savedAt(before);
   if (at !== undefined && serializeCatalog({ ...c, updatedAt: at }) === before) {

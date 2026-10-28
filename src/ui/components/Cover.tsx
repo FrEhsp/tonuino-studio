@@ -1,5 +1,6 @@
 import { BookOpen, GraduationCap, Headphones, Music, Music2, Shapes } from 'lucide-preact';
 import { bestTextColor, fromHex, toCss } from '../../core/stickers/color';
+import { smallCover } from '../smallCovers';
 
 /**
  * Flat sticker colours for folders without a picture, from the TonUINO forum,
@@ -54,7 +55,8 @@ interface CoverProps {
  * hand in one flat colour.
  */
 export function Cover(props: CoverProps) {
-  if (props.url) return <img class="cover-img" src={props.url} alt="" loading="lazy" draggable={false} />;
+  // Small: its small copy once there is one (src/ui/smallCovers.ts), not a 600 px picture decoded for 40 px.
+  if (props.url) return <img class="cover-img" src={props.small ? smallCover(props.url) : props.url} alt="" loading="lazy" draggable={false} />;
   return <HolzCover {...props} />;
 }
 

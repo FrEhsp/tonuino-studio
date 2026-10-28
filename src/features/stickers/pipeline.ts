@@ -22,6 +22,7 @@ import { DEFAULT_DESIGN } from './design';
 import { renderBildkarte } from './bildkarte';
 import { pictogramImage, pictogramRev } from './pictograms';
 import { onCanvasesLost } from '../../ui/repaint';
+import { nextTask } from '../../ui/quiet';
 import officialLogoUrl from './tonuino-logo.png?url';
 
 export const PRINT_DPI = 300;
@@ -169,6 +170,12 @@ export function fontFor(item: Pick<StickerItem, 'work'>, design: StickerDesign):
   return SERIES_FONT_STYLES.includes(design.style) && design.font === DEFAULT_DESIGN.font && item.work?.font ? item.work.font : design.font;
 }
 
+/**
+ * The number on the plate of "Kassette" is always written in this font, the sticker's default ("Rund"):
+ * the serif and narrow types of some series made the numbers of one sheet look restless (TODO #114).
+ */
+export const NUMBER_FONT: FontId = 'round';
+
 /** Renders one sticker at the given resolution. */
 export async function renderItem(item: StickerItem, setup: RenderSetup, pxPerMm: number): Promise<CanvasLike> {
   // Bildkarte draws itself; on round and square labels every style looks the same (layout.ts compactLayout).
@@ -176,6 +183,7 @@ export async function renderItem(item: StickerItem, setup: RenderSetup, pxPerMm:
   const assets = Promise.all([
     loadStickerFont(fontFor(item, setup.design)),
     setup.design.logo === 'image' ? logoDrawable(setup.logo) : setup.design.logo === 'tonuino' ? officialLogo() : null,
+    setup.design.style === 'tape' ? loadStickerFont(NUMBER_FONT) : undefined,
   ]);
   // Handled below; this only keeps an early failure from being reported as unhandled.
   assets.catch(() => undefined);
@@ -186,11 +194,13 @@ export async function renderItem(item: StickerItem, setup: RenderSetup, pxPerMm:
     edge: pxPerMm < PREVIEW_PX_PER_MM ? GENERATED_EDGE.preview : GENERATED_EDGE.print,
   });
   try {
-    const [font, logo] = await assets;
+    const [font, logo, numberFont] = await assets;
+    // Drawn in a task of its own: stickers whose pictures came together do not hold back the next frame together.
+    await nextTask();
     const { width, height } = imageSize(lease.picture.image);
     const orientation = stickerOrientation(item.orientation, setup.design.orientation, width / height);
     const geometry = orientGeometry(labelGeometry(setup.template, setup.bleedMm), orientation);
-    return inMargin(setup, geometry, pxPerMm, (g) => renderSticker({ item, picture: lease.picture, design: setup.design, geometry: g, pxPerMm, font, logo }));
+    return inMargin(setup, geometry, pxPerMm, (g) => renderSticker({ item, picture: lease.picture, design: setup.design, geometry: g, pxPerMm, font, logo, numberFont }));
   } finally {
     lease.release();
   }
@@ -209,6 +219,7 @@ async function renderBildkarteItem(item: StickerItem, setup: RenderSetup, pxPerM
   try {
     const picture = lease && !lease.picture.generated ? lease.picture : null;
     const pictogram = instead ?? (!picture && item.pictogram ? await pictogramImage(item.pictogram) : null);
+    await nextTask();
     const size = picture ? imageSize(picture.image) : { width: 1, height: 1 };
     const orientation = stickerOrientation(item.orientation, d.orientation, size.width / size.height);
     const geometry = orientGeometry(labelGeometry(setup.template, setup.bleedMm), orientation);
@@ -297,7 +308,17 @@ export function renderKey(item: StickerItem, setup: RenderSetup, pxPerMm: number
 const previewCache = new Map<string, Promise<CanvasLike>>();
 const PREVIEW_CACHE_MAX = 240;
 // After the print dialog the cached renderings may be blank too (ui/repaint.ts).
-onCanvasesLost(() => previewCache.clear());
+/** The finished ones of previewCache, to draw at once when a page comes back (Prüfrunde 1 Aussehen 2). */
+const previewDone = new Map<string, CanvasLike>();
+onCanvasesLost(() => {
+  previewCache.clear();
+  previewDone.clear();
+});
+
+/** A preview already drawn, or undefined. */
+export function finishedPreview(key: string): CanvasLike | undefined {
+  return previewDone.get(key);
+}
 
 /** Cached rendering for previews. */
 export function renderPreview(item: StickerItem, setup: RenderSetup, pxPerMm: number): Promise<CanvasLike> {
@@ -306,10 +327,18 @@ export function renderPreview(item: StickerItem, setup: RenderSetup, pxPerMm: nu
   if (!p) {
     if (previewCache.size >= PREVIEW_CACHE_MAX) {
       // Oldest first: Map keeps insertion order.
-      for (const k of [...previewCache.keys()].slice(0, PREVIEW_CACHE_MAX / 2)) previewCache.delete(k);
+      for (const k of [...previewCache.keys()].slice(0, PREVIEW_CACHE_MAX / 2)) {
+        previewCache.delete(k);
+        previewDone.delete(k);
+      }
     }
     p = renderItem(item, setup, pxPerMm);
-    p.catch(() => previewCache.delete(key));
+    p.then(
+      (c) => {
+        if (previewCache.get(key) === p) previewDone.set(key, c);
+      },
+      () => previewCache.delete(key),
+    );
     previewCache.set(key, p);
   }
   return p;
@@ -359,11 +388,19 @@ async function printBitmaps(items: StickerItem[], setup: RenderSetup, onProgress
   return out;
 }
 
+function calibrationOfSetup(s: Pick<SheetSetup, 'calibration'>): Calibration {
+  return typeof s.calibration === 'function' ? s.calibration() : s.calibration;
+}
+
 export interface SheetSetup extends RenderSetup {
   usedSlots: number[];
   /** Stickers moved by hand (core/stickers/placement.ts); missing: in order. */
   pins?: Moved | null;
-  calibration: Calibration;
+  /**
+   * The printer correction; as a function it is read when the file is made, so the desktop app's
+   * print dialog can choose the printer first (its own correction, TODO #128).
+   */
+  calibration: Calibration | (() => Calibration);
   cutMarks: boolean;
   cutLines: boolean;
   /** "Erst auf Normalpapier probieren": thin outlines around every label (see SheetPdfOptions.outlines). */
@@ -430,7 +467,7 @@ async function sheetsOf(items: StickerItem[], s: SheetSetup, onProgress: (p: Pro
 
 export async function buildPdf(items: StickerItem[], s: SheetSetup, onProgress: (p: Progress) => void, signal?: AbortSignal): Promise<Blob> {
   const { pages, backs } = await sheetsOf(items, s, onProgress, signal);
-  return buildSheetPdf({ template: s.template, pages, backs, calibration: s.calibration, bleedMm: s.bleedMm, cutMarks: s.cutMarks, cutLines: s.cutLines, outlines: s.outlines, title: s.title });
+  return buildSheetPdf({ template: s.template, pages, backs, calibration: calibrationOfSetup(s), bleedMm: s.bleedMm, cutMarks: s.cutMarks, cutLines: s.cutLines, outlines: s.outlines, title: s.title });
 }
 
 /**
@@ -443,9 +480,9 @@ export async function buildPhotoSheets(items: StickerItem[], s: SheetSetup, onPr
   const out: Blob[] = [];
   for (const [i, page] of pages.entries()) {
     signal?.throwIfAborted();
-    out.push(await exportPhotoSheetJpeg({ template: s.template, page, calibration: s.calibration, bleedMm: s.bleedMm, cutMarks: s.cutMarks, cutLines: s.cutLines, outlines: s.outlines, dpi: PRINT_DPI }));
+    out.push(await exportPhotoSheetJpeg({ template: s.template, page, calibration: calibrationOfSetup(s), bleedMm: s.bleedMm, cutMarks: s.cutMarks, cutLines: s.cutLines, outlines: s.outlines, dpi: PRINT_DPI }));
     if (backs) {
-      out.push(await exportPhotoSheetJpeg({ template: mirrorTemplate(s.template), page: mirrorPage(backs[i], s.template), calibration: s.calibration, bleedMm: s.bleedMm, cutMarks: false, cutLines: false, dpi: PRINT_DPI }));
+      out.push(await exportPhotoSheetJpeg({ template: mirrorTemplate(s.template), page: mirrorPage(backs[i], s.template), calibration: calibrationOfSetup(s), bleedMm: s.bleedMm, cutMarks: false, cutLines: false, dpi: PRINT_DPI }));
     }
   }
   return out;

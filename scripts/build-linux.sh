@@ -12,6 +12,9 @@
 #   VITE_WEB_ORIGIN, VITE_SOURCES_INDEX_URL, VITE_SOURCES_CONTACT
 #                     settings of "Entdecken", passed on to the build of the
 #                     front end (docs/BUILD.md, section "Entdecken")
+#   TAURI_SIGNING_PRIVATE_KEY, TAURI_SIGNING_PRIVATE_KEY_PASSWORD
+#                     the updater's key: also builds the signed update file
+#                     of the AppImage (docs/BUILD.md, "Automatische Updates")
 set -Eeuo pipefail
 
 ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -89,10 +92,11 @@ if ! compgen -G "$TOOLS_DIR/linuxdeploy-*.AppImage" >/dev/null; then
   note "Für das AppImage lädt tauri beim ersten Mal linuxdeploy und AppRun von github.com nach $TOOLS_DIR."
 fi
 
+prepare_updater
 install_and_build_frontend linux
 
 step 'Desktop-App bauen und Pakete erstellen (tauri build: .deb und AppImage)'
-npm run tauri -- build --bundles deb,appimage --config "$TAURI_SKIP_FRONTEND_BUILD"
+npm run tauri -- build --bundles deb,appimage --config "$TAURI_SKIP_FRONTEND_BUILD" ${UPDATER_ARGS[@]+"${UPDATER_ARGS[@]}"}
 
 read_app_info
 read_cargo_info
@@ -109,4 +113,5 @@ rename_deb_package "$DEB_FILE" "$BIN_NAME"
 step 'Fertig'
 report_artifact '.deb-Paket' "$DEB_FILE"
 report_artifact 'AppImage' "$APPIMAGE_FILE"
+((${#UPDATER_ARGS[@]} == 0)) || report_artifact 'Signatur' "$APPIMAGE_FILE.sig"
 report_artifact 'Programm' "$TARGET_DIR/release/$BIN_NAME"

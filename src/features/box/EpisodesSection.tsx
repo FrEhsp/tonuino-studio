@@ -32,7 +32,7 @@ import { folderName, MAX_TRACKS } from '../../core/tonuino/sd';
 import { Button, Callout, IconButton, Progress } from '../../ui/components/controls';
 import { toast, toastError } from '../../ui/components/Toast';
 import { navigate } from '../../app/router';
-import { card, profile, selection, updateCatalog } from '../../app/state';
+import { card, profile, revealPicked, selection, updateCatalog } from '../../app/state';
 import { plural } from '../../app/format';
 import { addExtraCards, extraSelection, extras, newCards, partialDuplicateNote, sameCard } from '../cards/items';
 import type { TrackRow } from '../cards/trackTitles';
@@ -147,6 +147,7 @@ export function EpisodesSection({ folder, rows, entry }: { folder: number; rows:
   const open = (page: 'cards' | 'stickers') => {
     selection.value = new Set();
     extraSelection.value = new Set(listed.map((x) => x.id));
+    revealPicked.value = page === 'cards';
     navigate({ page });
   };
 

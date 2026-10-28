@@ -306,6 +306,12 @@
   border-left: 4px solid currentColor;
 }
 
+/* The plain hint: a pen line in the margin, no colour of its own. */
+:where(:root[data-stil='holz']) .callout:not(.success, .warning, .danger, .neutral) {
+  border-radius: 0;
+  border-left: 3px solid var(--border-strong);
+}
+
 :where(:root[data-stil='holz']) .trouble {
   position: relative;
   border: 1px solid transparent;
@@ -516,14 +522,14 @@
   pointer-events: none;
 }
 
-:where(:root[data-stil='holz']) :where( .card, .dialog, .choice, .trouble, .menu, .segmented, .dropzone, .bubble, .shelf, .tile-cover, .feature, .health-banner, .sd-status, .import-bar, .style-choice, .font-choice, .paper-option, .ws-tool, .help-topic-card, .source-card, .source-pick, .picks-teaser, .qr-block, .guide, .page > .package-gate, .btn, .nav a ) {
+:where(:root[data-stil='holz']) :where( .card, .dialog, .choice, .trouble, .menu, .segmented, .dropzone, .bubble, .shelf, .tile-cover, .feature, .health-banner, .sd-status, .import-bar, .style-choice, .font-choice, .paper-option, .ws-tool, .help-topic-card, .picks-teaser, .qr-block, .guide, .page > .package-gate, .btn, .nav a ) {
   --frame-color: var(--ink);
   --frame-w: var(--line);
   --frame-style: solid;
   position: relative;
 }
 
-:root:where([data-stil='holz']) :is( .card, .dialog, .choice, .trouble, .menu, .segmented, .dropzone, .bubble, .shelf, .tile-cover, .feature, .health-banner, .sd-status, .import-bar, .style-choice, .font-choice, .paper-option, .ws-tool, .help-topic-card, .source-card, .source-pick, .picks-teaser, .qr-block, .guide, .page > .package-gate )::before, :root:where([data-stil='holz']) .nav a[aria-current='page']::before, :root:where([data-stil='holz']) .btn:not(.ghost, .soft)::before {
+:root:where([data-stil='holz']) :is( .card, .dialog, .choice, .trouble, .menu, .segmented, .dropzone, .bubble, .shelf, .tile-cover, .feature, .health-banner, .sd-status, .import-bar, .style-choice, .font-choice, .paper-option, .ws-tool, .help-topic-card, .picks-teaser, .qr-block, .guide, .page > .package-gate )::before, :root:where([data-stil='holz']) .nav a[aria-current='page']::before, :root:where([data-stil='holz']) .btn:not(.ghost, .soft)::before {
   content: '';
   position: absolute;
   inset: -1px;
@@ -596,7 +602,7 @@
 }
 
 /* Boxes of single pages get the drawn edge too; their own straight border steps back. */
-html:root:where([data-stil='holz']) :is(.ws-tool, .help-topic-card, .source-card, .source-pick, .picks-teaser, .qr-block, .guide) {
+html:root:where([data-stil='holz']) :is(.ws-tool, .help-topic-card, .picks-teaser, .qr-block, .guide) {
   position: relative;
   border-color: transparent;
 }
@@ -877,25 +883,14 @@ html:root:where([data-stil='holz']) .special-option[aria-checked='true'] .specia
   pointer-events: none;
 }
 
-/* A small drilled speaker in front of short section titles. */
-:where(:root[data-stil='holz']) .section-title::before {
-  content: '';
-  display: inline-block;
-  width: 0.8em;
-  height: 0.8em;
-  margin-right: 0.4em;
-  vertical-align: -0.05em;
-  background: var(--wood);
-  -webkit-mask: var(--grille-small) center / contain no-repeat;
-  mask: var(--grille-small) center / contain no-repeat;
-}
+/* No drilled speaker in front of section titles: in front of every one it turned into wallpaper (Prüfrunde 1, aussehen 13). */
 
-:root[data-theme='dark']:where([data-stil='holz']) :is(.empty .empty-art, .section-title)::before {
+:root[data-theme='dark']:where([data-stil='holz']) .empty .empty-art::before {
   background: var(--wood-light);
 }
 
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme='light']):where([data-stil='holz']) :is(.empty .empty-art, .section-title)::before {
+  :root:not([data-theme='light']):where([data-stil='holz']) .empty .empty-art::before {
     background: var(--wood-light);
   }
 }
@@ -1288,7 +1283,8 @@ html:root:where([data-stil='holz']) .import-album.has-problem {
 }
 
 :where(:root[data-stil='holz']) .gen-cover .gen-num {
-  font-family: var(--font-stamp);
+  /* A cover made by the app is what the sticker shows: it keeps the sticker's stamp. */
+  font-family: var(--font-sticker-stamp);
   font-size: 30cqw;
   line-height: 1;
 }
@@ -2370,11 +2366,6 @@ html:root:where([data-stil='holz']) .import-album.has-problem {
 /* ------------------------------------------------------------------ sources.css */
 
 /* As in sources.css, repeated so it still comes after this style's own rules. */
-:where(:root[data-stil='holz']) .source-card.skeleton-card:hover {
-  box-shadow: var(--shadow-xs);
-}
-
-/* As in sources.css, repeated so it still comes after this style's own rules. */
 :where(:root[data-stil='holz']) .sources-footer > * + *::before {
   content: '·';
   margin: 0 var(--space-3);
@@ -2398,17 +2389,6 @@ html:root:where([data-stil='holz']) .import-album.has-problem {
     0 0 0 1.5px var(--ink),
     3px 4px 0 var(--drop);
   transform: rotate(-1.5deg);
-}
-
-:root:where([data-stil='holz']) :is(.source-card, .source-pick):nth-child(even) .source-cover {
-  transform: rotate(1.2deg);
-}
-
-:root:where([data-stil='holz']) .source-pick-title {
-  font-family: var(--font-hand);
-  font-weight: 400;
-  font-size: var(--text-lg);
-  line-height: 1.2;
 }
 
 :where(:root[data-stil='holz']) .source-item.picked {
@@ -2607,38 +2587,10 @@ html:root:where([data-stil='holz']) .import-album.has-problem {
   margin-top: 1px;
 }
 
-/* ------------------------------------------------------------------ 0.4.1: menu caps lit only on the open page and under the pointer */
-
 /*
- * As in 0.3, the button caps of the menu are unlit, paper with an ink edge,
- * and light up in their own colour only for the open page and while the
- * pointer (or the keyboard) is on them. Only the background (and in dark
- * mode the ink of the symbol) changes: no transform, no transition, no class.
+ * 0.6: the caps are always lit, in their full colour (Frank, REGELN 0.6):
+ * an unlit paper cap looked like a radio button next to a list of choices.
  */
-:where(:root[data-stil='holz']) :is(.nav a, .phone-tab, .phone-more) > .arcade-cap {
-  background: var(--surface);
-}
-
-:where(:root[data-stil='holz']) :is(.nav a, .phone-tab, .phone-more):is(:hover, :focus-visible, [aria-current='page']) > .arcade-cap {
-  background: var(--cap-color, var(--arcade-red));
-}
-
-/* Dark mode: an unlit cap is dark paper, so its edge and symbol take the light ink. */
-:root[data-theme='dark']:where([data-stil='holz']) :is(.nav a, .phone-tab, .phone-more) > .arcade-cap {
-  color: var(--ink);
-  box-shadow:
-    inset 0 0 0 2px var(--ink),
-    inset 0 3px 0 rgb(255 255 255 / 0.08),
-    inset 0 -3px 0 rgb(0 0 0 / 0.25);
-}
-
-:root[data-theme='dark']:where([data-stil='holz']) :is(.nav a, .phone-tab, .phone-more):is(:hover, :focus-visible, [aria-current='page']) > .arcade-cap {
-  color: #1f1a16;
-  box-shadow:
-    inset 0 0 0 2px #1f1a16,
-    inset 0 3px 0 rgb(255 255 255 / 0.42),
-    inset 0 -3px 0 rgb(31 26 22 / 0.22);
-}
 
 /* ------------------------------------------------------------------ 0.4.1: the controls of Hand.tsx, dressed as in 0.3 */
 
@@ -2761,12 +2713,14 @@ html:root:where([data-stil='holz']) .folder-kind {
   }
 }
 
-/* The main button greyed out is no pale purple: a pencil outline of the button, the word in pencil. */
+/*
+ * The main button greyed out looks the same everywhere: the pale form of the three main screens
+ * (schlank.css). A dashed outline looked like a drop field (Prüfrunde 1 Aussehen 6).
+ */
 :root:where([data-stil='holz']) .btn.primary:disabled {
-  --frame-style: dashed;
-  --frame-color: var(--pencil);
-  background: transparent;
-  color: var(--text-muted);
-  box-shadow: none;
-  opacity: 1;
+  --frame-style: solid;
+  --frame-color: var(--ink);
+  background: var(--btn-bg, var(--primary));
+  color: var(--btn-fg, #fff);
+  opacity: 0.5;
 }

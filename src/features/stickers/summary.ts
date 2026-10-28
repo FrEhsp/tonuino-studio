@@ -35,3 +35,28 @@ export function paperSize(t: LabelTemplate, perSheet: number, images: boolean): 
   if (perSheet <= 1) return sized ? '' : `, ${size}`;
   return sized ? `, ${perSheet} Sticker je Bogen` : `, ${perSheet} Sticker je ${size}`;
 }
+
+/** What „Welche Sticker?“ says in one line (0.6): „7 Ordner ohne Sticker“, „Alle 52 Ordner“, „3 Ordner und 1 Spezialkarte“. */
+export function chosenLine(c: { folders: number; allFolders: number; fresh: boolean; specials: number; pictures: number; words?: number }): string {
+  const parts: string[] = [];
+  if (c.folders) parts.push(c.fresh ? `${c.folders} Ordner ohne Sticker` : c.folders === c.allFolders && c.allFolders > 1 ? `Alle ${c.allFolders} Ordner` : `${c.folders} Ordner`);
+  if (c.specials) parts.push(c.specials === 1 ? '1 Spezialkarte' : `${c.specials} Spezialkarten`);
+  if (c.pictures) parts.push(c.pictures === 1 ? '1 eigenes Bild' : `${c.pictures} eigene Bilder`);
+  if (c.words) parts.push(c.words === 1 ? '1 Wortkarte' : `${c.words} Wortkarten`);
+  if (!parts.length) return 'Noch keine ausgewählt';
+  return parts.length === 1 ? parts[0] : `${parts.slice(0, -1).join(', ')} und ${parts[parts.length - 1]}`;
+}
+
+/** The field the first sticker goes on, counted from 1: the first one not used up yet. */
+export function firstField(used: readonly number[], perSheet: number): number {
+  const gone = new Set(used);
+  for (let i = 0; i < perSheet; i++) if (!gone.has(i)) return i + 1;
+  return 1;
+}
+
+/** „10 Stück · 83,8 × 50,8 mm“: what one sheet holds, under the paper's name (0.6). */
+export function sheetLine(t: LabelTemplate, perSheet: number, images: boolean): string {
+  const size = t.label.shape === 'round' ? `Ø ${mm(t.label.widthMm)} mm` : `${mm(t.label.widthMm)} × ${mm(t.label.heightMm)} mm`;
+  if (images) return `Jeder Sticker ein eigenes Bild · ${size}`;
+  return perSheet > 1 ? `${perSheet} Stück · ${size}` : size;
+}

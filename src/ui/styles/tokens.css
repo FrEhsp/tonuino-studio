@@ -7,11 +7,86 @@
  *
  * Fonts ship with the app (src/assets/fonts, licences next to them and in
  * "Über TonUINO Studio"); nothing is loaded from the internet.
- * Fira Sans for reading, buttons and forms; Shantell Sans, a handwriting
- * that is set like a real typeface, for headings, notes and speech
- * bubbles; Permanent Marker only as the stamp of the folder numbers on
- * shelf cards and stickers. Gochi Hand stays for the printed stickers.
+ * Since 0.6 the interface is set in the device's own font, as the tools
+ * people know from their phone and computer are (Segoe UI on Windows,
+ * San Francisco on the Mac, Roboto on Android); Roboto ships with the app,
+ * so Linux looks like Android. Fira Sans, Shantell Sans and Permanent
+ * Marker stay for what is printed (content list, manual, QR sheet, Lötplan)
+ * and for the stickers and covers, which keep their look of 0.5.
+ * Gochi Hand stays for the printed stickers.
  */
+
+@font-face {
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Roboto'), url('../../assets/fonts/roboto-latin-400-normal.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Roboto'), url('../../assets/fonts/roboto-latin-ext-400-normal.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: local('Roboto'), url('../../assets/fonts/roboto-latin-500-normal.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: local('Roboto'), url('../../assets/fonts/roboto-latin-ext-500-normal.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Roboto'), url('../../assets/fonts/roboto-latin-700-normal.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Roboto'), url('../../assets/fonts/roboto-latin-ext-700-normal.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: local('Roboto'), url('../../assets/fonts/roboto-latin-800-normal.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: local('Roboto'), url('../../assets/fonts/roboto-latin-ext-800-normal.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
 
 @font-face {
   font-family: 'Fira Sans';
@@ -211,7 +286,6 @@
 
   /* A drilled speaker grille (used as a mask, so it takes any colour). */
   --grille: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50.0' cy='50.0' r='3.1'/%3E%3Ccircle cx='58.0' cy='58.9' r='3.1'/%3E%3Ccircle cx='48.0' cy='61.8' r='3.1'/%3E%3Ccircle cx='39.5' cy='55.8' r='3.1'/%3E%3Ccircle cx='38.9' cy='45.4' r='3.1'/%3E%3Ccircle cx='46.7' cy='38.5' r='3.1'/%3E%3Ccircle cx='56.9' cy='40.2' r='3.1'/%3E%3Ccircle cx='62.0' cy='49.3' r='3.1'/%3E%3Ccircle cx='49.1' cy='73.0' r='3.1'/%3E%3Ccircle cx='38.5' cy='69.9' r='3.1'/%3E%3Ccircle cx='30.6' cy='62.3' r='3.1'/%3E%3Ccircle cx='27.1' cy='51.9' r='3.1'/%3E%3Ccircle cx='28.8' cy='41.0' r='3.1'/%3E%3Ccircle cx='35.4' cy='32.2' r='3.1'/%3E%3Ccircle cx='45.4' cy='27.5' r='3.1'/%3E%3Ccircle cx='56.4' cy='27.9' r='3.1'/%3E%3Ccircle cx='65.9' cy='33.4' r='3.1'/%3E%3Ccircle cx='71.8' cy='42.7' r='3.1'/%3E%3Ccircle cx='72.7' cy='53.7' r='3.1'/%3E%3Ccircle cx='68.4' cy='63.8' r='3.1'/%3E%3Ccircle cx='59.9' cy='70.8' r='3.1'/%3E%3Ccircle cx='25.4' cy='73.5' r='3.1'/%3E%3Ccircle cx='19.1' cy='64.2' r='3.1'/%3E%3Ccircle cx='16.2' cy='53.4' r='3.1'/%3E%3Ccircle cx='16.9' cy='42.2' r='3.1'/%3E%3Ccircle cx='21.2' cy='31.9' r='3.1'/%3E%3Ccircle cx='28.6' cy='23.5' r='3.1'/%3E%3Ccircle cx='38.4' cy='18.0' r='3.1'/%3E%3Ccircle cx='49.4' cy='16.0' r='3.1'/%3E%3Ccircle cx='60.5' cy='17.7' r='3.1'/%3E%3Ccircle cx='70.4' cy='22.8' r='3.1'/%3E%3Ccircle cx='78.1' cy='30.9' r='3.1'/%3E%3Ccircle cx='82.8' cy='41.1' r='3.1'/%3E%3Ccircle cx='83.9' cy='52.2' r='3.1'/%3E%3Ccircle cx='81.4' cy='63.1' r='3.1'/%3E%3Ccircle cx='75.4' cy='72.6' r='3.1'/%3E%3Ccircle cx='66.7' cy='79.6' r='3.1'/%3E%3Ccircle cx='56.2' cy='83.4' r='3.1'/%3E%3Ccircle cx='45.0' cy='83.6' r='3.1'/%3E%3Ccircle cx='34.3' cy='80.2' r='3.1'/%3E%3Ccircle cx='5.0' cy='49.6' r='3.1'/%3E%3Ccircle cx='6.4' cy='38.9' r='3.1'/%3E%3Ccircle cx='10.3' cy='28.8' r='3.1'/%3E%3Ccircle cx='16.6' cy='19.9' r='3.1'/%3E%3Ccircle cx='24.7' cy='12.8' r='3.1'/%3E%3Ccircle cx='34.4' cy='7.8' r='3.1'/%3E%3Ccircle cx='45.0' cy='5.3' r='3.1'/%3E%3Ccircle cx='55.8' cy='5.4' r='3.1'/%3E%3Ccircle cx='66.3' cy='8.1' r='3.1'/%3E%3Ccircle cx='75.9' cy='13.2' r='3.1'/%3E%3Ccircle cx='83.9' cy='20.4' r='3.1'/%3E%3Ccircle cx='90.0' cy='29.4' r='3.1'/%3E%3Ccircle cx='93.8' cy='39.6' r='3.1'/%3E%3Ccircle cx='95.0' cy='50.4' r='3.1'/%3E%3Ccircle cx='93.6' cy='61.1' r='3.1'/%3E%3Ccircle cx='89.7' cy='71.2' r='3.1'/%3E%3Ccircle cx='83.4' cy='80.1' r='3.1'/%3E%3Ccircle cx='75.3' cy='87.2' r='3.1'/%3E%3Ccircle cx='65.6' cy='92.2' r='3.1'/%3E%3Ccircle cx='55.0' cy='94.7' r='3.1'/%3E%3Ccircle cx='44.2' cy='94.6' r='3.1'/%3E%3Ccircle cx='33.7' cy='91.9' r='3.1'/%3E%3Ccircle cx='24.1' cy='86.8' r='3.1'/%3E%3Ccircle cx='16.1' cy='79.6' r='3.1'/%3E%3Ccircle cx='10.0' cy='70.6' r='3.1'/%3E%3Ccircle cx='6.2' cy='60.4' r='3.1'/%3E%3C/svg%3E");
-  --grille-small: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 18'%3E%3Ccircle cx='9.0' cy='9.0' r='1.75'/%3E%3Ccircle cx='14.2' cy='11.1' r='1.75'/%3E%3Ccircle cx='9.7' cy='14.6' r='1.75'/%3E%3Ccircle cx='4.6' cy='12.4' r='1.75'/%3E%3Ccircle cx='3.8' cy='6.9' r='1.75'/%3E%3Ccircle cx='8.3' cy='3.4' r='1.75'/%3E%3Ccircle cx='13.4' cy='5.6' r='1.75'/%3E%3C/svg%3E");
 
   /* Neutrals: paper and card, only a little warm; ink nearly black */
   --gray-0: #fffdf9;
@@ -300,15 +374,13 @@
   --board: #d2ad78;
   --board-edge: #8c6238;
 
-  /* Type */
-  /* Reading, buttons, forms; also the print on drawings (pins of the Lötplan). */
-  --font: 'Fira Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  /* Headings: handwriting set as a typeface. */
-  --font-display: 'Shantell Sans', 'Comic Sans MS', 'Fira Sans', cursive;
-  /* Notes, speech bubbles, the hand-written names on drawings. */
-  --font-hand: 'Shantell Sans', 'Comic Sans MS', 'Fira Sans', cursive;
-  /* The stamp: only the folder numbers on shelf cards and stickers. */
-  --font-stamp: 'Permanent Marker', 'Shantell Sans', 'Comic Sans MS', cursive;
+  /* Type (0.6): everything on screen in the device's font (see the top of this file). */
+  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-display: var(--font);
+  --font-hand: var(--font);
+  --font-stamp: var(--font);
+  /* What shows a sticker or its cover keeps the stamp of the printed sticker (Permanent Marker, as in 0.5). */
+  --font-sticker-stamp: 'Permanent Marker', 'Gochi Hand', cursive;
   --text-xs: 0.78rem;
   --text-sm: 0.86rem;
   --text-base: 0.97rem;
@@ -318,11 +390,11 @@
   --text-2xl: 1.95rem;
   --text-3xl: 2.4rem;
 
-  /* Space, radius, elevation */
-  --radius-sm: 6px;
-  --radius: 8px;
-  --radius-lg: 10px;
-  --radius-xl: 14px;
+  /* Space, radius, elevation. 0.6: corners nearly square, as cut paper, not 8–10 px everywhere (06-entwuerfe). */
+  --radius-sm: 3px;
+  --radius: 4px;
+  --radius-lg: 4px;
+  --radius-xl: 6px;
   --shadow-xs: none;
   --shadow-sm: 2px 2px 0 var(--drop);
   --shadow: 3px 3px 0 var(--drop);

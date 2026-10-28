@@ -81,10 +81,11 @@ if [[ "$WEBVIEW2_MODE" == embedBootstrapper && ! -f "$TOOLS_DIR/MicrosoftEdgeWeb
   note "tauri lädt beim ersten Mal den WebView2-Bootstrapper von go.microsoft.com nach $TOOLS_DIR."
 fi
 
+prepare_updater
 install_and_build_frontend windows
 
 step "Windows-App bauen und Installer erstellen (tauri build für $WINDOWS_TARGET)"
-npm run tauri -- build "${RUNNER_ARGS[@]}" --target "$WINDOWS_TARGET" --bundles nsis --config "$TAURI_SKIP_FRONTEND_BUILD"
+npm run tauri -- build "${RUNNER_ARGS[@]}" --target "$WINDOWS_TARGET" --bundles nsis --config "$TAURI_SKIP_FRONTEND_BUILD" ${UPDATER_ARGS[@]+"${UPDATER_ARGS[@]}"}
 
 read_app_info
 read_cargo_info
@@ -93,6 +94,7 @@ EXE="$OUT_DIR/$BIN_NAME.exe"
 
 step 'Fertig'
 report_artifact 'Installer' "$OUT_DIR/bundle/nsis/${PRODUCT_NAME}_${APP_VERSION}_x64-setup.exe"
+((${#UPDATER_ARGS[@]} == 0)) || report_artifact 'Signatur' "$OUT_DIR/bundle/nsis/${PRODUCT_NAME}_${APP_VERSION}_x64-setup.exe.sig"
 report_artifact 'Programm' "$EXE"
 
 if [[ "$TOOLCHAIN" == gnu ]]; then

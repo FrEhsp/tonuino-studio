@@ -24,7 +24,7 @@ export const CLOSE_RISKS: Readonly<Record<WriteKind, string>> = {
   downloads: 'Gerade lade ich Titel aus „Entdecken“, oder geladene Titel warten noch auf die SD-Karte. Wenn du jetzt schließt, musst du sie noch einmal laden.',
   covers: 'Gerade werden Cover auf die SD-Karte geschrieben. Wenn du jetzt schließt, fehlen danach die neuen Cover.',
   // Nothing is written yet: the files picked under „Hinzufügen“ live only in the app.
-  selection: 'Gerade wartet deine Auswahl unter „Hinzufügen“. Wenn du jetzt schließt, musst du die Dateien neu auswählen.',
+  selection: 'Gerade wartet deine Auswahl unter „Musik auf die SD-Karte“. Wenn du jetzt schließt, musst du die Dateien neu auswählen.',
 };
 
 const ORDER = Object.keys(CLOSE_RISKS) as WriteKind[];

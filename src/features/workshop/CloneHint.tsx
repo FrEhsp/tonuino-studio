@@ -30,7 +30,7 @@ export function CloneHint({ info }: { info: BoxInfo }) {
         {t.chip ? (
           <p class="small">
             Abhilfe: eine Firmware für diesen Chip. {t.chip.look ? `${t.chip.look} ` : ''}Du wählst ihn unter{' '}
-            <a href={routeToHash({ page: 'workshop', tool: 'firmware' })}>Firmware aufspielen → Extras → „Mehr: anderer MP3-Player-Chip“</a>. Die SD-Karte musst du dafür nicht ändern.
+            <a href={routeToHash({ page: 'workshop', tool: 'firmware' })}>Firmware aufspielen → Extras → „Mehr“</a>. Die SD-Karte musst du dafür nicht ändern.
           </p>
         ) : null}
         {t.remedy ? <p class="small">{t.remedy}</p> : null}

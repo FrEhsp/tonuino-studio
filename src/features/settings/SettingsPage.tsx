@@ -4,31 +4,30 @@ import {
   ArrowRight,
   BookOpen,
   Calculator,
-  CardSim,
   ChevronDown,
   CreditCard,
   KeyRound,
   ListChecks,
   Monitor,
   Moon,
-  Music,
   Nfc,
-  Palette,
-  Puzzle,
   RotateCcw,
   Smartphone,
   Speaker,
   Sun,
   Usb,
   Wifi,
-  Wrench,
 } from 'lucide-preact';
 import type { LucideIcon } from 'lucide-preact';
+import type { Icon } from '../../ui/icons';
+import { ArcadeCap, CapBox, CapHellDunkel, CapHoch, CapKarte, CapPuzzle, CapSchluessel, CapSd, type CapColor } from '../../ui/icons/caps';
 import { DEFAULT_SETTINGS, card, chooseCardMethod, platform, profile, resetSettings, setProfile, settings, updateSettings, type CardMethod, type Settings } from '../../app/state';
 import { routeToHash } from '../../app/router';
 import { handheldWord } from '../../app/device';
 import { APP_VERSION, runsAs } from '../../app/version';
 import { UpdateCheckSetting } from '../../app/UpdateNotice';
+import { abilitiesOf, cardWaysElsewhere } from '../../platform/web/abilities';
+import { WebAbilities } from './WebAbilities';
 import { adminAccessFor, effectiveAccess, type AdminAccess, type TngRelease } from '../../core/tonuino/boxguide';
 import type { FirmwareProfile } from '../../core/tonuino/card';
 import { Button, Callout, Segmented } from '../../ui/components/controls';
@@ -56,8 +55,18 @@ import {
 import { RememberedInSettings } from '../box/Remembered';
 import { setRemembering } from '../../app/remembered';
 import '../../ui/styles/settings.css';
+import { BackToWorkshop } from '../../ui/components/BackToWorkshop';
 
-const SECTION_ICONS: Record<string, LucideIcon> = { aussehen: Palette, box: Speaker, hinzufuegen: Music, dateien: CardSim, karten: Nfc, zusatzfunktionen: Puzzle, bastler: Wrench };
+/** Real caps with the ink symbols, in full colour; the areas keep the colours of the header: music yellow, cards blue (Prüfrunde 1 Aussehen 3). */
+const SECTION_CAPS: Record<string, { icon: Icon; color: CapColor }> = {
+  aussehen: { icon: CapHellDunkel, color: 'rot' },
+  box: { icon: CapBox, color: 'gruen' },
+  hinzufuegen: { icon: CapHoch, color: 'gelb' },
+  dateien: { icon: CapSd, color: 'gruen' },
+  karten: { icon: CapKarte, color: 'blau' },
+  zusatzfunktionen: { icon: CapPuzzle, color: 'rot' },
+  bastler: { icon: CapSchluessel, color: 'gelb' },
+};
 const THEME_ICONS: Record<Settings['theme'], LucideIcon> = { auto: Monitor, light: Sun, dark: Moon };
 const ACCESS_ICONS: Record<AdminAccess, LucideIcon> = { buttons: ListChecks, card: CreditCard, pin: KeyRound, calc: Calculator };
 const METHOD_ICONS: Record<CardMethod, LucideIcon> = { box: Speaker, qr: Smartphone, reader: Nfc, wifi: Wifi, usb: Usb };
@@ -70,6 +79,7 @@ export function SettingsPage() {
     <div class="page narrow settings-page">
       <header class="page-header">
         <div class="titles">
+          <BackToWorkshop />
           <h1>Einstellungen</h1>
           {/* The web app keeps them in the browser's storage, so another browser starts fresh. */}
           <p>
@@ -80,12 +90,10 @@ export function SettingsPage() {
 
       <div class="stack loose" key={generation}>
         {SETTINGS_SECTIONS.map((section) => {
-          const Icon = SECTION_ICONS[section.id] ?? Palette;
+          const cap = SECTION_CAPS[section.id] ?? SECTION_CAPS.aussehen;
           const head = (
             <>
-              <span class="settings-section-icon" aria-hidden="true">
-                <Icon size={19} strokeWidth={2.2} />
-              </span>
+              <ArcadeCap icon={cap.icon} color={cap.color} size={36} />
               <div class="stack tight grow">
                 <h2 id={`settings-${section.id}`}>{section.title}</h2>
                 <p class="small muted">{section.intro}</p>
@@ -109,9 +117,7 @@ export function SettingsPage() {
           return (
             <section class="card settings-section" aria-labelledby={`settings-${section.id}`} key={section.id}>
               <div class="settings-section-head">
-                <span class="settings-section-icon" aria-hidden="true">
-                  <Icon size={19} strokeWidth={2.2} />
-                </span>
+                <ArcadeCap icon={cap.icon} color={cap.color} size={36} />
                 <div class="stack tight">
                   <h2 id={`settings-${section.id}`}>{section.title}</h2>
                   <p class="small muted">{section.intro}</p>
@@ -127,6 +133,7 @@ export function SettingsPage() {
 
       <ResetSettings onReset={() => setGeneration((n) => n + 1)} />
       <UpdateCheckSetting />
+      <WebAbilities />
       <AboutApp />
     </div>
   );
@@ -332,7 +339,6 @@ function SettingControl({ k }: { k: SettingKey }) {
     case 'doneSound':
     case 'findCovers':
     case 'joinTracks':
-    case 'trimTracks':
     case 'monoSpeech':
     case 'episodePlanner':
     case 'stickerBacks':
@@ -361,7 +367,7 @@ function CardMethodChoice() {
   const current = available(settings.value.cardMethod) ? settings.value.cardMethod : methods[0].value;
   // The arrow keys move between the ways this app can use; the others are skipped.
   const usable = methods.filter((m) => available(m.value));
-  return (
+  const choices = (
     <div
       class="choices methods settings-methods"
       role="radiogroup"
@@ -372,30 +378,35 @@ function CardMethodChoice() {
         (i) => chooseCardMethod(usable[i].value),
       )}
     >
-      {methods.map((m) => {
+      {/* Only the ways this app can use; the others are one sentence below, not buttons that do nothing (TODO #122). */}
+      {usable.map((m) => {
         const Icon = mobile && m.value === 'reader' ? Smartphone : METHOD_ICONS[m.value];
-        const ok = available(m.value);
         return (
           <button
             type="button"
             role="radio"
-            aria-checked={ok && m.value === current}
-            aria-disabled={!ok}
-            tabIndex={ok && m.value === current ? 0 : -1}
-            class={`choice ${ok ? '' : 'disabled'}`}
+            aria-checked={m.value === current}
+            tabIndex={m.value === current ? 0 : -1}
+            class="choice"
             key={m.value}
-            onClick={() => ok && chooseCardMethod(m.value)}
+            onClick={() => chooseCardMethod(m.value)}
           >
             <span class="choice-icon">
               <Icon size={19} strokeWidth={2.2} />
             </span>
             <span class="choice-title">{m.label}</span>
             <span class="choice-text">{m.text}</span>
-            {!ok ? <span class="choice-note">{DESKTOP_ONLY}</span> : null}
           </button>
         );
       })}
     </div>
+  );
+  if (usable.length === methods.length) return choices;
+  return (
+    <>
+      {choices}
+      <p class="small muted">{platform.value?.kind === 'web' ? cardWaysElsewhere(abilitiesOf(platform.value)) : `${DESKTOP_ONLY}: ${methods.filter((m) => !available(m.value)).map((m) => m.label).join(', ')}.`}</p>
+    </>
   );
 }
 
@@ -412,13 +423,14 @@ function BoxAddressField({ enabled }: { enabled: boolean }) {
     // Only addresses that can work are kept; until then the last good one stays.
     if (c.ok) updateSettings({ boxAddress: c.value });
   };
+  // The browser cannot reach a box in the home network: a sentence instead of a field that does nothing.
+  if (!enabled) return <p class="small muted">{DESKTOP_ONLY}. Der Browser darf die Box im Heimnetz nicht erreichen.</p>;
   return (
     <div class="stack tight settings-address">
       <input
         id="setting-boxAddress-input"
         class="input"
         value={text}
-        disabled={!enabled}
         inputMode="url"
         autocomplete="off"
         spellcheck={false}
@@ -435,7 +447,6 @@ function BoxAddressField({ enabled }: { enabled: boolean }) {
           </p>
         ) : null}
       </div>
-      {!enabled ? <p class="small muted">{DESKTOP_ONLY}. Der Browser darf die Box im Heimnetz nicht erreichen.</p> : null}
     </div>
   );
 }

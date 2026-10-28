@@ -142,19 +142,25 @@ pub fn fetch(url_text: &str, headers: &[(String, String)], with_body: bool) -> C
     if !host_allowed(&url.host) {
         return Err(CmdError::not_allowed(format!("{} is not a source of the list", url.host)));
     }
-    let deadline = Instant::now() + TIMEOUT;
+    https_get(&url, &request_headers(headers), with_body, MAX_BODY, TIMEOUT)
+}
+
+/// One GET over TLS to an already checked URL with exactly these headers;
+/// never into the local network. Shared with the cover search (cover_net.rs).
+pub(crate) fn https_get(url: &Url, headers: &[(String, String)], with_body: bool, max_body: usize, timeout: Duration) -> CmdResult<HttpResponse> {
+    let deadline = Instant::now() + timeout;
     let addrs = resolve(&url.host, url.port)?;
     if let Some(local) = addrs.iter().find(|a| is_local_address(&a.ip())) {
         return Err(CmdError::not_allowed(format!("{} points into the local network ({})", url.host, local.ip())));
     }
-    let wire = build_request_for("GET", &url, 443, &request_headers(headers), &[])?;
+    let wire = build_request_for("GET", url, 443, headers, &[])?;
     let stream = connect(&addrs, deadline)?;
     let name = ServerName::try_from(url.host.clone()).map_err(|e| CmdError::invalid(format!("{}: {e}", url.host)))?;
     let conn = ClientConnection::new(tls_config()?, name).map_err(|e| CmdError::other(format!("TLS: {e}")))?;
     let mut tls = StreamOwned::new(conn, DeadlineStream { stream, deadline });
     tls.write_all(&wire).map_err(net_error)?;
     tls.flush().map_err(net_error)?;
-    parse_response_limited(&mut BufReader::new(tls), !with_body, MAX_BODY)
+    parse_response_limited(&mut BufReader::new(tls), !with_body, max_body)
 }
 
 /// Args: `url`, `headers` (only If-None-Match, If-Modified-Since, Origin and

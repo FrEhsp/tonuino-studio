@@ -19,6 +19,7 @@ import {
   type StickerTweaks,
 } from '../core/tonuino/catalog';
 import { coverEntryName, coverMimeType, loadCovers, renumberCovers, saveCovers, swapCovers, type CoverMap } from '../core/tonuino/covers';
+import { unreadableFiles } from '../core/tonuino/unreadable';
 import { checkHealth, type FormatSystem, type HealthContext, type HealthReport } from '../core/tonuino/health';
 import { doneSteps, executePlan, touchedFolders, type ExecuteProgress, type ExecuteResult, type PlanStep, type RepairPlan } from '../core/tonuino/repair';
 import { folderName, helperFolders, parseTempDir, scanSd, type ScanProgress, type SdScan } from '../core/tonuino/sd';
@@ -65,8 +66,6 @@ export interface Settings {
   findCovers: boolean;
   /** Extra: "Zusammenfügen" for several tracks on the folder page (src/features/box/JoinDialog.tsx). */
   joinTracks: boolean;
-  /** Extra: "Anfang/Ende abschneiden" in a track's menu (src/features/box/TrimDialog.tsx). */
-  trimTracks: boolean;
   /** Extra: Hörspiele and Hörbücher that are converted become mono at half the bitrate (add/process.ts). */
   monoSpeech: boolean;
   /** Extra: several episodes in one folder, one von-bis card each (src/core/tonuino/episodes.ts, box/EpisodesSection.tsx). */
@@ -104,7 +103,6 @@ export const DEFAULT_SETTINGS: Readonly<Settings> = {
   doneSound: true,
   findCovers: true,
   joinTracks: false,
-  trimTracks: false,
   monoSpeech: false,
   episodePlanner: false,
   stickerBacks: false,
@@ -211,6 +209,8 @@ export interface CardState {
   error?: string;
   /** A write on the card failed because the app lacks the rights there (desktop). */
   writeDenied?: boolean;
+  /** App files that are on the card but failed to read (unreadable.ts): the app changes nothing in them. */
+  unreadable?: string[];
 }
 
 export const volumes = signal<Volume[]>([]);
@@ -218,10 +218,16 @@ export const needsPermission = signal(false);
 export const card = signal<CardState | null>(null);
 /** Hinzufügen put something on a card in this session: "Meine Box" may now ask once to remember the box (remembered.ts). */
 export const transferredToCard = signal(false);
-/** Hinzufügen holds a recording ("Selbst aufnehmen"): the phone's tabs keep „Aufnehmen“ lit on that page (session.ts, Sidebar.tsx). */
+/** Hinzufügen holds a recording ("Selbst aufnehmen"): the phone's tabs keep „Aufnehmen“ lit on that page (session.ts). */
 export const recordingInImport = signal(false);
 /** Folders picked for printing or card writing, kept across pages. */
 export const selection = signal<Set<number>>(new Set());
+/**
+ * Set by the ways that open „Viele Karten auf einmal“ with cards picked for it (a folder, after adding, renumbering):
+ * the page then brings the first of them into view, once. Picks left from another page (stickers) do not
+ * scroll it: it opens at its top (Prüfrunde 1 Aussehen 9).
+ */
+export const revealPicked = signal(false);
 /** "Sticker anpassen" from a folder: the sticker page opens this folder's sticker for editing. */
 export const stickerToEdit = signal<number | null>(null);
 
@@ -527,6 +533,8 @@ export async function openVolume(volume: Volume) {
     const covers = await loadCovers(volume.root).catch(() => new Map() as CoverMap);
     if (seq !== openSeq) return;
     const state: CardState = { volume, status: 'ready', scan, catalog, catalogOnCard, covers, coverUrls: coverUrls(covers), info };
+    const unreadable = unreadableFiles(volume.root);
+    if (unreadable.length) state.unreadable = unreadable;
     state.report = checkHealth(scan, healthContext(state));
     card.value = state;
   } catch (e) {

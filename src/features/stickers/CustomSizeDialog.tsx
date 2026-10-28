@@ -7,8 +7,8 @@ import { printSetup, updatePrint } from './design';
 import { SheetDiagram } from './SheetDiagram';
 
 const PAPERS: { value: OwnPaper; label: string; hint: string }[] = [
-  { value: 'sheet', label: 'Etikettenbogen', hint: 'Fertig ausgestanzte Etiketten auf einem A4-Bogen. Miss die Ränder vom Blattrand bis zum ersten Etikett.' },
-  { value: 'cut', label: 'Zum Ausschneiden', hint: 'Klebepapier oder Folie in A4. Du schneidest die Sticker an den Schnittmarken selbst aus.' },
+  { value: 'sheet', label: 'Etikettenbogen', hint: 'Fertig ausgestanzte Etiketten auf einem Bogen. Miss die Ränder vom Blattrand bis zum ersten Etikett.' },
+  { value: 'cut', label: 'Zum Ausschneiden', hint: 'Klebepapier oder Folie. Du schneidest die Sticker an den Schnittmarken selbst aus.' },
   { value: 'photo', label: 'Fotoservice', hint: 'Fotosticker vom Fotoservice: Jeder Sticker wird ein eigenes Bild. Die Größe steht im Bestellformular.' },
 ];
 
@@ -51,6 +51,19 @@ export function CustomSizeDialog({ onClose }: { onClose: () => void }) {
         <Field label="Worauf druckst du?" hint={PAPERS.find((p) => p.value === form.paper)?.hint}>
           <Segmented value={form.paper} options={PAPERS.map((p) => ({ value: p.value, label: p.label }))} onChange={(paper) => set({ paper })} label="Worauf druckst du?" />
         </Field>
+        {sheet ? (
+          <Field label="Papierformat">
+            <Segmented
+              value={form.page}
+              options={[
+                { value: 'a4', label: 'A4' },
+                { value: 'letter', label: 'Letter (USA)' },
+              ]}
+              onChange={(page) => set({ page })}
+              label="Papierformat"
+            />
+          </Field>
+        ) : null}
         <Field label="Form">
           <Segmented
             value={form.shape}
@@ -68,7 +81,7 @@ export function CustomSizeDialog({ onClose }: { onClose: () => void }) {
         </div>
         {sheet ? (
           <fieldset class="own-size-sheet">
-            <legend>Auf dem A4-Bogen</legend>
+            <legend>Auf dem {form.page === 'letter' ? 'Letter' : 'A4'}-Bogen</legend>
             <p class="soft small">Leere Felder rechne ich selbst aus, so viele Etiketten, wie passen, mittig auf dem Bogen.</p>
             <div class="own-size-grid">
               <NumberField id="own-cols" label="Spalten" value={form.cols} placeholder={g ? String(g.cols) : undefined} onInput={(cols) => set({ cols })} />

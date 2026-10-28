@@ -45,6 +45,14 @@ das Protokoll der Box (Zeit, Logzeile, Ansage, Karte, Taste).
 Neuer TNG-Stand im Baukasten: einmal laufen lassen. Ändert die Firmware ihre
 Logzeilen oder Ansagen, zeigt sich das hier zuerst.
 
+Einen Kandidaten prüfen, bevor er in die App kommt
+([FIRMWARE-BAUKASTEN.md](FIRMWARE-BAUKASTEN.md), „Einen neuen Stand
+übernehmen“): `BOXSIM_BAUKASTEN=/pfad/zum/kandidaten npm run test:boxsim`.
+Der Ordner kommt von `build_baukasten.py --candidate` und hat ein eigenes
+`manifest.json`. `boxsim-run.mjs` schreibt den TNG-Stand nach `tng.json`;
+`tests/boxsim/boxsim.ts` liest ihn als `SIM_TNG`, und die Tests erwarten
+die Versionszeile dieses Stands.
+
 ## Was geprüft wird
 
 | Datei | App-Teil | gegen die echte Firmware |
@@ -68,7 +76,9 @@ printf 'until enter Idle\ncard classic tonuino=3,2\nwait 5\npress up\nwait 2\n' 
   | /tmp/boxsim --sounds scripts/firmware/boxsim-sounds.tsv classic-3.bin
 ```
 
-Optionen und Befehle stehen oben in `boxsim.c`. Jede Zeile der Ausgabe hat die
+Optionen und Befehle stehen oben in `boxsim.c`. `--bat-pin MV` legt eine
+Spannung an A5 (Akku-Messung hinter dem Spannungsteiler), für Builds mit
+`BAT_VOLTAGE_MEASUREMENT`. Jede Zeile der Ausgabe hat die
 simulierte Zeit und eine Quelle (`box|` Logzeile, `mp3|` Ansage oder Titel,
 `rfid|` Karte, `key|` Taste). Ohne `--realtime` vergeht Zeit nur während
 `wait`, `until` und `press`, etwa fünfmal schneller als echt.

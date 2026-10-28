@@ -7,6 +7,7 @@ import { checkMistakes } from './check-mistakes.mjs';
 import { directMode } from './direct-mode.mjs';
 import { dropFlow } from './drop.mjs';
 import { failed, launch } from './lib.mjs';
+import { firmware } from './firmware.mjs';
 import { folderLoudness } from './folder-loudness.mjs';
 import { handheld } from './handheld.mjs';
 import { hoerspiel } from './hoerspiel.mjs';
@@ -25,7 +26,7 @@ import { swapFolders } from './swap-folders.mjs';
 import { waitingPackage } from './waiting-package.mjs';
 import { workshopPackage } from './workshop-package.mjs';
 
-const flows = [packageFlow, checkMistakes, waitingPackage, workshopPackage, loetplan, boxtest, dropFlow, memoryMode, mergedFeatures, packageGuards, swapFolders, serialFake, directMode, folderLoudness, stickerMove, player, hoerspiel, remember, handheld, pageEdges, allScreens];
+const flows = [packageFlow, checkMistakes, waitingPackage, workshopPackage, loetplan, firmware, boxtest, dropFlow, memoryMode, mergedFeatures, packageGuards, swapFolders, serialFake, directMode, folderLoudness, stickerMove, player, hoerspiel, remember, handheld, pageEdges, allScreens];
 
 const browser = await launch();
 try {

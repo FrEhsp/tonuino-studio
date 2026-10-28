@@ -1,4 +1,3 @@
-import { signal } from '@preact/signals';
 import type { ComponentChildren } from 'preact';
 import { useMemo, useRef, useState } from 'preact/hooks';
 import { CircleCheck, Copy, FolderOpen, HardDrive, LogOut } from 'lucide-preact';
@@ -31,6 +30,7 @@ import { errorText } from '../../ui/components/Hints';
 import { toast } from '../../ui/components/Toast';
 import { copyErrorText, fsName } from './rebuildTexts';
 import { playDoneSound } from '../../ui/sound';
+import { copyToCardDialog, openCopyToCardDialog } from './openDialogs';
 import { fixableLine, WriteFixButton } from './WriteAccessNotice';
 
 /**
@@ -40,18 +40,13 @@ import { fixableLine, WriteFixButton } from './WriteAccessNotice';
  * replaced when the user says so. This card is only read.
  */
 
-const dialog = signal<number | null>(null);
-let seq = 0;
-
-export function openCopyToCardDialog(): void {
-  dialog.value = ++seq;
-}
+export { openCopyToCardDialog };
 
 export function CopyToCardDialogHost() {
-  const d = dialog.value;
+  const d = copyToCardDialog.value;
   const s = card.value;
   if (d === null || !s || s.status !== 'ready' || !s.scan || s.volume.access === 'snapshot') return null;
-  return <CopyToCardDialog key={d} onClose={() => (dialog.value = null)} />;
+  return <CopyToCardDialog key={d} onClose={() => (copyToCardDialog.value = null)} />;
 }
 
 /** The other card, or a folder on the computer to take there by hand, read. */

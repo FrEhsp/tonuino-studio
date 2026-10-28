@@ -8,7 +8,7 @@
  * A whole album in one file (lookupWholeAlbum) has no count to compare:
  * there the track lengths must add up to the file's length.
  */
-import { RateLimiter } from '../stickers/coversearch';
+import { gates, serviceJson, type Limiter } from '../covers/net';
 import type { FetchLike } from '../stickers/image';
 import { compareRelease, parseReleaseName, releaseSearchText } from './releasename';
 import { stripDownloaderNoise } from './tidy';
@@ -34,9 +34,15 @@ export interface LookupAlbum {
 export interface TrackLookupOptions {
   fetchFn: FetchLike;
   signal?: AbortSignal;
-  /** Shared MusicBrainz limiter (one request per second). */
-  rateLimiter?: RateLimiter;
+  /**
+   * Turns for the requests; unless given, the app's shared queues of
+   * iTunes and MusicBrainz (one request a second there), the same ones the
+   * cover search uses. Tests give one that never waits.
+   */
+  rateLimiter?: Limiter;
   timeoutMs?: number;
+  /** How often a busy answer (503, 429) is asked again, default 2. */
+  retries?: number;
 }
 
 /** What the folder knows: its name, maybe the artist, and the length of each track (undefined where unknown). */
@@ -45,8 +51,6 @@ export interface LookupQuery {
   artist?: string;
   durations: (number | undefined)[];
 }
-
-const musicBrainzLimiter = new RateLimiter(1100);
 
 /** Lengths may differ by this much per track (other masters, silence cut, rounding). */
 const TRACK_TOLERANCE_SEC = 6;
@@ -133,18 +137,64 @@ export function tracksTotal(tracks: readonly LookupTrack[]): number | undefined 
 }
 
 /**
+ * A part of a shop's track list that may be all the file holds: the whole
+ * list, or the list without its first piece (an intro or title song a
+ * version from a video site leaves out, TODO 0.3 #129), without its last
+ * (an outro), or without both. `from` and `to` (exclusive) index the list;
+ * `misfit` is how many seconds their lengths together are off the file's.
+ */
+export interface WholeAlbumPart {
+  from: number;
+  to: number;
+  misfit: number;
+}
+
+/** A piece left out is short (an intro, a title song, credits): at most this long, and a quarter of the list. */
+export const DROPPABLE_MAX_SEC = 300;
+
+/** A list fitting only without a piece counts this much worse (seconds of misfit per piece) when shop albums are compared. */
+const DROP_PENALTY_SEC = 5;
+
+/**
+ * The parts of a shop's list (WholeAlbumPart) whose lengths add up to the
+ * file's, best fitting first: at least two tracks, every length known, the
+ * sum within about a percent (4 to 20 seconds; rips differ in the silence at
+ * both ends and between tracks), or 2.5 % (at most a minute) when `loose`.
+ */
+export function wholeAlbumParts(totalSec: number, tracks: readonly LookupTrack[], loose = false): WholeAlbumPart[] {
+  const sum = tracksTotal(tracks);
+  if (!(totalSec > 0) || tracks.length < 2 || sum === undefined) return [];
+  const tolerance = wholeTolerance(totalSec, loose);
+  const n = tracks.length;
+  const droppable = (i: number) => tracks[i].durationSec! <= Math.min(DROPPABLE_MAX_SEC, sum / 4);
+  const out: WholeAlbumPart[] = [];
+  for (const [from, to] of [
+    [0, n],
+    [1, n],
+    [0, n - 1],
+    [1, n - 1],
+  ]) {
+    if (to - from < 2 || (from > 0 && !droppable(0)) || (to < n && !droppable(n - 1))) continue;
+    let part = 0;
+    for (let i = from; i < to; i++) part += tracks[i].durationSec!;
+    const misfit = Math.abs(part - totalSec);
+    if (misfit <= tolerance) out.push({ from, to, misfit });
+  }
+  return out.sort((a, b) => a.misfit - b.misfit);
+}
+
+/**
  * How many seconds a shop's track list is off the file's length, when it
- * fits: at least two tracks, every length known, the sum within about a
- * percent (4 to 20 seconds; rips differ in the silence at both ends and
- * between tracks), or 2.5 % (at most a minute) when `loose`. Undefined when
- * it does not fit.
+ * fits (wholeAlbumParts): the best part, a part without a piece a little
+ * worse than the whole list. Undefined when no part fits.
  */
 export function wholeAlbumMisfit(totalSec: number, tracks: readonly LookupTrack[], loose = false): number | undefined {
-  if (!(totalSec > 0) || tracks.length < 2) return undefined;
-  const sum = tracksTotal(tracks);
-  if (sum === undefined) return undefined;
-  const off = Math.abs(sum - totalSec);
-  return off <= wholeTolerance(totalSec, loose) ? off : undefined;
+  let best: number | undefined;
+  for (const p of wholeAlbumParts(totalSec, tracks, loose)) {
+    const m = p.misfit + DROP_PENALTY_SEC * (p.from + tracks.length - p.to);
+    if (best === undefined || m < best) best = m;
+  }
+  return best;
 }
 
 /** True when a shop's track list adds up to the file's length (wholeAlbumMisfit). */
@@ -203,10 +253,8 @@ export async function lookupCoverAlbum(hit: { id: string; edition?: string }, to
     return best?.album ?? null;
   }
   if (service !== 'musicbrainz' || !id) return null;
-  const limiter = opts.rateLimiter ?? musicBrainzLimiter;
   let ids = [hit.edition ?? ''].filter(Boolean);
   if (!ids.length) {
-    await limiter.wait(opts.signal);
     const json = (await getJson(`https://musicbrainz.org/ws/2/release/?query=${encodeURIComponent(`rgid:${id.replace(/[^0-9a-f-]/gi, '')}`)}&fmt=json&limit=10`, opts)) as { releases?: MbRelease[] };
     ids = (json.releases ?? []).map((r) => r.id).filter((x): x is string => !!x);
   }
@@ -363,8 +411,6 @@ export function musicBrainzQuery(q: { album: string; artist?: string; count?: nu
 }
 
 async function searchMusicBrainz(q: Wanted, opts: TrackLookupOptions): Promise<Fitting | null> {
-  const limiter = opts.rateLimiter ?? musicBrainzLimiter;
-  await limiter.wait(opts.signal);
   const json = (await getJson(`https://musicbrainz.org/ws/2/release/?query=${encodeURIComponent(musicBrainzQuery(q))}&fmt=json&limit=15`, opts)) as { releases?: MbRelease[] };
   const releases = (json.releases ?? []).flatMap((r) => {
     if (!r.id || !r.title || (q.count !== undefined && r['track-count'] !== q.count)) return [];
@@ -383,7 +429,6 @@ async function searchMusicBrainz(q: Wanted, opts: TrackLookupOptions): Promise<F
 }
 
 async function lookupMusicBrainz(id: string, opts: TrackLookupOptions): Promise<LookupAlbum | null> {
-  await (opts.rateLimiter ?? musicBrainzLimiter).wait(opts.signal);
   return parseMusicBrainzTracks(await getJson(`https://musicbrainz.org/ws/2/release/${encodeURIComponent(id)}?inc=recordings+artist-credits+release-groups+genres&fmt=json`, opts));
 }
 
@@ -414,19 +459,20 @@ export function parseMusicBrainzTracks(json: unknown): LookupAlbum | null {
 
 /* ------------------------------------------------------------ fetch */
 
-async function getJson(url: string, opts: TrackLookupOptions): Promise<unknown> {
-  const ctrl = new AbortController();
-  const onAbort = () => ctrl.abort();
-  opts.signal?.addEventListener('abort', onAbort, { once: true });
-  const timer = setTimeout(() => ctrl.abort(), opts.timeoutMs ?? 12_000);
-  try {
-    const res = await opts.fetchFn(url, { signal: ctrl.signal, headers: { Accept: 'application/json' } });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    return await res.json();
-  } finally {
-    clearTimeout(timer);
-    opts.signal?.removeEventListener('abort', onAbort);
-  }
+/**
+ * GET of a JSON answer, in the service's shared queue, again after a busy
+ * answer, and from memory when the same was asked a little earlier
+ * (src/core/covers/net.ts). Throws HttpError ("HTTP 503") and the like.
+ */
+function getJson(url: string, opts: TrackLookupOptions): Promise<unknown> {
+  const service = url.startsWith('https://musicbrainz.org/') ? 'musicbrainz' : 'itunes';
+  return serviceJson(service, url, {
+    fetchFn: opts.fetchFn,
+    signal: opts.signal,
+    timeoutMs: opts.timeoutMs,
+    limiter: opts.rateLimiter ?? gates[service],
+    retries: opts.retries ?? 2,
+  });
 }
 
 /* ------------------------------------------------------------ using a match */

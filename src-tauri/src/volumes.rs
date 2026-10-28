@@ -35,6 +35,9 @@ pub struct VolumeDto {
     pub foreign_owner: bool,
     /// The app can mount the card again for this user ("Schreibrechte holen", Linux only).
     pub can_fix_access: bool,
+    /// Read-only although the card itself is not locked: the system mounted it so,
+    /// usually after the connection broke off while writing (Linux only).
+    pub read_only_by_system: bool,
 }
 
 /// Filesystem details of any folder (used for picked folders).
@@ -55,6 +58,7 @@ pub struct VolumeInfoDto {
     pub read_only: bool,
     pub foreign_owner: bool,
     pub can_fix_access: bool,
+    pub read_only_by_system: bool,
 }
 
 /// Whether the app may change files on a volume, and whether it can fix that.
@@ -88,6 +92,7 @@ impl Default for VolumeInfoDto {
             read_only: false,
             foreign_owner: false,
             can_fix_access: false,
+            read_only_by_system: false,
         };
         dto.set_access(WriteAccess::default());
         dto
@@ -117,6 +122,7 @@ fn same_set(a: &[VolumeDto], b: &[VolumeDto]) -> bool {
                 && x.writable == y.writable
                 && x.read_only == y.read_only
                 && x.can_fix_access == y.can_fix_access
+                && x.read_only_by_system == y.read_only_by_system
         })
 }
 
@@ -409,6 +415,15 @@ pub(crate) mod platform {
         }
     }
 
+    /// The kernel's own read-only flag of a block device (/sys/class/block/<name>/ro):
+    /// set by the lock slider of the card or adapter, not by a read-only mount.
+    pub fn block_read_only(source: &str) -> Option<bool> {
+        let dev = fs::canonicalize(source).unwrap_or_else(|_| PathBuf::from(source));
+        let name = dev.file_name()?.to_str()?;
+        let flag = fs::read_to_string(Path::new("/sys/class/block").join(name).join("ro")).ok()?;
+        Some(flag.trim() == "1")
+    }
+
     /// Decodes the \xNN escapes udev uses in /dev/disk/by-label names.
     pub fn decode_udev_escapes(s: &str) -> String {
         let b = s.as_bytes();
@@ -477,6 +492,7 @@ pub(crate) mod platform {
                 read_only: access.read_only,
                 foreign_owner: access.foreign_owner,
                 can_fix_access: access.can_fix,
+                read_only_by_system: access.read_only && block_read_only(&m.source) == Some(false),
             });
         }
         out
@@ -505,6 +521,7 @@ pub(crate) mod platform {
             // Mounting again only helps the card itself, not a folder picked on it.
             access.can_fix &= path == Path::new(&m.mount_point);
             dto.set_access(access);
+            dto.read_only_by_system = access.read_only && m.source.starts_with("/dev/") && block_read_only(&m.source) == Some(false);
             dto.mount_path = Some(m.mount_point);
         }
         dto
@@ -816,6 +833,13 @@ pub(crate) mod platform {
     mod tests {
         use super::*;
 
+        #[test]
+        fn the_lock_flag_of_a_device_nobody_knows_is_unknown() {
+            // Unknown: never taken for "the system made it read-only".
+            assert_eq!(block_read_only("/dev/tonuino-test-no-such-device"), None);
+            assert_eq!(block_read_only("server:/share"), None);
+        }
+
         const MOUNTINFO: &str = "\
 22 1 259:2 / / rw,relatime shared:1 - ext4 /dev/nvme0n1p2 rw,errors=remount-ro
 23 22 259:1 / /boot/efi rw,relatime shared:2 - vfat /dev/nvme0n1p1 rw,fmask=0077
@@ -1064,6 +1088,7 @@ pub(crate) mod platform {
                     read_only: d.is_read_only(),
                     foreign_owner: false,
                     can_fix_access: false,
+                    read_only_by_system: false,
                 }
             })
             .collect()
@@ -1209,6 +1234,7 @@ pub(crate) mod platform {
                     read_only: d.is_read_only(),
                     foreign_owner: false,
                     can_fix_access: false,
+                    read_only_by_system: false,
                 }
             })
             .collect()
@@ -1314,6 +1340,7 @@ mod tests {
             read_only: false,
             foreign_owner: false,
             can_fix_access: false,
+            read_only_by_system: false,
         }
     }
 

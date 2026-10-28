@@ -21,6 +21,7 @@ import { cardIntoDevice, theDevice } from '../../app/device';
 import { Button, Callout } from '../../ui/components/controls';
 import { toastError } from '../../ui/components/Toast';
 import { useRecorder } from './RecordDialog';
+import { BackToWorkshop } from '../../ui/components/BackToWorkshop';
 
 export function RecordPage() {
   const r = useRecorder(undefined);
@@ -49,6 +50,7 @@ export function RecordPage() {
     <div class="page narrow record-page">
       <header class="page-header">
         <div class="titles">
+          <BackToWorkshop />
           <h1>Selbst aufnehmen</h1>
           <p>Oma liest vor, ihr singt ein Lied. Ich mach daraus einen Titel für die Box.</p>
         </div>

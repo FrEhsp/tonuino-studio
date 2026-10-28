@@ -15,8 +15,8 @@ describe('USB help', () => {
     const firefox = usbHelp(ctx({ serialSupported: false }));
     // Linux commands cannot help a browser without USB access.
     expect(firefox.sections.map((s) => s.id)).toEqual(['browser']);
-    expect(firefox.later.map((s) => s.id)).toEqual(['linux-access', 'linux-brltty', 'linux-modemmanager', 'cable', 'hub', 'busy']);
-    expect(usbHelp(ctx({ os: 'macos', serialSupported: false })).later[0].id).toBe('macos-driver');
+    expect(firefox.later.map((s) => s.id)).toEqual(['cable', 'hub', 'busy', 'linux-access', 'linux-brltty', 'linux-modemmanager']);
+    expect(usbHelp(ctx({ os: 'macos', serialSupported: false })).later.map((s) => s.id)).toEqual(['cable', 'hub', 'busy', 'macos-driver']);
 
     const chrome = usbHelp(ctx({}));
     expect(chrome.sections.map((s) => s.id)).not.toContain('browser');
@@ -25,9 +25,11 @@ describe('USB help', () => {
 
   it('offers the one-time setup in the desktop app on Linux', () => {
     const { sections } = usbHelp(ctx({ kind: 'desktop', canSetupAccess: true }));
-    expect(sections.map((s) => s.id)).toEqual(['linux-access', 'linux-brltty', 'linux-modemmanager', 'cable', 'hub', 'busy']);
-    expect(sections[0].action).toEqual({ kind: 'setup-access', label: 'USB-Zugriff einrichten' });
-    expect(sections[1].steps[0].command).toBe('sudo apt remove brltty');
+    // The simple things first, the terminal last (Prüfrunde 1 B6); the desktop app's own button is no terminal.
+    expect(sections.map((s) => s.id)).toEqual(['cable', 'hub', 'busy', 'linux-access', 'linux-modemmanager', 'linux-brltty']);
+    expect(sections.filter((s) => s.terminal).map((s) => s.id)).toEqual(['linux-brltty']);
+    expect(sections[3].action).toEqual({ kind: 'setup-access', label: 'USB-Zugriff einrichten' });
+    expect(sections[5].steps[0].command).toBe('sudo apt remove brltty');
   });
 
   it('does not remove brltty on Pop!_OS, where the desktop depends on it', () => {
@@ -50,7 +52,9 @@ describe('USB help', () => {
     expect(access.action).toBeUndefined();
     expect(access.steps.map((s) => s.command).filter(Boolean)).toEqual(['sudo usermod -aG dialout $USER']);
     expect(sections.find((s) => s.id === 'linux-modemmanager')?.steps[1].command).toBe('sudo systemctl disable --now ModemManager');
-    expect(sections.at(-1)?.id).toBe('chooser');
+    // The simple things end with the browser's chooser; the terminal comes after, folded.
+    expect(sections.filter((s) => !s.terminal).at(-1)?.id).toBe('chooser');
+    expect(sections.filter((s) => s.terminal).map((s) => s.id)).toEqual(['linux-access', 'linux-brltty', 'linux-modemmanager']);
   });
 
   it('names the button the page shows for choosing the box', () => {
@@ -59,18 +63,21 @@ describe('USB help', () => {
   });
 
   it('links the English CH340 driver pages and says what to click there', () => {
-    const windows = usbHelp(ctx({ os: 'windows' })).sections;
+    const windows = usbHelp(ctx({ os: 'windows' })).sections.filter((s) => s.id.startsWith('windows'));
     expect(windows.slice(0, 3).map((s) => s.id)).toEqual(['windows-driver', 'windows-device-manager', 'windows-open']);
     expect(windows[0].action).toEqual({ kind: 'link', label: 'CH340-Treiber herunterladen', url: CH340_DRIVER_URLS.windows });
     expect(CH340_DRIVER_URLS.windows).toMatch(/^https:\/\/www\.wch-ic\.com\//);
     expect(windows[0].steps[0].text).toContain('Klicke dort auf den Knopf „Download“');
     expect(windows[0].steps[1].text).toContain('„CH341SER.EXE“');
 
-    const mac = usbHelp(ctx({ os: 'macos' })).sections;
+    const mac = usbHelp(ctx({ os: 'macos' })).sections.filter((s) => s.id.startsWith('macos'));
     expect(mac[0].action).toMatchObject({ kind: 'link', url: CH340_DRIVER_URLS.macos });
     expect(CH340_DRIVER_URLS.macos).toMatch(/^https:\/\/www\.wch-ic\.com\//);
     expect(mac[0].steps[0].text).toContain('„Download“');
-    expect(ids(ctx({ os: 'other' })).slice(0, 4)).toEqual(['windows-driver', 'windows-device-manager', 'windows-open', 'macos-driver']);
+    expect(ids(ctx({ os: 'other' })).filter((id) => /^(windows|macos)/.test(id))).toEqual(['windows-driver', 'windows-device-manager', 'windows-open', 'macos-driver']);
+    // Windows and Mac never see a terminal command.
+    expect(usbHelp(ctx({ os: 'windows' })).sections.flatMap((s) => s.steps).some((st) => st.command)).toBe(false);
+    expect(usbHelp(ctx({ os: 'macos' })).sections.flatMap((s) => s.steps).some((st) => st.command)).toBe(false);
   });
 
   it('helps on Windows when the box is listed but does not open', () => {

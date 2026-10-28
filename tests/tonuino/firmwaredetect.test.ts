@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { CHECKED_TNG, standTitle } from '../../src/core/firmware/tngstands';
 import { afterBoxReport, boxDisagrees, decideProfile, profileFromBox, profileFromSounds, tngReleaseOf, tngStandOf } from '../../src/core/tonuino/firmwaredetect';
 import type { SdScan, SdSystemDir, SdTrack } from '../../src/core/tonuino/sd';
 
@@ -107,16 +108,24 @@ describe('TNG release from the version the box names', () => {
     expect(tngReleaseOf({})).toBeUndefined();
     expect(tngReleaseOf(undefined)).toBeUndefined();
   });
-  it('names the three known builds of 3.3.3 by the date in the version line', () => {
+  it('names the known states of TNG by the date in the version line', () => {
     expect(tngStandOf({ version: '3.3.3', date: '2026-02-25' })).toMatchObject({ label: 'Release vom 25.02.2026' });
-    expect(tngStandOf({ version: '3.3.3', date: '2026-09-17' })).toEqual({ label: 'Release vom 17.09.2026' });
+    // The state the app puts on boxes (CHECKED_TNG): main of 17.09.2026, never a tagged release.
+    expect(tngStandOf({ version: '3.3.3', date: '2026-09-17' })).toMatchObject({ label: 'Stand vom 17.09.2026', checked: true });
     const october = tngStandOf({ version: '3.3.3', date: '2026-10-16' })!;
     expect(october).toMatchObject({ label: 'Testversion vom 16.10.2026', preview: true });
     expect(october.note).toContain('nach einer Ansage hängen');
+    expect(october.note).toContain(standTitle(CHECKED_TNG));
     expect(tngReleaseOf({ version: '3.3.3', date: '2026-10-16' })).toBe('newer');
     expect(tngStandOf({ version: '3.3.3', date: '2026-06-11' })?.label).toBe('Zwischenstand vom 11.06.2026');
     expect(tngStandOf({ version: '3.3.3', date: '2026-11-02' })?.label).toBe('Stand vom 02.11.2026');
+    expect(tngStandOf({ version: '3.3.3', date: '2026-11-02' })?.note).toContain('Neuer als die Firmware, die TonUINO Studio aufspielt');
     expect(tngStandOf({ version: '3.3.3' })).toBeUndefined();
-    expect(tngStandOf({ version: '3.4.0', date: '2027-01-01' })).toBeUndefined();
+    // main of 26.10.2026: version string 3.3.4 while the README says 3.4.0; settings layout 3.
+    expect(tngStandOf({ version: '3.3.4', date: '2026-10-26' })).toMatchObject({ label: 'Stand vom 26.10.2026' });
+    expect(tngStandOf({ version: '3.3.4', date: '2026-10-26' })?.checked).toBeUndefined();
+    expect(tngReleaseOf({ version: '3.3.4', date: '2026-10-26' })).toBe('newer');
+    expect(tngStandOf({ version: '3.4.0', date: '2027-01-01' })?.note).toContain('Neuer als');
+    expect(tngStandOf({ version: '3.3.2', date: '2025-12-28' })?.note).toContain('Älter als die Firmware');
   });
 });

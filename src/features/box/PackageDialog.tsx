@@ -1,6 +1,6 @@
 import { signal } from '@preact/signals';
 import type { ComponentChildren } from 'preact';
-import { useMemo, useRef, useState } from 'preact/hooks';
+import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { CircleCheck, Download } from 'lucide-preact';
 import { formatBytes } from '../../app/format';
 import {
@@ -19,6 +19,7 @@ import {
   type DownloadedPackage,
 } from '../../app/pending';
 import { card, catalog, platform } from '../../app/state';
+import { holdForPackage } from '../../app/packageHold';
 import { needsPackageCheck } from '../../core/tonuino/guide';
 import { fat32Limits, knownFoldersMissing, type PackageContent, type PackageManifest, type PackageMode } from '../../core/tonuino/package';
 import type { WritePlan } from '../../core/tonuino/writeplan';
@@ -97,6 +98,9 @@ function PackageDialog({ initial, onClose }: { initial: PackageStep; onClose: ()
   const ctrl = useRef<AbortController | null>(null);
   const st = packageState.value;
   const label = snapshotOfCard.value?.label;
+  // While packing and until „Paket speichern“: nothing else may change the copy, or the Paket would be stale.
+  const inHand = view.kind === 'build' || view.kind === 'ready';
+  useEffect(() => (inHand ? holdForPackage() : undefined), [inHand]);
 
   const download = (blob: Blob, manifest: PackageManifest) => {
     try {

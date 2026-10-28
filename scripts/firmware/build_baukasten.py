@@ -44,11 +44,29 @@ OUT_DIR = REPO_ROOT / "public" / "firmware" / "baukasten"
 
 # ----------------------------------------------------------------- sources
 
-# TNG: the master commit the official builds on tonuino.github.io come from
-# ("V3.3.3 17.09.26", src/version.hpp). Library versions as TNG's
-# platformio.ini and README pin them (NeoPixel: README "1.11.0").
+# The TNG states ("Stände") the Baukasten knows, by the version string the box
+# logs (src/version.hpp). The app ships builds of exactly one of them, the
+# checked one (PINNED_STAND): the official builds on tonuino.github.io are
+# always the newest main and change without notice (docs/FIRMWARE-BAUKASTEN.md,
+# "Geprüfter Stand"). A new state is taken over only after the box simulator
+# passes with it (`--candidate`, then `npm run test:boxsim`).
+# - config "defines": the TNG switches go to the compiler as -D (states before
+#   26.10.2026, where config.hpp did not exist yet).
+# - config "config.hpp": the switches go into a config.hpp in the root of the
+#   TNG tree, which src/constants.hpp includes (TNG PR #343, Issue 342). The
+#   light ring then needs its number of pixels (NEO_RING 24).
+TNG_REPO = "https://github.com/tonuino/TonUINO-TNG.git"
+TNG_STANDS = {
+    # main of 17.09.2026, what tonuino.github.io served until 26.10.2026
+    "V3.3.3 17.09.26": {"commit": "d527ca5f3c5090a74ccdf5505202db352d7531c8", "version": "3.3.3", "date": "2026-09-17", "config": "defines"},
+    # main of 26.10.2026 (PR #343): config.hpp, settings layout 3, invertVolumeButtons for 5 buttons, BAT calibration
+    "V3.3.4 26.10.26": {"commit": "bd65503cda80e4e6944c3d23592667ed6466dda8", "version": "3.3.4", "date": "2026-10-26", "config": "config.hpp"},
+}
+PINNED_STAND = "V3.3.3 17.09.26"
+
+# Library versions as TNG's platformio.ini and README pin them (NeoPixel: README "1.11.0").
 SOURCES = {
-    "tng": ("https://github.com/tonuino/TonUINO-TNG.git", "d527ca5f3c5090a74ccdf5505202db352d7531c8"),
+    "tng": (TNG_REPO, TNG_STANDS[PINNED_STAND]["commit"]),
     # Preview "Karten über die Box beschreiben": TNG branch issue_345 ("V3.3.3 08.10.26"), which has
     # donschoof's serial WRITECARD command (PR #344, merged there by boerge1; PR #346 to main still
     # open). Same base as above (d527ca5); only the WRITE_CARD builds use it, with -D SerialWriteCard.
@@ -76,15 +94,22 @@ class Board:
     env_prefix: str
     mcu: str
     max_bytes: int
-    defines: tuple[str, ...]
+    # What PlatformIO passes for the board and its framework: always -D.
+    framework: tuple[str, ...]
+    # The TNG switch for the board (platformio.ini build_flags): -D, or a line of config.hpp.
+    pcb: str
+
+    @property
+    def defines(self) -> tuple[str, ...]:
+        return (*self.framework, self.pcb)
 
 
 BOARDS = {
     # platformio.ini [env:TonUINO_Classic_*]: board nanoatmega328 (variant eightanaloginputs). Largest
     # size: 32256 with the new bootloader (Optiboot), 30720 with the old one (see needsNewBootloader).
-    "classic": Board("classic", "TonUINO_Classic", "atmega328p", 32256, ("F_CPU=16000000L", "ARDUINO_ARCH_AVR", "ARDUINO=10808", "ARDUINO_AVR_NANO", "TonUINO_Classic=1")),
+    "classic": Board("classic", "TonUINO_Classic", "atmega328p", 32256, ("F_CPU=16000000L", "ARDUINO_ARCH_AVR", "ARDUINO=10808", "ARDUINO_AVR_NANO"), "TonUINO_Classic=1"),
     # platformio.ini [env:ALLinONE_*]: board LGT8F328P, f_cpu 16 MHz, clock_source 2 (lgt8fx boards.txt: maximum_size 29696)
-    "aio": Board("aio", "ALLinONE", "atmega328p", 29696, ("F_CPU=16000000L", "CLOCK_SOURCE=2", "SERIAL_RX_BUFFER_SIZE=64", "ARDUINO_ARCH_AVR", "ARDUINO=10808", "ARDUINO_AVR_LARDU_328E", "ALLinONE=1")),
+    "aio": Board("aio", "ALLinONE", "atmega328p", 29696, ("F_CPU=16000000L", "CLOCK_SOURCE=2", "SERIAL_RX_BUFFER_SIZE=64", "ARDUINO_ARCH_AVR", "ARDUINO=10808", "ARDUINO_AVR_LARDU_328E"), "ALLinONE=1"),
 }
 
 # ----------------------------------------------------------------- extras
@@ -192,16 +217,40 @@ class Build:
     def id(self) -> str:
         return "-".join([self.board, self.buttons, *self.extras(), *([self.preset] if self.preset != "standard" else []), *([self.chip] if self.chip != "standard" else []), *(["alarm"] if self.alarm else []), *(["writeCard"] if self.write_card else [])])
 
-    def all_defines(self) -> list[str]:
-        out = list(BOARDS[self.board].defines)
-        out += BUTTON_DEFINES[(self.board, self.buttons)]
+    def tng_defines(self, config: str = "defines") -> list[str]:
+        """The TNG switches of this build (board, buttons, extras), as NAME or NAME=VALUE."""
+        out = [BOARDS[self.board].pcb, *BUTTON_DEFINES[(self.board, self.buttons)]]
         for name in self.extras():
             out += [d for d in HW_EXTRAS[name] if d not in out]
-        return out + list(PRESETS[self.preset]) + list(CHIPS[self.chip]) + (list(ALARM_DEFINES) if self.alarm else []) + (list(WRITE_CARD_DEFINES) if self.write_card else [])
+        out += list(PRESETS[self.preset]) + list(CHIPS[self.chip]) + (list(ALARM_DEFINES) if self.alarm else []) + (list(WRITE_CARD_DEFINES) if self.write_card else [])
+        if config == "config.hpp":
+            # Since PR #343 NEO_RING is the number of pixels (constants.hpp neoPixelNumber = NEO_RING); the Baukasten's ring has 24.
+            out = [f"NEO_RING={NEO_RING_PIXELS}" if d == "NEO_RING" else d for d in out]
+            # Since PR #343 constants.hpp sets the NoAck chip only when no chip is chosen. With it as well the
+            # library talks to the player as before (and as the official builds), plus TNG's workarounds for the chip.
+            if self.chip != "standard":
+                out.append("DFMiniMp3_T_CHIP_Mp3ChipIncongruousNoAck")
+        return out
+
+    def all_defines(self, config: str = "defines") -> list[str]:
+        return [*BOARDS[self.board].framework, *self.tng_defines(config)]
 
     @property
     def tng_source(self) -> str:
         return "tng-writecard" if self.write_card else "tng"
+
+
+# The light ring of the Baukasten: 24 LEDs (before PR #343 fixed in constants.hpp).
+NEO_RING_PIXELS = 24
+
+
+def config_hpp(defines: list[str], stand: str) -> str:
+    """A config.hpp for the root of the TNG tree: only #defines (TNG README, config_all_undef.hpp)."""
+    lines = [f"// TonUINO Studio, Firmware-Baukasten: configuration of TonUINO TNG {stand}", "// (scripts/firmware/build_baukasten.py; template: config_all_undef.hpp)"]
+    for d in defines:
+        name, _, value = d.partition("=")
+        lines.append(f"#define {name} {value}".rstrip())
+    return "\n".join(lines) + "\n"
 
 
 def matrix() -> list[Build]:
@@ -311,7 +360,7 @@ def sources_in(directory: Path, recursive: bool = False) -> list[Path]:
     return sorted(p for p in directory.glob(pattern) if p.suffix in (".c", ".cpp", ".S") and p.is_file())
 
 
-def layout(board: Board, paths: dict[str, Path], tng: str = "tng") -> tuple[list[Path], dict[str, list[Path]]]:
+def layout(board: Board, paths: dict[str, Path], tng_src: Path) -> tuple[list[Path], dict[str, list[Path]]]:
     """Include folders and the sources of each archive (core, libraries)."""
     if board.id == "aio":
         root = paths["lgt8f"]
@@ -330,7 +379,7 @@ def layout(board: Board, paths: dict[str, Path], tng: str = "tng") -> tuple[list
         "Adafruit_NeoPixel": paths["Adafruit_NeoPixel"],
         **fw_libs,
     }
-    includes = [core, variant, *libs.values(), paths[tng] / "src"]
+    includes = [core, variant, *libs.values(), tng_src]
     archives = {"FrameworkArduino": sources_in(core), **{name: [p for p in sources_in(d) if p.suffix != ".c" or name != "Adafruit_NeoPixel" or p.name not in ("esp.c", "esp8266.c", "kendyte_k210.c")] for name, d in libs.items()}}
     return includes, archives
 
@@ -347,13 +396,51 @@ def compile_one(src: Path, obj: Path, mcu: str, defines: list[str], includes: li
     run([*cmd, "-c", str(src), "-o", str(obj)])
 
 
+def source_config(source: str) -> str:
+    """How a TNG source takes its switches: "defines" (-D) or "config.hpp"."""
+    return SOURCE_CONFIG.get(source, "defines")
+
+
+# Set by select_stand(): the config way of each TNG source.
+SOURCE_CONFIG: dict[str, str] = {"tng": TNG_STANDS[PINNED_STAND]["config"], "tng-writecard": "defines"}
+STAND = PINNED_STAND
+
+
+def select_stand(stand: str) -> None:
+    """Builds from another TNG state (`--tng`, `--candidate`)."""
+    global STAND
+    if stand not in TNG_STANDS:
+        sys.exit(f"unknown TNG state {stand!r}; known: {', '.join(TNG_STANDS)}")
+    STAND = stand
+    SOURCES["tng"] = (TNG_REPO, TNG_STANDS[stand]["commit"])
+    SOURCE_CONFIG["tng"] = TNG_STANDS[stand]["config"]
+
+
+def check_version(tng: Path, stand: str) -> None:
+    """The fetched TNG tree must say the version string of its state (src/version.hpp)."""
+    text = (tng / "src" / "version.hpp").read_text()
+    if f'"{stand}"' not in text:
+        sys.exit(f"TNG src/version.hpp does not say {stand!r}:\n{text}")
+
+
 def build_one(b: Build, paths: dict[str, Path], work: Path) -> dict:
     board = BOARDS[b.board]
-    defines = COMMON_DEFINES + b.all_defines()
-    includes, archives = layout(board, paths, b.tng_source)
+    config = source_config(b.tng_source)
     out = work / "build" / b.id
     if out.exists():
         shutil.rmtree(out)
+    if config == "config.hpp":
+        # A tree of its own per build: constants.hpp includes "../config.hpp" next to its src folder
+        # (and src/main.cpp the sketch "../TonUINO-TNG.ino").
+        tng_root = out / "tng"
+        shutil.copytree(paths[b.tng_source] / "src", tng_root / "src")
+        shutil.copy2(paths[b.tng_source] / "TonUINO-TNG.ino", tng_root / "TonUINO-TNG.ino")
+        (tng_root / "config.hpp").write_text(config_hpp(b.tng_defines(config), STAND))
+        defines = COMMON_DEFINES + list(board.framework)
+    else:
+        tng_root = paths[b.tng_source]
+        defines = COMMON_DEFINES + b.all_defines()
+    includes, archives = layout(board, paths, tng_root / "src")
     libs: list[Path] = []
     # Core and libraries see the same flags as the sketch, as with PlatformIO.
     for name, files in archives.items():
@@ -367,7 +454,7 @@ def build_one(b: Build, paths: dict[str, Path], work: Path) -> dict:
             run(["avr-gcc-ar", "rc", str(lib), *map(str, objs)])
             libs.append(lib)
     objs = []
-    for f in sources_in(paths[b.tng_source] / "src"):
+    for f in sources_in(tng_root / "src"):
         obj = out / "src" / f"{f.name}.o"
         compile_one(f, obj, board.mcu, defines, includes)
         objs.append(obj)
@@ -402,7 +489,7 @@ def build_one(b: Build, paths: dict[str, Path], work: Path) -> dict:
         "alarm": b.alarm,
         "writeCard": b.write_card,
         "env": f"{board.env_prefix}_{b.buttons}",
-        "defines": defines,
+        "defines": COMMON_DEFINES + b.all_defines(config),
         "bytes": len(data),
         "ram": ram,
         "fits": len(data) <= board.max_bytes,
@@ -433,7 +520,7 @@ def reuse_builds(out_dir: Path, builds: list[Build], tools: dict) -> list[dict]:
     out = []
     for b in builds:
         o = old.get(b.id)
-        if not o or o["defines"] != COMMON_DEFINES + b.all_defines():
+        if not o or o["defines"] != COMMON_DEFINES + b.all_defines(source_config(b.tng_source)):
             continue
         if o["pack"] not in unpacked:
             unpacked[o["pack"]] = gzip.decompress((out_dir / o["pack"]).read_bytes())
@@ -445,6 +532,15 @@ def reuse_builds(out_dir: Path, builds: list[Build], tools: dict) -> list[dict]:
         r["_data"] = data
         out.append(r)
     return out
+
+
+def boxsim_builds() -> list[str]:
+    """The builds the box simulator starts: BUILDS in scripts/firmware/boxsim-run.mjs (one list, kept there)."""
+    text = (REPO_ROOT / "scripts" / "firmware" / "boxsim-run.mjs").read_text()
+    m = re.search(r"const BUILDS = \[([^\]]*)\]", text)
+    if not m:
+        sys.exit("boxsim-run.mjs: BUILDS not found")
+    return re.findall(r"'([^']+)'", m.group(1))
 
 
 def manifest_sources() -> dict[str, dict[str, str]]:
@@ -468,9 +564,17 @@ def main() -> None:
     ap.add_argument("--check", action="store_true", help="rebuild and compare with the manifest")
     ap.add_argument("--print-zip-sha", action="store_true")
     ap.add_argument("--reuse", action="store_true", help="take a build from the current manifest and packs when its id, defines, sources and toolchain are the same (checked by SHA-256); builds that did not fit are built again")
+    ap.add_argument("--tng", metavar="VERSION", help=f"build from another TNG state (version string, e.g. \"V3.3.4 26.10.26\"; default: the checked one, {PINNED_STAND!r})")
+    ap.add_argument("--candidate", metavar="DIR", type=Path, help="build only what the box simulator needs (scripts/firmware/boxsim-run.mjs BUILDS) into DIR, with a manifest; then: BOXSIM_BAUKASTEN=DIR npm run test:boxsim")
     args = ap.parse_args()
+    if args.tng:
+        select_stand(args.tng)
 
     builds = matrix()
+    if args.candidate:
+        wanted = set(boxsim_builds())
+        builds = [b for b in builds if b.id in wanted]
+        args.out = args.candidate
     if args.list:
         for b in builds:
             print(b.id)
@@ -487,6 +591,7 @@ def main() -> None:
 
     tools = toolchain_info()
     paths = fetch_sources(args.work)
+    check_version(paths["tng"], STAND)
     if args.only:
         wanted = set(args.only)
         builds = [b for b in builds if b.id in wanted]
@@ -546,9 +651,10 @@ def main() -> None:
         r.pop("_data", None)
     shipped.sort(key=lambda r: r["id"])
     tng_url, tng_commit = SOURCES["tng"]
+    stand = TNG_STANDS[STAND]
     manifest = {
         "format": 1,
-        "tng": {"version": "3.3.3", "versionString": "V3.3.3 17.09.26", "repository": tng_url.removesuffix(".git"), "commit": tng_commit, "license": "GPL-3.0", "writeCard": TNG_HAS_WRITE_CARD},
+        "tng": {"version": stand["version"], "versionString": STAND, "date": stand["date"], "config": stand["config"], "repository": tng_url.removesuffix(".git"), "commit": tng_commit, "license": "GPL-3.0", "writeCard": TNG_HAS_WRITE_CARD},
         "sources": manifest_sources(),
         "toolchain": tools,
         "flags": {"c": CFLAGS_COMMON + CFLAGS_C, "cxx": CFLAGS_COMMON + CFLAGS_CXX, "link": LDFLAGS},

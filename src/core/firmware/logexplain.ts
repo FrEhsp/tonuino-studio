@@ -6,9 +6,10 @@
  * can be grouped (see BootLogParser).
  */
 import { ADMIN_MODE, decodeCard } from '../tonuino/card';
-import { tngStandOf } from '../tonuino/firmwaredetect';
+import { BACK_TO_CHECKED, tngStandOf } from '../tonuino/firmwaredetect';
 import { describeCard, modifiersFor } from '../tonuino/modes';
 import { EQ_NAMES, parseLogLine, splitPin, type BoxButtons, type BoxSettings, type FirmwareFamily, type LogRecord, type SettingRecord } from './logline';
+import { invertKind, knownStand } from './tngstands';
 import { getBoard, VARIANTS, type BoardId } from './variants';
 
 export type ExplanationLevel = 'info' | 'warn' | 'error';
@@ -34,12 +35,16 @@ export interface ExplainContext {
   firmware?: FirmwareFamily;
   /** Keys from the boot log ("A+ 5"): names the keys of the admin menu. */
   buttons?: BoxButtons;
+  /** The version line of the start ("V3.3.4 26.10.26"): what a setting does can depend on it. */
+  version?: { version: string; date?: string };
   /** File the box asked the MP3 player for last, e.g. "mp3/0340.mp3". */
   lastFile?: string;
   /** Settings seen so far in this boot. */
   settings?: BoxSettings;
   /** Last battery voltage the box measured (only firmware built with battery measurement logs it). */
   batteryVolts?: number;
+  /** How many "Shortcut not configured!" lines came since the start, this one included. */
+  shortcutMisses?: number;
   /** The last voltage line said the battery is low ("BatVoltage low …"). */
   batteryLow?: boolean;
   /** The name of a folder on the card the app knows (its catalog), for cards the box reads. */
@@ -77,9 +82,9 @@ export function explainRecord(record: LogRecord, ctx: ExplainContext = {}): Line
           );
     case 'version': {
       const title = `TonUINO TNG ${record.version}${record.date ? ` vom ${germanDate(record.date)}` : ''}`;
-      // 3.3.3 came out more than once: the date tells which (V3.3.3 25.02.26, 17.09.26, the test build 16.10.26).
+      // Version numbers say little: 3.3.3 came out more than once, the date tells which (tngstands.ts).
       const stand = tngStandOf(record);
-      if (stand?.preview) return warn('version-preview', `${title} (Testversion)`, `Auf der Box läuft eine ${stand.label}. ${stand.note ?? ''}`.trim(), 'Bleibt die Box nach einer Ansage hängen, spiele unter „Firmware“ das Release vom 17.09.2026 auf.');
+      if (stand?.preview) return warn('version-preview', `${title} (Testversion)`, `Auf der Box läuft eine ${stand.label}. ${stand.note ?? ''}`.trim(), `Bleibt die Box nach einer Ansage hängen: ${BACK_TO_CHECKED}`);
       return info('version', title, stand ? `Diese Firmware-Version läuft auf der Box: ${stand.label}.${stand.note ? ` ${stand.note}` : ''}` : 'Diese Firmware-Version läuft auf der Box.');
     }
     case 'hardware': {
@@ -202,7 +207,24 @@ export function explainRecord(record: LogRecord, ctx: ExplainContext = {}): Line
       return info('power-off', 'Die Box schaltet sich aus', 'Der Ausschalt-Timer ist abgelaufen, oder die Box wurde ausgeschaltet.');
     case 'battery-voltage':
       return record.low ? batteryLow(record.volts) : null;
+    case 'shortcut-missing':
+      return explainShortcutMissing(ctx.shortcutMisses ?? 1);
+    case 'battery-correction':
+      return info(
+        'battery-correction',
+        'Akku-Messung abgeglichen',
+        `Die Box hat den neuen Korrekturwert ${record.value} gespeichert. Er bleibt auch, wenn du danach eine Firmware ohne Abgleich aufspielst.`,
+      );
     case 'battery-empty':
+      // TNG of 26.10.2026 computes the voltage wrong on Arduino boards (tngstands.ts batteryMathBrokenOnAvr).
+      if (ctx.board && !isEsp32(ctx.board) && knownStand(ctx.version)?.batteryMathBrokenOnAvr) {
+        return warn(
+          'battery-empty',
+          'Akku leer',
+          'Die Box hält den Akku für leer und schaltet sich gleich aus. Bei TonUINO TNG vom 26.10.2026 liegt das oft an der Firmware: Sie rechnet die Akku-Messung auf dieser Platine falsch, auch bei vollem Akku.',
+          'Ist der Akku voll, spiele eine Firmware ohne Akku-Messung auf, bis eine neue Firmware das behebt.',
+        );
+      }
       return warn(
         'battery-empty',
         'Akku leer',
@@ -457,8 +479,27 @@ function batteryLow(volts: number): LineExplanation {
     'battery-low',
     'Akku fast leer',
     `Spielt die Box immer wieder einen kurzen Pling-Ton (Ansage 262), warnt sie: Ihr Akku ist fast leer. Zuletzt hat sie ${volts.toLocaleString('de-DE')} Volt gemessen. Ein Fehler beim Abspielen oder bei Bluetooth ist das nicht.`,
-    'Lade den Akku oder schließe ein Netzteil an. Kommt die Warnung auch mit vollem Akku, misst die Box die Spannung zu niedrig: Miss mit einem Messgerät nach und vergleiche mit dem Wert hier. Den Messwert gleicht nur eine selbst gebaute Firmware aus. Frage dazu im TonUINO-Forum (discourse.voss.earth).',
+    'Lade den Akku oder schließe ein Netzteil an. Kommt die Warnung auch mit vollem Akku, misst die Box die Spannung zu niedrig: Miss mit einem Messgerät nach und vergleiche mit dem Wert hier. Abgleichen kann das nur eine selbst gebaute Firmware: ab TonUINO TNG vom 26.10.2026 mit Abgleich über das Box-Logbuch, sonst frage im TonUINO-Forum (discourse.voss.earth).',
   );
+}
+
+/**
+ * TonUINO 2.1 plays shortcut 3 at the start (the start sound): one
+ * "Shortcut not configured!" then is normal. A long press on a key in the
+ * pause starts the others. Many of them without pressing point at a key that
+ * triggers by itself (forum 12459: a broken button board).
+ */
+function explainShortcutMissing(count: number): LineExplanation {
+  if (count >= 3) {
+    return warn(
+      'shortcut-repeat',
+      'Kurzwahl immer wieder ausgelöst',
+      `Die Box hat seit dem Start ${count}-mal eine Kurzwahl gestartet, für die nichts gespeichert ist. Hast du nicht so oft lang auf eine Taste gedrückt, löst eine Taste von selbst aus. Dann reagiert die Box oft nicht mehr auf die Tasten.`,
+      'Prüfe die Tasten und ihre Kabel: Klemmt eine Taste, berühren sich Lötstellen, oder steckt ein Jumper am Tastenfeld falsch? Ein defektes Tastenfeld tauschst du aus.',
+    );
+  }
+  if (count === 2) return info('shortcut-missing', 'Kurzwahl nicht belegt', 'Eine Taste hat eine Kurzwahl gestartet, für die nichts gespeichert ist. Hast du lang auf eine Taste gedrückt, ist das normal.');
+  return info('shortcut-missing', 'Kein Startsound eingestellt', 'Beim Start sucht die Box einen Startsound und findet keinen. Das ist normal, solange du im Admin-Menü keinen eingestellt hast.');
 }
 
 function rfidMissing(board: BoardId | undefined): LineExplanation {
@@ -475,11 +516,11 @@ function explainRfidVersion(version: number, board: BoardId | undefined): LineEx
   const { chip, ok } = rfidChip(version);
   if (!ok) return rfidMissing(board);
   if (version === 0x12) {
-    return warn(
+    // A hint, no fault: most of these readers work (forum 7700#1).
+    return info(
       'rfid-counterfeit',
       'Kartenleser: Nachbau-Chip',
-      'Der Kartenleser meldet sich als Nachbau. Viele davon funktionieren.',
-      'Werden Karten nicht zuverlässig erkannt, tausche den Kartenleser testweise aus. Unter Werkstatt → Kartenleser testen siehst du, wie gut er liest.',
+      'Der Kartenleser antwortet. Er meldet sich als Nachbau (0x12). Die meisten davon funktionieren. Werden Karten nicht zuverlässig erkannt, tausche den Kartenleser testweise aus. Unter Werkstatt → Kartenleser testen siehst du, wie gut er liest.',
     );
   }
   if (chip.startsWith('unbekannt')) {
@@ -606,6 +647,7 @@ const SETTING_LABELS: Record<string, string> = {
   AP: 'Admin-PIN',
   'Admin Menu Pin': 'Admin-PIN',
   PCR: 'Karte wegnehmen',
+  BV: 'Akku-Messung',
 };
 
 function explainSetting(rec: SettingRecord, ctx: ExplainContext): LineExplanation | null {
@@ -662,9 +704,26 @@ function explainSetting(rec: SettingRecord, ctx: ExplainContext): LineExplanatio
     return info(id, 'Ausschalt-Timer', isEsp32(ctx.board) ? `${text} Ändern kannst du das unter „Box einstellen“. Das geht auch auf der Webseite der Box.` : text);
   }
   if (p.invertVolumeButtons !== undefined) {
-    // commands.cpp: with FIVEBUTTONS there is no play_invert, the setting does nothing.
+    // commands.cpp: before TNG of 26.10.2026 there is no play_invert with FIVEBUTTONS, the setting does nothing;
+    // since then it swaps Vor/Zurück with Lauter/Leiser while music plays (tngstands.ts invertKind).
+    const kind = ctx.buttons === '5' ? invertKind({ buttons: '5', ...ctx.version }) : undefined;
+    if (kind === 'five') {
+      return info(
+        id,
+        'Tastenbelegung',
+        p.invertVolumeButtons
+          ? 'Bei 5 Tasten getauscht: Während die Box spielt, ändern Vor und Zurück die Lautstärke, Lauter und Leiser wechseln den Titel.'
+          : 'Bei 5 Tasten wie beschriftet: Vor und Zurück wechseln den Titel, Lauter und Leiser ändern die Lautstärke.',
+      );
+    }
     if (ctx.buttons === '5') {
-      return info(id, 'Tastenbelegung', 'Gilt nur bei 3 Tasten. Deine Box hat 5: Vor und Zurück wechseln den Titel, Lauter und Leiser ändern die Lautstärke.');
+      return info(
+        id,
+        'Tastenbelegung',
+        kind === 'none'
+          ? 'Gilt bei dieser Firmware nur für 3 Tasten. Deine Box hat 5: Vor und Zurück wechseln den Titel, Lauter und Leiser ändern die Lautstärke.'
+          : 'Bei 3 Tasten: kurz oder lang drücken. Bei 5 Tasten tauscht eine neue Firmware (ab 26.10.2026) damit Vor/Zurück und Lauter/Leiser, ältere tun damit nichts.',
+      );
     }
     return info(
       id,
@@ -696,6 +755,9 @@ function explainSetting(rec: SettingRecord, ctx: ExplainContext): LineExplanatio
         ? 'Nimmt man die Karte weg, hält die Box an.'
         : 'Die Box spielt weiter, auch wenn man die Karte wegnimmt.',
     );
+  }
+  if (p.voltMeasCorrection !== undefined) {
+    return info(id, 'Akku-Messung', `Die Box misst die Spannung des Akkus. Ihr Korrekturwert ist ${p.voltMeasCorrection}. Er gleicht die Messung an deine Platine an.`);
   }
   return null;
 }
@@ -744,6 +806,8 @@ export const RAW_LABELS: Record<string, string> = {
   card_from_web: 'Karte aus der Weboberfläche',
   // "WRITECARD" over USB (SerialWriteCard build, TNG branch issue_345)
   w_c_c_ser: 'Karte schreiben über USB',
+  // "BAT <mV>" over USB (BAT_VOLTAGE_MEASUREMENT_CALIBRATION, TNG from 26.10.2026)
+  bat_volt_corr: 'Messwert über USB',
 };
 
 /** What the box does for a button, by the command name of "btn/cmd" (commands.cpp getCommandStr). */
@@ -771,6 +835,7 @@ export const COMMAND_LABELS: Record<string, string> = {
   card_from_web: 'Karte aus der Weboberfläche abspielen',
   write_card_from_web: 'Karte aus der Weboberfläche schreiben',
   w_c_c_ser: 'Karte über USB schreiben (Befehl der App)',
+  bat_volt_corr: 'Akku-Messung abgleichen',
 };
 
 const STATES: Record<string, [string, string]> = {

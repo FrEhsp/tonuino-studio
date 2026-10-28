@@ -6,7 +6,7 @@
  * with their printer correction.
  */
 import { useEffect, useRef, useState } from 'preact/hooks';
-import { CircleCheck, FileDown } from 'lucide-preact';
+import { CircleCheck, FileDown, Printer } from 'lucide-preact';
 import { fillSheet, keyStickers, sheetSets, type KeySticker, type ThreeKeyMarks } from '../../core/stickers/keysymbols';
 import { isIdentityCalibration } from '../../core/stickers/calibration';
 import { getTemplate, type LabelTemplate } from '../../core/stickers/templates';
@@ -14,6 +14,7 @@ import { Button, Field, Segmented } from '../../ui/components/controls';
 import { toastError, toastSaved } from '../../ui/components/Toast';
 import { plat, profile } from '../../app/state';
 import { calibrationFor } from '../stickers/design';
+import { canPrint, printDocument } from '../stickers/print';
 import type { KeyColor } from '../stickers/keystickers';
 import { manualFacts, type ManualChoice } from '../manual/manualbox';
 import { knownBuild } from './boxbuild';
@@ -46,7 +47,7 @@ export function KeyStickerTool() {
   const [size, setSize] = useState<KeyPaper>('round-30');
   const [color, setColor] = useState<KeyColor>('white');
   const [marks, setMarks] = useState<ThreeKeyMarks>('both');
-  const [busy, setBusy] = useState(false);
+  const [busy, setBusy] = useState<'pdf' | 'print' | null>(null);
   const facts = manualFacts({ info, profile: profile.value, build: knownBuild.value, choice });
   const box = facts.box;
   const template = paper(size);
@@ -57,7 +58,7 @@ export function KeyStickerTool() {
   const pictures = useSheetPictures(template, set, stickers, color, calibration);
 
   const save = async () => {
-    setBusy(true);
+    setBusy('pdf');
     try {
       const { keySheetPdf } = await import('../stickers/keystickers');
       const blob = await keySheetPdf({ template, stickers, color, calibration });
@@ -65,9 +66,23 @@ export function KeyStickerTool() {
     } catch (e) {
       toastError('Das PDF ließ sich nicht erstellen', e);
     } finally {
-      setBusy(false);
+      setBusy(null);
     }
   };
+  // The same way in real size as the stickers and the test page (Prüfrunde 1, bastler 25).
+  const printNow = async () => {
+    setBusy('print');
+    try {
+      const { keySheetPdf, keySheetPicture } = await import('../stickers/keystickers');
+      const sheet = { template, stickers, color, calibration };
+      await printDocument(plat(), { name: 'Tasten-Sticker.pdf', page: template.page, pages: 1, pdf: () => keySheetPdf(sheet), pictures: async () => [await keySheetPicture(sheet, 300)] });
+    } catch (e) {
+      toastError('Drucken hat nicht geklappt', e);
+    } finally {
+      setBusy(null);
+    }
+  };
+  const printing = canPrint(plat());
 
   const shortWord = box.shortPressVolume ? 'lauter' : 'zum nächsten Titel';
   const longWord = box.shortPressVolume ? 'zum nächsten Titel' : 'lauter';
@@ -132,13 +147,18 @@ export function KeyStickerTool() {
               </div>
             </details>
           ) : null}
-          <div>
-            <Button variant="primary" icon={FileDown} onClick={save} loading={busy}>
+          <div class="row wrap">
+            {printing ? (
+              <Button variant="primary" icon={Printer} onClick={printNow} loading={busy === 'print'} disabled={!!busy}>
+                Drucken
+              </Button>
+            ) : null}
+            <Button variant={printing ? 'default' : 'primary'} icon={FileDown} onClick={save} loading={busy === 'pdf'} disabled={!!busy}>
               Als PDF speichern
             </Button>
           </div>
           <p class="small soft">
-            Ein Bogen hat {sets} {sets === 1 ? 'Satz' : 'Sätze'} für deine Box{spare ? ` und ${spare === 1 ? 'einen Sticker' : `${spare} Sticker`} extra` : ''}. Drucke das PDF auf ganzflächiges Klebepapier oder Folie, mit „Tatsächliche Größe“ (100&nbsp;%). Schneide die
+            Ein Bogen hat {sets} {sets === 1 ? 'Satz' : 'Sätze'} für deine Box{spare ? ` und ${spare === 1 ? 'einen Sticker' : `${spare} Sticker`} extra` : ''}. Drucke auf ganzflächiges Klebepapier oder Folie, in echter Größe (beim PDF: „Tatsächliche Größe“, 100&nbsp;%). Schneide die
             Sticker mit einem Kreisstanzer ({template.label.widthMm}&nbsp;mm) oder einer Schere an der Linie aus. Mit Schutzfolie oder Klarlack darüber halten sie länger.
             {isIdentityCalibration(calibration) ? null : ' Den Ausgleich aus „Drucker ausrichten“ für dieses Papier rechne ich mit ein.'}
           </p>

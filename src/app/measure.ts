@@ -20,7 +20,7 @@ import { newCatalog, serializeCatalog, type Catalog } from '../core/tonuino/cata
 import { saveCovers, type CoverMap } from '../core/tonuino/covers';
 import { card } from './state';
 import { holdMemories } from './remembered';
-import { navigate, route, type Route } from './router';
+import { navigate, route, routeToHash, type Route } from './router';
 import { lastNativeAudio, type MediaLike, type NativeAudio } from '../ui/nativeAudio';
 
 
@@ -205,9 +205,15 @@ class ChangeWatch {
   count = 0;
   shifts = 0;
   shiftScore = 0;
-  private mo = new MutationObserver(() => this.note());
+  // Only what one sees: a page kept hidden (App.tsx) that is built or changes meanwhile changes nothing on screen.
+  private mo = new MutationObserver((records) => {
+    if (records.some((r) => !unseen(r))) this.note();
+  });
   private po: PerformanceObserver | null = null;
-  private onLoad = () => this.note();
+  // A picture in the page; not the code of a page fetched ahead (a <link> or <script> in <head>).
+  private onLoad = (e: Event) => {
+    if (e.target instanceof Node && document.body.contains(e.target) && !inHiddenPage(e.target)) this.note();
+  };
   constructor() {
     this.mo.observe(document.body, { subtree: true, childList: true, attributes: true, characterData: true });
     document.addEventListener('load', this.onLoad, true);
@@ -240,6 +246,19 @@ class ChangeWatch {
   }
 }
 
+/** Part of a page kept hidden while another one shows (App.tsx), or that page's slot as it goes. */
+function inHiddenPage(target: EventTarget | null): boolean {
+  const el = target instanceof Element ? target : target instanceof Node ? target.parentElement : null;
+  return !!el?.closest('.page-slot-hidden');
+}
+
+/** A change in a hidden page, or a hidden page that comes or goes as a whole (a page built ahead). */
+function unseen(r: MutationRecord): boolean {
+  if (inHiddenPage(r.target)) return true;
+  const nodes = r.type === 'childList' ? [...r.addedNodes, ...r.removedNodes] : [];
+  return nodes.length > 0 && nodes.every((n) => n instanceof Element && n.classList.contains('page-slot-hidden'));
+}
+
 /** Waits until nothing changed for `quietMs`, at most `maxMs`; returns when the last change was. */
 async function settle(watch: ChangeWatch, since: number, quietMs = 1200, maxMs = 6000): Promise<number> {
   for (;;) {
@@ -250,18 +269,23 @@ async function settle(watch: ChangeWatch, since: number, quietMs = 1200, maxMs =
 }
 
 const PAGES: { name: string; route: Route }[] = [
+  { name: 'Musik auf die SD-Karte', route: { page: 'musik' } },
+  { name: 'Karte beschreiben', route: { page: 'karte' } },
+  { name: 'Sticker drucken', route: { page: 'sticker' } },
+  { name: 'Werkstatt', route: { page: 'workshop' } },
   { name: 'Meine Box', route: { page: 'box' } },
   { name: 'Hinzufügen', route: { page: 'add' } },
-  { name: 'Sticker drucken', route: { page: 'stickers' } },
-  { name: 'Karten beschreiben', route: { page: 'cards' } },
-  { name: 'Werkstatt', route: { page: 'workshop' } },
+  { name: 'Sticker mit allen Einstellungen', route: { page: 'stickers' } },
+  { name: 'Viele Karten auf einmal', route: { page: 'cards' } },
   { name: 'Hilfe', route: { page: 'help' } },
   { name: 'Einstellungen', route: { page: 'settings' } },
 ];
 
+/** The link to a page in the bar on top (or in the list of the Werkstatt), as a person would click it. */
 function navLink(r: Route): HTMLElement | null {
-  const hash = r.page === 'box' ? '#/' : r.page === 'add' ? '#/hinzufuegen' : r.page === 'stickers' ? '#/sticker' : r.page === 'cards' ? '#/karten' : r.page === 'workshop' ? '#/werkstatt' : r.page === 'help' ? '#/hilfe' : '#/einstellungen';
-  return document.querySelector<HTMLElement>(`.sidebar a[href="${hash}"]`);
+  const hash = routeToHash(r);
+  // Not one in a page kept hidden (the list of the Werkstatt): a person clicks only what shows.
+  return [...document.querySelectorAll<HTMLElement>(`.kopf a[href="${hash}"], .ws-liste a[href="${hash}"]`)].find((a) => !inHiddenPage(a)) ?? null;
 }
 
 async function openPage(watch: ChangeWatch, page: (typeof PAGES)[number]) {
@@ -533,8 +557,12 @@ async function measureRealCard(watch: ChangeWatch) {
 /** Runs the whole measurement once the made-up box is open; returns the report. */
 export async function runMeasurement(short = false): Promise<unknown> {
   catchPlayer();
+  // Meine Box with its shelf, as one sees it: since 0.6 the app starts at „Musik“, so first go there
+  // (as from the menu at the card's name). Waiting for any shelf counted the one of Meine Box built
+  // ahead, hidden, a second or more later; and the shelf scrolled below was then not the one in sight (Prüfrunde 2, webkit W4).
   const t0 = performance.now();
-  while (card.value?.status !== 'ready' || !document.querySelector('.shelf .tile')) {
+  if (route.value.page !== 'box') navigate({ page: 'box' });
+  while (card.value?.status !== 'ready' || !shownPage()?.querySelector('.shelf .tile')) {
     if (performance.now() - t0 > 30000) break;
     await sleep(50);
   }

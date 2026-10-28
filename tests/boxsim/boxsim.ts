@@ -16,7 +16,7 @@
  * tests of tests/boxsim are skipped.
  */
 import { spawn, type ChildProcessWithoutNullStreams } from 'node:child_process';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { SerialAccess, SerialConnection, SerialPortInfo, SerialSignals } from '../../src/platform/types';
@@ -27,6 +27,17 @@ export const SIM_BIN = SIM_DIR ? join(SIM_DIR, 'boxsim') : '';
 const SOUNDS = fileURLToPath(new URL('../../scripts/firmware/boxsim-sounds.tsv', import.meta.url));
 /** True when `npm run test:boxsim` prepared the simulator. */
 export const canSimulate = !!SIM_DIR && existsSync(SIM_BIN);
+
+/**
+ * The TNG state of the builds under test (manifest `tng`, written by
+ * boxsim-run.mjs): the checked one of the app, or a candidate built with
+ * `build_baukasten.py --candidate` (BOXSIM_BAUKASTEN).
+ */
+export const SIM_TNG: { version: string; versionString: string; date: string } = (() => {
+  const file = SIM_DIR ? join(SIM_DIR, 'tng.json') : '';
+  if (file && existsSync(file)) return JSON.parse(readFileSync(file, 'utf8')) as { version: string; versionString: string; date: string };
+  return { version: '3.3.3', versionString: 'V3.3.3 17.09.26', date: '2026-09-17' };
+})();
 
 export interface SimEvent {
   /** Simulated seconds since power on. */

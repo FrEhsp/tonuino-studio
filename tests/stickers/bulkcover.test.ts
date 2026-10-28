@@ -1,4 +1,6 @@
-import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { resetNet, type Limiter } from '../../src/core/covers/net';
+import { searchOptionsFor } from '../../src/core/covers/autofind';
 import {
   buildFolderQuery,
   chosenCandidate,
@@ -69,6 +71,11 @@ const named = (query: string) => ({ query, specific: true });
 const result = (...candidates: CoverCandidate[]): CoverSearchResult => ({ candidates, warnings: [] });
 const nobody: CoverSearchResult = { candidates: [], warnings: ['iTunes antwortet nicht.', 'MusicBrainz antwortet nicht.'] };
 const noWait = () => new RateLimiter(0);
+/** Every service's turn at once. */
+const instant = (): Limiter => ({ wait: async (signal) => void signal?.throwIfAborted() });
+const quick = () => ({ itunes: instant(), deezer: instant(), musicbrainz: instant() });
+
+beforeEach(() => resetNet());
 
 // ---------------------------------------------------------------------------
 
@@ -92,7 +99,15 @@ describe('which folders', () => {
   it('lists known folders without a cover, in folder order, and never one that has a cover', () => {
     const list = coverlessFolders(scan, catalog, covers);
     expect(list.map((t) => t.folder)).toEqual([1, 3, 5, 6]);
-    expect(list[0]).toEqual({ folder: 1, title: 'Folge 125: Feuermond', detail: 'Die drei ???', query: 'Die drei ??? Folge 125: Feuermond', specific: true });
+    expect(list[0]).toEqual({
+      folder: 1,
+      title: 'Folge 125: Feuermond',
+      detail: 'Die drei ???',
+      query: 'Die drei ??? Folge 125: Feuermond',
+      specific: true,
+      // The services get the series as artist and the title apart.
+      search: { artist: 'Die drei ???', album: 'Folge 125: Feuermond' },
+    });
     expect(list[1]).toMatchObject({ folder: 3, detail: 'Rolf Zuckowski', query: 'Rolf Zuckowski Die Weihnachtsbäckerei' });
     // Without a real name there is nothing to search for.
     expect(list[2]).toEqual({ folder: 5, title: 'Ordner 05', detail: undefined, query: '', specific: false });
@@ -340,7 +355,7 @@ describe('rows', () => {
 const art = (id: string) => `https://is1-ssl.mzstatic.com/image/thumb/Music/${id}/source/100x100bb.jpg`;
 const jsonResponse = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
 
-/** A small iTunes and MusicBrainz that know six audio plays. */
+/** A small iTunes, Deezer and MusicBrainz that know six audio plays. */
 const SHELF = [
   { id: 1, artist: 'Die drei ???', title: 'Folge 125: Feuermond' },
   { id: 2, artist: 'Bibi Blocksberg', title: 'Folge 3: Hexen gibt es doch' },
@@ -356,12 +371,15 @@ function fakeFetch(opts: { down?: boolean; onRequest?: (url: string) => void } =
     await new Promise((r) => setTimeout(r, 2));
     if (init?.signal?.aborted) throw new DOMException('Abgebrochen', 'AbortError');
     if (opts.down) throw new TypeError('Failed to fetch');
-    const term = decodeURIComponent(url.split(/[?&](?:term|query)=/)[1]?.split('&')[0] ?? '')
+    const term = decodeURIComponent(url.split(/[?&](?:term|query|q)=/)[1]?.split('&')[0] ?? '')
       .replace(/\+/g, ' ')
       .toLowerCase();
     const hits = SHELF.filter((s) => term.includes(s.artist.toLowerCase().split(' ')[0]) || s.title.toLowerCase().split(/\W+/).some((w) => w.length > 4 && term.includes(w)));
     if (url.startsWith('https://itunes.apple.com/search?')) {
       return jsonResponse({ resultCount: hits.length, results: hits.map((s) => ({ wrapperType: 'collection', collectionId: s.id, artistName: s.artist, collectionName: s.title, artworkUrl100: art(String(s.id)) })) });
+    }
+    if (url.startsWith('https://api.deezer.com/search/album?')) {
+      return jsonResponse({ data: hits.map((s) => ({ id: s.id, title: s.title, artist: { name: s.artist }, cover_medium: `https://e-cdns-images.dzcdn.net/images/cover/${s.id}/250x250.jpg` })), total: hits.length });
     }
     if (url.startsWith('https://musicbrainz.org/ws/2/release/?')) {
       return jsonResponse({ releases: hits.map((s) => ({ id: `rel-${s.id}`, score: 90, title: s.title, 'artist-credit': [{ name: s.artist }], 'release-group': { id: `rg-${s.id}` } })) });
@@ -380,7 +398,7 @@ const SIX: BulkTarget[] = [
 ];
 
 describe('searching many folders', () => {
-  it('searches every folder with a name, at most two at a time, and proposes a cover per folder', async () => {
+  it('searches every folder with a name, four at a time, and proposes a cover per folder', async () => {
     let running = 0;
     let most = 0;
     const fetchFn = fakeFetch();
@@ -389,11 +407,11 @@ describe('searching many folders', () => {
     const wait = vi.spyOn(spacing, 'wait');
     await runBulkSearch(SIX, {
       spacing,
-      search: async (query, signal) => {
+      search: async (query, signal, target) => {
         running++;
         most = Math.max(most, running);
         try {
-          return await searchCovers(query, { fetchFn, signal, rateLimiter: noWait() });
+          return await searchCovers(query, { fetchFn, ...searchOptionsFor(target, signal), limiters: quick() });
         } finally {
           running--;
         }
@@ -402,10 +420,14 @@ describe('searching many folders', () => {
         rows = rows.map((row) => (row.target.folder === folder ? withResult(row, r) : row));
       },
     });
-    expect(most).toBe(2);
+    expect(most).toBe(4);
     expect(wait).toHaveBeenCalledTimes(5);
-    // One request per service and folder; the folder without a name is not searched.
-    expect(fetchFn).toHaveBeenCalledTimes(10);
+    // iTunes and Deezer for each folder with a name; MusicBrainz only for the one they found nothing sure for.
+    const urls = fetchFn.mock.calls.map(([url]) => url);
+    expect(urls.filter((u) => u.includes('itunes'))).toHaveLength(5);
+    expect(urls.filter((u) => u.includes('deezer'))).toHaveLength(5);
+    expect(urls.filter((u) => u.includes('musicbrainz'))).toHaveLength(1);
+    expect(urls.find((u) => u.includes('musicbrainz'))).toMatch(/benjamin/i);
     expect(rows.map((r) => r.status)).toEqual(['found', 'found', 'found', 'found', 'found', 'noName']);
     expect(rows.map((r) => chosenCandidate(r)?.title)).toEqual([
       'Folge 125: Feuermond',
@@ -442,15 +464,15 @@ describe('searching many folders', () => {
     const results: number[] = [];
     const run = runBulkSearch(SIX, {
       spacing: noWait(),
-      search: (query, signal) => searchCovers(query, { fetchFn, signal, rateLimiter: noWait() }),
+      search: (query, signal) => searchCovers(query, { fetchFn, signal, limiters: quick() }),
       onResult: (folder) => results.push(folder),
     });
     await expect(run).rejects.toBeInstanceOf(UnreachableError);
     await expect(run).rejects.toThrow(UNREACHABLE_MESSAGE);
-    // It gave up after the first two folders instead of trying all of them.
+    // It gave up after the first folders instead of trying all of them.
     expect(results.length).toBeLessThanOrEqual(2);
-    // At most a third search had started (and was stopped): one request per service each.
-    expect(fetchFn.mock.calls.length).toBeLessThanOrEqual(6);
+    // Four folders at a time, one request per service each, and the fifth folder at most: then it stops.
+    expect(fetchFn.mock.calls.length).toBeLessThanOrEqual(15);
   });
 
   it('goes on when only some folders fail', async () => {
@@ -471,17 +493,17 @@ describe('searching many folders', () => {
     ]);
   });
 
-  it('marks folders as failed, not as "nothing found", when iTunes does not answer and MusicBrainz has nothing', async () => {
+  it('marks folders as failed, not as "nothing found", when iTunes does not answer and the others have nothing', async () => {
     const three = SIX.slice(0, 3);
     let rows = newRows(three);
-    // iTunes times out, MusicBrainz answers with an empty list.
+    // iTunes does not answer, Deezer and MusicBrainz answer with an empty list.
     const fetchFn = vi.fn(async (url: string) => {
       if (url.startsWith('https://itunes.apple.com/')) throw new TypeError('Failed to fetch');
-      return jsonResponse({ releases: [] });
+      return jsonResponse(url.includes('deezer') ? { data: [], total: 0 } : { releases: [] });
     });
     await runBulkSearch(three, {
       spacing: noWait(),
-      search: (query, signal) => searchCovers(query, { fetchFn, signal, rateLimiter: noWait() }),
+      search: (query, signal) => searchCovers(query, { fetchFn, signal, limiters: quick() }),
       onResult: (folder, r) => {
         rows = rows.map((row) => (row.target.folder === folder ? withResult(row, r) : row));
       },

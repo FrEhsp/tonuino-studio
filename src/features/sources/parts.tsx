@@ -1,6 +1,6 @@
 /** Pieces shared by the overview and the source pages of "Entdecken". */
 import type { ComponentChildren } from 'preact';
-import { useState } from 'preact/hooks';
+import { useEffect, useRef, useState } from 'preact/hooks';
 import { RefreshCw, WifiOff } from 'lucide-preact';
 import { Badge, Button, Callout, EmptyState } from '../../ui/components/controls';
 import { agesLabel, CATEGORY_LABEL } from '../../core/sources/filter';
@@ -8,6 +8,8 @@ import type { IndexEntry } from '../../core/sources/types';
 import { navigate } from '../../app/router';
 import { platform } from '../../app/state';
 import { cardReading, chooseCardFolder } from '../../app/pending';
+import { watchNear } from '../../ui/nearScreen';
+import { reloadToNewest } from '../../app/pwa';
 import { blockerText, BUSY_HINT, dayLabel, deliveryOf, entryRightsBadge, OFFLINE_HINT, type Blocker } from './labels';
 import { coverFailed, coverRev, coverSrc } from './coverCache';
 import { canUpdateList, currentIndex, ensureIndex, indexState, localListMode, online, packageMode, type ReadyState } from './state';
@@ -22,17 +24,24 @@ import { canUpdateList, currentIndex, ensureIndex, indexState, localListMode, on
  * (no referrer) once and is kept on this computer (coverCache.ts). The start
  * page passes none, it stays offline.
  */
-export function SourceCover({ cover, title, size = 'md' }: { entry?: Pick<IndexEntry, 'id' | 'categories'>; cover?: string; title?: string; size?: 'sm' | 'md' | 'lg' }) {
+export function SourceCover({ cover, title, size = 'md', lazy = false }: { entry?: Pick<IndexEntry, 'id' | 'categories'>; cover?: string; title?: string; size?: CoverSize; lazy?: boolean }) {
   const [loaded, setLoaded] = useState<string | null>(null);
+  const box = useRef<HTMLDivElement>(null);
+  // lazy: the shelves of the overview fetch a picture only once it comes near the screen (also sideways in its row).
+  const [near, setNear] = useState(!lazy);
+  useEffect(() => {
+    if (near || !box.current) return;
+    return watchNear(box.current, (n) => n && setNear(true));
+  }, [near]);
   void coverRev.value;
   void online.value;
   // Stored covers show at once (also offline); the others load from the source.
-  const src = cover ? coverSrc(cover) : undefined;
+  const src = cover && near ? coverSrc(cover) : undefined;
   const picture = src || undefined;
   const waiting = !!cover && src === undefined;
   if (!picture && !waiting && size === 'sm') return null;
   return (
-    <div class={`source-cover ${size}${picture || waiting ? ' has-picture' : ' no-picture'}${picture && loaded === picture ? ' is-loaded' : ''}`} aria-hidden={picture ? undefined : 'true'}>
+    <div ref={box} class={`source-cover ${size}${picture || waiting ? ' has-picture' : ' no-picture'}${picture && loaded === picture ? ' is-loaded' : ''}`} aria-hidden={picture ? undefined : 'true'}>
       {picture ? (
         <img
           key={picture}
@@ -58,8 +67,9 @@ export function CoverCredit({ entry }: { entry: Pick<IndexEntry, 'cover' | 'cove
   return <p class="source-cover-credit">{entry.coverFrom}</p>;
 }
 
-/** Edge of the square cover in CSS pixels per size (sources.css; phones show it smaller). */
-const COVER_PX = { sm: 40, md: 96, lg: 136 } as const;
+/** Edge of the square cover in CSS pixels per size (sources.css; phones show it smaller). tile: a shelf of the overview; xl: the tip on top. */
+const COVER_PX = { sm: 40, md: 96, lg: 136, tile: 168, xl: 240 } as const;
+export type CoverSize = keyof typeof COVER_PX;
 
 /** Kinds, age, licence, language and how the files are loaded. */
 export function EntryBadges({ entry }: { entry: IndexEntry }) {
@@ -147,7 +157,7 @@ export function IndexGate({ children }: { children: (ready: ReadyState) => Compo
         title="Neue Version nötig"
         actions={
           web ? (
-            <Button variant="primary" icon={RefreshCw} onClick={() => location.reload()}>
+            <Button variant="primary" icon={RefreshCw} onClick={() => void reloadToNewest()}>
               Seite neu laden
             </Button>
           ) : null
@@ -200,16 +210,13 @@ export function IndexGate({ children }: { children: (ready: ReadyState) => Compo
   }
   return (
     <div class="sources-loading" role="status" aria-label="Die Liste wird geladen">
-      {[0, 1, 2, 3].map((i) => (
-        <div class="source-card skeleton-card" key={i}>
-          <div class="source-cover skeleton" />
-          <div class="source-card-body">
-            <div class="skeleton" style={{ height: 18, width: '70%' }} />
-            <div class="skeleton" style={{ height: 14, width: '45%' }} />
-            <div class="skeleton" style={{ height: 22, width: '85%' }} />
-          </div>
-        </div>
-      ))}
+      {/* The shape of a shelf: its name and a row of covers, no boxes. */}
+      <div class="skeleton sources-loading-head" />
+      <div class="sources-loading-row">
+        {[0, 1, 2, 3, 4, 5].map((i) => (
+          <div class="source-cover tile skeleton" key={i} />
+        ))}
+      </div>
     </div>
   );
 }
@@ -241,8 +248,8 @@ export function Hold({ blocker, offline, busy }: { blocker: Blocker | null; offl
             Zur Auswahl
           </button>
         ) : blocker.kind === 'result' ? (
-          <button type="button" class="link-button source-hold-link" onClick={() => navigate({ page: 'add', folder: blocker.folder })}>
-            Zum Ergebnis
+          <button type="button" class="link-button source-hold-link" onClick={() => navigate({ page: 'musik' })}>
+            Ansehen
           </button>
         ) : blocker.kind === 'rest' ? (
           <button type="button" class="link-button source-hold-link" onClick={() => navigate({ page: 'add', folder: blocker.folder })}>

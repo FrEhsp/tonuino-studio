@@ -385,7 +385,18 @@ export interface WriteCardPreviewSource {
 export interface BaukastenManifest {
   format: 1;
   /** `writeCard`: the TNG commit of all builds has WRITECARD itself (then there is no preview). */
-  tng: { version: string; versionString: string; repository: string; commit: string; license: string; writeCard?: boolean };
+  tng: {
+    version: string;
+    versionString: string;
+    /** ISO date of the version line; missing in manifests before 0.6. */
+    date?: string;
+    /** How the switches reached TNG: -D flags, or a config.hpp next to src (TNG from 26.10.2026); missing before 0.6 ("defines"). */
+    config?: 'defines' | 'config.hpp';
+    repository: string;
+    commit: string;
+    license: string;
+    writeCard?: boolean;
+  };
   /** The write-card preview; missing when there is none (older manifests, or once official TNG has the command). */
   writeCardPreview?: WriteCardPreviewSource;
   sources: Record<string, { repository: string; commit: string }>;
@@ -444,7 +455,9 @@ export function sourceText(manifest: BaukastenManifest, build: BaukastenBuild): 
   if (preview) {
     return `TonUINO TNG ${manifest.tng.version} (${preview.repository}, Branch ${preview.branch}, Commit ${preview.commit.slice(0, 7)}, Kartenschreiben von ${preview.author}, freie Software unter der ${preview.license}), gebaut mit ${extra.map((d) => `-D ${d}`).join(' ')}`;
   }
-  return `TonUINO TNG ${manifest.tng.version} (${manifest.tng.repository}, Commit ${manifest.tng.commit.slice(0, 7)}, freie Software unter der ${manifest.tng.license}), gebaut mit ${extra.map((d) => `-D ${d}`).join(' ')}`;
+  // Since TNG of 26.10.2026 the switches go into a config.hpp (TNG README), not to the compiler.
+  const how = manifest.tng.config === 'config.hpp' ? `gebaut mit config.hpp: ${extra.map((d) => `#define ${d.replace('=', ' ')}`).join(', ')}` : `gebaut mit ${extra.map((d) => `-D ${d}`).join(' ')}`;
+  return `TonUINO TNG ${manifest.tng.version} (${manifest.tng.repository}, Commit ${manifest.tng.commit.slice(0, 7)}, freie Software unter der ${manifest.tng.license}), ${how}`;
 }
 
 /* --------------------------------------------------------------- loading */
@@ -535,6 +548,11 @@ export async function identifyBuild(manifest: BaukastenManifest, data: Uint8Arra
 
 /** Short German list of what is switched on, e.g. "Drehregler, Leuchtring, Weitermachen". */
 export function choiceSummary(choice: ExtrasChoice): string {
+  return choiceParts(choice).join(', ');
+}
+
+/** What is switched on, one name each, in the order of the page. */
+export function choiceParts(choice: ExtrasChoice): string[] {
   const parts: string[] = [];
   if (choice.knob) parts.push(KNOB_TEXTS[choice.knob].label);
   if (choice.light) parts.push(LIGHT_TEXTS[choice.light].label);
@@ -545,7 +563,7 @@ export function choiceSummary(choice: ExtrasChoice): string {
   if (choice.chip && choice.chip !== 'standard') parts.push(CHIP_TEXTS[choice.chip].label);
   if (choice.alarm) parts.push(ALARM_TEXT.label);
   if (choice.writeCard) parts.push(WRITE_CARD_TEXT.label);
-  return parts.join(', ');
+  return parts;
 }
 
 /** The choice a build was made from. */

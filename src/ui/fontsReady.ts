@@ -6,7 +6,7 @@
  * into place. The files come with the app, so this takes only a moment; a
  * face that does not arrive in time is not waited for.
  */
-export const FIRST_SCREEN_FACES = ["400 16px 'Fira Sans'", "600 16px 'Fira Sans'", "700 16px 'Fira Sans'", "600 16px 'Shantell Sans'", "16px 'Permanent Marker'"];
+export const FIRST_SCREEN_FACES = ["400 16px Roboto", "500 16px Roboto", "700 16px Roboto"];
 
 export function firstScreenFonts(maxMs = 1200, faces = FIRST_SCREEN_FACES): Promise<void> {
   const fonts = typeof document !== 'undefined' ? document.fonts : undefined;

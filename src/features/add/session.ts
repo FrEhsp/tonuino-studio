@@ -22,6 +22,7 @@ import type { CoverKind } from '../../core/stickers/coversearch';
 import { uprightFor } from '../box/CoverDialog';
 import { announcementText, announceTrack } from '../../core/audio/announce';
 import { fileSource } from '../../core/audio/source';
+import type { TrimEdit } from '../../core/audio/trimedit';
 import { matchCues, measuredOf, readCue } from './wholeAlbum';
 import { estimateAlbumBytes, FileError, prepareAlbum, UNREADABLE, type AlbumGain, type PreparedAlbum, type TrackJob, type TrackWork } from './process';
 
@@ -760,6 +761,77 @@ export function updateTracks(id: string, mutate: (tracks: DraftTrack[]) => Draft
     })
     .filter((a) => a.tracks.length);
   update({ albums, phase: phaseAfterEdit(albums), edited: true });
+}
+
+/**
+ * „Zuschneiden …“ for titles that are not on the card yet (0.6, #131): each
+ * gets its file cut as `edits` says, from the file as it was picked (a title
+ * cut before is cut again from the whole), held in memory until it goes to
+ * the card. The picked files stay as they are. An edit that leaves the
+ * whole title gives it back its own file. Titles are found by their source
+ * as the list has it now; `skipped`: those that could not be cut (not an
+ * MP3 frame by frame, too little left).
+ */
+export async function trimTracks(id: string, edits: ReadonlyMap<ByteSource, TrimEdit>, opts: { signal?: AbortSignal; onProgress?: (done: number, total: number) => void } = {}): Promise<{ cut: number; skipped: string[] }> {
+  const signal = opts.signal ?? new AbortController().signal;
+  const album = session.value.albums.find((a) => a.id === id);
+  if (!album) return { cut: 0, skipped: [] };
+  // Fetched when needed: the cutting code stays out of the start of the app.
+  const [{ scanMp3 }, { isUntouched, writeTrimEdit }, { infoAfterTrim, trimmedTrack, untrimmedTrack }] = await Promise.all([
+    import('../../core/audio/mp3frames'),
+    import('../../core/audio/trimedit'),
+    import('../../core/library/trimmed'),
+  ]);
+  const done = new Map<ByteSource, DraftTrack>();
+  const skipped: string[] = [];
+  const todo = album.tracks.filter((t) => edits.has(t.source));
+  let n = 0;
+  for (const t of todo) {
+    if (signal.aborted) break;
+    const edit = edits.get(t.source)!;
+    const original = t.trimmed?.source ?? t.source;
+    try {
+      const index = await scanMp3(original, { signal });
+      if (index.layer !== 3) throw new Error('keine MP3');
+      if (isUntouched(edit, index.durationSec)) done.set(t.source, untrimmedTrack(t));
+      else {
+        const blob = await writeTrimEdit(original, index, edit, { signal });
+        const source = fileSource(blob, original.name, original.relativePath);
+        const cutIndex = await scanMp3(source, { signal });
+        const info = await withMp3Check(source, infoAfterTrim(t.trimmed?.info ?? t.info, edit, cutIndex.durationSec), signal, false);
+        done.set(t.source, trimmedTrack(t, edit, { source, info }));
+      }
+    } catch (e) {
+      if (signal.aborted) throw e;
+      skipped.push(t.title || t.source.name);
+    }
+    opts.onProgress?.(++n, todo.length);
+  }
+  if (done.size) updateTracks(id, (list) => list.map((x) => done.get(x.source) ?? x));
+  return { cut: [...done.values()].filter((t) => t.trimmed).length, skipped };
+}
+
+/**
+ * Whether a title still to be copied can be cut here, and if not, why
+ * (a toast says it). It is cut from the picked file, which stays as it is.
+ */
+export function trimPendingProblem(a: ImportAlbum, t: DraftTrack): { title: string; text: string } | null {
+  if (a.unchanged) return { title: 'Diesen Titel darf ich nicht verändern', text: 'Der Anbieter erlaubt keine Änderungen. Er kommt so auf die Karte, wie er ist.' };
+  if (!isPlayableAsIs(t))
+    return { title: 'Zuschneiden geht hier nur bei MP3-Dateien', text: 'Diese Datei wandle ich beim Kopieren in MP3 um. Danach kannst du sie hier in der Liste oder auf der Seite des Ordners zuschneiden.' };
+  if (a.resume?.parts.has(t.source)) return { title: 'Ein Teil davon ist schon auf der Karte', text: 'Kopiere zuerst den Rest. Danach kannst du ihn auf der Seite des Ordners zuschneiden.' };
+  return null;
+}
+
+/** „Schnitt zurücknehmen“: the title gets its own file again (as core/library/trimmed.ts untrimmedTrack). */
+export function untrimTrack(id: string, source: ByteSource) {
+  updateTracks(id, (list) =>
+    list.map((x) => {
+      if (x.source !== source || !x.trimmed) return x;
+      const { trimmed, ...rest } = x;
+      return { ...rest, source: trimmed.source, info: trimmed.info, albumCuts: trimmed.albumCuts };
+    }),
+  );
 }
 
 /** A picture chosen in the review (`from`: where from), or none at all. */

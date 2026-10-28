@@ -3,7 +3,7 @@ import { createContext } from 'preact';
 import { useContext, useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { ArrowLeft, ArrowRight, ChevronDown, ScrollText, Search, SearchX, X } from 'lucide-preact';
 import { usePageShown } from '../../app/pageAlive';
-import { parseHash } from '../../app/router';
+import { parseHash, previousPage } from '../../app/router';
 import { platform } from '../../app/state';
 import { APP_VERSION, runsAs } from '../../app/version';
 import { BUILTIN_TEMPLATES } from '../../core/stickers/templates';
@@ -36,6 +36,7 @@ import {
   type HelpTopic,
 } from './topics';
 import '../../ui/styles/help.css';
+import { BackToWorkshop } from '../../ui/components/BackToWorkshop';
 
 /** Kept while the help is open, so going back from a page shows the same results. */
 const query = signal('');
@@ -85,6 +86,8 @@ function HelpIndex({ missing }: { missing?: string }) {
     <div class="page help-page">
       <header class="page-header">
         <div class="titles">
+          {/* Only for who came from the Werkstatt; the help has its own place in the bar on top (WebKit W5). */}
+          {previousPage.value === 'workshop' ? <BackToWorkshop /> : null}
           <h1>Hilfe</h1>
           <p>Antworten rund um deine Box und TonUINO Studio. Suche nach einem Wort wie „Lautstärke“ oder „stumm“, oder wähle ein Thema.</p>
         </div>
@@ -529,13 +532,17 @@ function Block({ block }: { block: HelpBlock }) {
   }
 }
 
-/** Text with **bold**, [links](#/…) and [[words]] of the Wörterbuch. */
+/** Text with **bold**, [links](#/…), [[words]] of the Wörterbuch and `one-line` parts. */
 function Inline({ text, terms = true }: { text: string; terms?: boolean }) {
   return (
     <>
       {parseInline(text).map((p, i) =>
         p.kind === 'text' ? (
           p.text
+        ) : p.kind === 'nowrap' ? (
+          <span class="nowrap" key={i}>
+            {p.text}
+          </span>
         ) : p.kind === 'strong' ? (
           <strong key={i}>{p.inner ? <Inline text={p.inner} terms={terms} /> : p.text}</strong>
         ) : p.kind === 'term' ? (

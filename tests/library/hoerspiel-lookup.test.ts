@@ -6,10 +6,14 @@
  * with made-up track names and lengths.
  */
 import { readFileSync } from 'node:fs';
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
+import { resetNet } from '../../src/core/covers/net';
 import { kindOfAlbum, shopSearchSec, wholeAlbumQueries } from '../../src/core/library/albumcut';
 import { RateLimiter } from '../../src/core/stickers/coversearch';
 import { lookupCoverAlbum, lookupWholeAlbum, parseItunesAlbums, parseMusicBrainzTracks, tracksTotal, wholeAlbumMisfit } from '../../src/core/library/tracklookup';
+
+// Each test its own answers: nothing kept from the one before, every service reachable.
+beforeEach(() => resetNet());
 
 const json = (name: string) => JSON.parse(readFileSync(new URL(`../fixtures/library/${name}`, import.meta.url), 'utf8')) as unknown;
 const ITUNES_SEARCH = json('itunes-search-bibi-tina.json');

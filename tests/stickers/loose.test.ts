@@ -3,7 +3,7 @@
  * keeps title and number, and forgets what was chosen for the old picture.
  */
 import { afterEach, describe, expect, it } from 'vitest';
-import { addLooseStickers, imageBlobOf, looseIdOf, looseStickers, removeAllLooseStickers, removeLooseSticker, replaceLoosePicture, setLooseSelected, stickerItems, updateLooseSticker } from '../../src/features/stickers/content';
+import { addLooseStickers, addWordSticker, imageBlobOf, isWordSticker, looseIdOf, looseStickers, removeAllLooseStickers, removeLooseSticker, replaceLoosePicture, setLooseSelected, stickerItems, updateLooseSticker } from '../../src/features/stickers/content';
 import type { ByteSource } from '../../src/platform/types';
 import { tinyJpeg, tinyPng } from './fixtures';
 
@@ -81,5 +81,36 @@ describe('choosing own pictures for the sheet', () => {
     expect(stickerItems.value.map((s) => s.title)).toEqual(['Zwei']);
     removeAllLooseStickers();
     expect(looseStickers.value).toEqual([]);
+  });
+});
+
+describe('„Wort + Piktogramm“ without an SD card (TODO 0.3 #98)', () => {
+  const plate = () => new Blob([tinyPng() as BlobPart], { type: 'image/png' });
+
+  it('puts the word with its pictogram on the sheet, the pictogram plate as its picture', () => {
+    expect(addWordSticker('  Zähne   putzen ', 2369, plate())).toBe(true);
+    const [w] = looseStickers.value;
+    expect(isWordSticker(w)).toBe(true);
+    expect(w).toMatchObject({ title: 'Zähne putzen', pictogram: 2369 });
+    const [item] = stickerItems.value;
+    expect(item).toMatchObject({ title: 'Zähne putzen', pictogram: 2369 });
+    expect(item.picture?.kind).toBe('blob');
+  });
+
+  it('adds the same word with the same pictogram once, and puts it back on the sheet if it was left out', () => {
+    addWordSticker('Auto', 7, plate());
+    setLooseSelected(false);
+    expect(addWordSticker('auto', 7, plate())).toBe(false);
+    expect(looseStickers.value).toHaveLength(1);
+    expect(looseStickers.value[0].off).toBeUndefined();
+    // Another pictogram for the same word is another card.
+    expect(addWordSticker('Auto', 8, plate())).toBe(true);
+    expect(addWordSticker('   ', 9, plate())).toBe(false);
+    expect(looseStickers.value).toHaveLength(2);
+  });
+
+  it('is told apart from a sticker of an own picture', () => {
+    addLooseStickers([{ name: 'Wald.jpg', blob: new Blob([tinyJpeg() as BlobPart], { type: 'image/jpeg' }) }]);
+    expect(isWordSticker(looseStickers.value[0])).toBe(false);
   });
 });

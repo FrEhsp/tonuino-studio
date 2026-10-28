@@ -40,6 +40,12 @@ export interface RunEvents {
    */
   occupied(uid: string, data: Uint8Array): void;
   writing(): void;
+  /**
+   * Optional: the card is read again right after writing, and this says
+   * whether it holds what was written (Etcher „Validating“, 0.6). Only runs
+   * when the parent listens; `data` is what was read, if anything.
+   */
+  verified?(key: string, ok: boolean, data?: Uint8Array): void;
   /** Written. `replaced` is the item the card held before, which has no card now. */
   written(key: string, before: CardData | undefined, replaced: string | undefined): void;
   /** Waiting for the card to be taken off. */
@@ -120,6 +126,16 @@ export async function writeCards(items: { key: string; data: CardData }[], start
       (memory.begun ??= new Map()).set(info.uid, item.key);
       return { kind: 'failed', key: item.key, error };
     }
+    if (events.verified) {
+      // Read back what is on the card now; a card taken off at once counts as not checked.
+      let back: Uint8Array | undefined;
+      try {
+        back = (await port.read()).data;
+      } catch {
+        back = undefined;
+      }
+      events.verified(item.key, !!back && holdsExactly(back, item.data), back);
+    }
     memory.begun?.delete(info.uid);
     memory.writtenTo.set(info.uid, item.key);
     memory.done.add(item.key);
@@ -144,6 +160,14 @@ export function holdsOther(raw: Uint8Array, want: CardData): boolean {
   if (old.kind !== 'tonuino') return true;
   const d = old.data;
   return d.folder !== want.folder || d.mode !== want.mode || d.special !== want.special || d.special2 !== want.special2;
+}
+
+/** Whether a card holds exactly `want`, read back after writing it. */
+export function holdsExactly(raw: Uint8Array, want: CardData): boolean {
+  const got = decodeCard(raw);
+  if (got.kind !== 'tonuino') return false;
+  const d = got.data;
+  return d.folder === want.folder && d.mode === want.mode && d.special === want.special && d.special2 === want.special2;
 }
 
 /** How long "Karte prüfen" and "Karte löschen" wait on the phone for a card to come. */

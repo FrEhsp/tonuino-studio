@@ -13,8 +13,9 @@
  *   the print on the board (notes: "belegt").
  * - nachsehen: very likely, but only from forum reports or derived; the
  *   wire list says "vor dem Löten nachsehen" (notes: "wahrscheinlich").
- * - ungeprueft: not proven (notes: "unsicher"). Never drawn; the extras
- *   say instead what is missing and what would prove it.
+ * - ungeprueft: not proven (notes: "unsicher"). Drawn in pencil, dashed,
+ *   with a "?" (0.6): visible, never shown as certain; the box under the
+ *   steps says what is missing and what would prove it.
  *
  * `gegenprobe` is the second, independent pass of 0.3 (13.10.2026): every
  * proof checked again, trying to refute it. For pins: the line in TNG's
@@ -81,6 +82,21 @@ export const BELEGE = {
     quelle: 'R7 (1 kΩ in der Leitung D3 → RX) sitzt als SMD-Widerstand auf der Platine (Foto; cp-v03; Forum 8624, 13973)',
     stufe: 'geprueft',
     gegenprobe: 'Aufdruck R7 auf dem Foto gesehen.',
+    json: [],
+  },
+  'schalter-rot': {
+    quelle:
+      'Forum 14673 #6 und #15 (akzeptierte Antwort): Im USB-Kabel zwischen Powerbank und Box nur die rote Ader (+5 V) durchtrennen und die zwei Enden an die zwei Beinchen des Schalters löten. Schwarz führt Minus, Grün und Weiß sind Daten; sie bleiben ganz. Kompendium (bluetchen.de/FSU), Stromversorgung: 2-polige Schalter',
+    stufe: 'nachsehen',
+    gegenprobe:
+      'Nur aus dem Forum, mit Erfolgsmeldung in #16. Die Aderfarben halten nicht alle Kabel ein: vor dem Löten mit dem Messgerät prüfen, welche Ader am Stecker 5 V hat (Powerbank an, Kabel eingesteckt).',
+    json: [],
+  },
+  'schalter-mitte': {
+    quelle: 'Umschalter mit 3 Beinchen: Das mittlere ist der gemeinsame Anschluss, es verbindet je nach Stellung mit dem einen oder dem anderen äußeren (Forum 14673 #4: das Kompendium zeigt nur 2-polige)',
+    stufe: 'nachsehen',
+    gegenprobe:
+      'Nicht aus einer geprüften Anleitung, nur die übliche Bauart. Bei manchen Schaltern ist es anders: mit dem Messgerät prüfen, in Stellung „an“ Durchgang zwischen der Mitte und dem benutzten äußeren Beinchen.',
     json: [],
   },
   usb: {
@@ -522,6 +538,122 @@ export const BELEGE = {
     stufe: 'nachsehen',
     gegenprobe: 'geprueft-Notiz: wahrscheinlich (korrigiert); dort mit anderer Firmware berichtet, Belastbarkeit des 5-V-Pins unbekannt',
     json: ['ap-ring-5v', 'ap-ring-gnd', 'ap-neo-pwr'],
+  },
+
+  /* ------------------------------------------------ research of 27.10.2026 (design/06-umbau/loetplan/recherche-*.md) */
+  'aio-aufstecken': {
+    quelle: 'LKP-FAQ AiO (Forum 7829 #1): Reihenfolge SDA SCK MOSI MISO IRQ GND RST 3.3V wie auf dem Leser; LKP Quick-Start AiO+: Beschriftung des Adapters gleich der des Lesers; Forum 13327 #2: „den RFID-Reader mit der Pinleiste anstecken“',
+    stufe: 'geprueft',
+    gegenprobe: 'Recherche 27.10.2026 (recherche-aio.md, Frage 1): drei Quellen, darunter Anleitung des Herstellers und eine akzeptierte Lösung im Forum. Leser mit anderer Reihenfolge (Forum 12913) passen nicht: darum nach Beschriftung prüfen.',
+    json: [],
+  },
+  'aio-v-a3-a4': {
+    quelle: 'Original-Firmware „TonUINO Version 2.2 All-in-One“ (Thorsten Voß) Zeile 645–646, 1058–1075: A4 = Lauter = V+, A3 = Leiser = V−; LKP-Pintabelle AiO+: PD3 = „Button-Buchse V-“, PD4 = „V+“; TNG constants.hpp:209–210, 232',
+    stufe: 'geprueft',
+    gegenprobe: 'Recherche 27.10.2026 (recherche-aio.md, Frage 3): Die Notiz aio-encoder-clk sagte noch „unsicher“. Neu ist die Original-Firmware, die für genau diese Platine geschrieben ist; sie legt Lauter auf A4 und Leiser auf A3, gleich wie die Pintabelle. Zeilen in TNG nachgelesen (Test tngpins).',
+    json: [],
+  },
+  'aio-diverse-3v3': {
+    quelle: 'LKP-FAQ AiO (Forum 7829 #1): Leiste „Diverse“ GND A7 A6 D5 RX TX 3V3 5V; LKP-Anleitung AiO S. 10: 3,3-V-Pegel; TNG constants.hpp:214 (rotaryEncoderPullUp = false): Das Modul braucht +',
+    stufe: 'geprueft',
+    gegenprobe: 'Recherche 27.10.2026 (recherche-aio.md, Frage 3): Pin und Pegel aus der Anleitung, die Notwendigkeit von + aus dem Quelltext.',
+    json: [],
+  },
+  'aio-poti-enden': {
+    quelle: 'Aus dem Quelltext abgeleitet: Die AiO misst mit 2,048 V und 12 Bit (TNG tonuino.cpp:192–193, poti.cpp maxLevel 4064); an 3V3 und GND ist ab gut der Hälfte des Drehwegs „ganz laut“',
+    stufe: 'nachsehen',
+    gegenprobe: 'Recherche 27.10.2026 (recherche-aio.md, Frage 3): abgeleitet, nicht ausprobiert. Darum nur „vor dem Löten nachsehen“. Besser ist der Drehregler.',
+    json: [],
+  },
+  'ap-enc-pf': {
+    quelle: 'TNG constants.hpp:201–202 (rotaryEncoderClkPin = 36 = PF2, rotaryEncoderDtPin = 37 = PF3, „if using Opt Leiste (Male)“); LKP-Pintabelle AiO+: PF2 (36), PF3 (37) an der OPT-Leiste',
+    stufe: 'geprueft',
+    gegenprobe: `${TNG}; die Lage auf der Leiste nennt die Pintabelle nicht: im Bild steht „Reihenfolge nach Aufdruck“.`,
+    json: [],
+  },
+  'ap-poti-pf4': {
+    quelle: 'TNG constants.hpp:226 (potiPin = A14 = PF4); LKP-Pintabelle AiO+: PF4 (38/A14) an der OPT-Leiste',
+    stufe: 'geprueft',
+    gegenprobe: `${TNG}; Platz auf der Leiste nach Aufdruck.`,
+    json: [],
+  },
+  'ap-knopf-strom': {
+    quelle: 'Nur Forum 14193 #1: Auf dem Button-Adapter der AiO+ gebe es die Stifte 3,3V, GND, 5V und WS',
+    stufe: 'ungeprueft',
+    gegenprobe: 'Recherche 27.10.2026 (recherche-aio.md, Frage 2): ein einziger Forumsbeitrag, kein Text des Herstellers, kein Foto ausgewertet; die Notizen ap-drehgeber-plus und ap-drehgeber-gnd sagen „unsicher“. Beweis: Foto vom Button-Adapter von oben oder Durchgang messen (3,3V gegen 3.3V am NFC-Adapter).',
+    json: [],
+  },
+  'wecker-pulldown': {
+    quelle: 'TNG-Autor Thomas Lehnert, Forum 13947 #2: „muss PIN A6 über einen 100kOhm Widerstand permanent an Ground geschaltet werden“; TNG constants.hpp:365 (A6, activeHigh)',
+    stufe: 'geprueft',
+    gegenprobe: 'Recherche 27.10.2026 (recherche-extras.md, 4): vom Autor der Firmware selbst; ohne den Widerstand liest die Box A6 zufällig als „high“ (Eingang ohne Pull-up, tonuino.cpp:82).',
+    json: [],
+  },
+  'wecker-kontakt': {
+    quelle: 'TNG nennt nur einen „externen Wecker mit Signalausgang“; wie er A6 hochzieht und dabei die Box einschaltet, steht in keiner Quelle',
+    stufe: 'ungeprueft',
+    gegenprobe: 'Recherche 27.10.2026 (recherche-extras.md, 4): nichts gefunden. Beweis: ein Wecker mit Schaltausgang, Foto seiner Anschlüsse, ein Bericht mit TNG.',
+    json: [],
+  },
+  'spkonoff-schaltung': {
+    quelle: 'TNG constants.hpp:284 (ampEnablePin = D6, activeHigh): D6 HIGH = Lautsprecher an. Eine Schaltung dafür gibt es nur für den ESP32 (Forum 14972), nicht für den Nano',
+    stufe: 'ungeprueft',
+    gegenprobe: 'Recherche 27.10.2026 (recherche-extras.md, 3): Logik aus dem Quelltext belegt, Schaltung am Nano nicht (Notiz oas-v29: unsicher). Beweis: Schaltplan und Bericht mit TNG an der Classic.',
+    json: [],
+  },
+  'hp-pj307': {
+    quelle: 'Forum 13613 #22, #26: Pin 6 (JD) der Buchse PJ-307 an D8, Erfolg mit TNG in #36 und #39; TNG constants.hpp:303 (D8, activeLow: D8 an GND heißt „kein Kopfhörer“)',
+    stufe: 'nachsehen',
+    gegenprobe: 'Recherche 27.10.2026 (recherche-extras.md, 2): Forum mit Erfolgsmeldung. Das TNG-Wiki (13947) und die LKP-Platine „Easy Headphone“ beschreiben die umgekehrte Logik: darum vor dem Löten nachmessen.',
+    json: [],
+  },
+  'hp-gnd-seite': {
+    quelle: 'Welcher Kontakt der Buchse ohne Stecker an GND liegt, steht nur in einem Bild (Forum 13613 #22)',
+    stufe: 'ungeprueft',
+    gegenprobe: 'Recherche 27.10.2026 (recherche-extras.md, 2): nicht als Text belegt. Beweis: Messgerät auf Durchgang, ohne Stecker piept der Kontakt gegen GND, mit Stecker nicht. Danach im Box-Logbuch auf „hpJackDetect: 1“ achten.',
+    json: [],
+  },
+  'akku-module': {
+    quelle: 'Forum 744 (Tutorial zur eigenen Powerbank): Lademodul mit Schutzschaltung (TP4056), Schalter, Spannungswandler auf 5 V; Aufdruck der Module B+ B− OUT+ OUT− und IN OUT',
+    stufe: 'nachsehen',
+    gegenprobe: 'Recherche 27.10.2026 (recherche-extras.md, 1): Teile aus dem Forum, der Anschlussplan nur als Bild. Module unterscheiden sich: nach dem Aufdruck löten, den Wandler vorher auf 5 V einstellen.',
+    json: [],
+  },
+  'akkumessung-teiler': {
+    quelle: 'TNG constants.hpp:405 (voltageMeasurementPin = A5), :415 („Spannungsteiler 100k/100k“)',
+    stufe: 'geprueft',
+    gegenprobe: `${TNG}; Faktor 1,96 der Zeile 415 passt zu zwei gleichen Widerständen.`,
+    json: [],
+  },
+  'akkumessung-zelle': {
+    quelle: 'TNG-Wiki, Forum 13947 #1: gemessen wird „die Zellenspannung (nicht die Ausgangsspannung eines Spannungswandlers)“',
+    stufe: 'nachsehen',
+    gegenprobe: 'Recherche 27.10.2026 (recherche-extras.md, 1a): Forum, passt zur Firmware. Der TNG-Autor schlägt in 14297 #7 eine andere Schaltung vor, die nicht zum Faktor der Firmware passt.',
+    json: [],
+  },
+  'usbc-rd': {
+    quelle: 'USB Type-C Cable and Connector Specification, „Sink“: je 5,1 kΩ (Rd) von CC1 und CC2 nach GND, sonst schaltet ein USB-C-Netzteil die 5 V nicht ein',
+    stufe: 'geprueft',
+    gegenprobe: 'Recherche 27.10.2026 (recherche-extras.md, 5): Norm. Viele Breakout-Platinen haben die Widerstände schon (Aufdruck „5.1k“).',
+    json: [],
+  },
+  'usbc-einbau': {
+    quelle: 'Forum 12878 #1, #2: Einbaubuchse an 5V und GND der Box; ohne Widerstände an CC liefern Netzteile ohne Schnellladung keinen Strom',
+    stufe: 'nachsehen',
+    gegenprobe: 'Recherche 27.10.2026 (recherche-extras.md, 5): Forum. 5V der Audio-Leiste als Einspeisepunkt nur aus dem Schaltbild (Beleg v17-5v).',
+    json: [],
+  },
+  'ev-poti-3v3': {
+    quelle: 'Aus dem Quelltext abgeleitet: Der Nano Every misst mit 2,5 V (TNG tonuino.cpp:189–190, INTERNAL2V5); an 3V3 ist ab etwa drei Vierteln des Drehwegs „ganz laut“, an 5V schon ab der Hälfte',
+    stufe: 'nachsehen',
+    gegenprobe: 'Recherche 27.10.2026 (recherche-extras.md, 6): abgeleitet, noch von niemandem ausprobiert (Notiz ev-poti-vcc). Beweis: Poti an 3V3, im Box-Logbuch über den ganzen Drehweg „poti volume“ ansehen.',
+    json: [],
+  },
+  'schalter-4': {
+    quelle: 'Schalter mit 4 Beinchen sind je nach Modell anders belegt; meist zwei für den Schalter, zwei für sein Licht',
+    stufe: 'ungeprueft',
+    gegenprobe: 'Keine geprüfte Anleitung für einen bestimmten Schalter (Recherche 27.10.2026, recherche-extras.md, 7). Beweis: Datenblatt oder Foto deines Schalters mit der Beschriftung der Beinchen.',
+    json: [],
   },
 
   /* ------------------------------------------------ physics and the forum audit of 0.3 */

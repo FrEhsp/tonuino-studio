@@ -84,6 +84,14 @@ export interface PrintDefaults {
 
 export const MM_PER_INCH = 25.4;
 export const A4: PageSize = Object.freeze({ widthMm: 210, heightMm: 297 });
+/** US Letter, 8.5 × 11 in: for own sizes on Letter sheets (Prüfrunde 1, bastler 26). */
+export const LETTER: PageSize = Object.freeze({ widthMm: 215.9, heightMm: 279.4 });
+
+/** True for a Letter page (either way round). */
+export function isLetter(page: PageSize): boolean {
+  const [a, b] = [Math.min(page.widthMm, page.heightMm), Math.max(page.widthMm, page.heightMm)];
+  return Math.abs(a - LETTER.widthMm) < 0.5 && Math.abs(b - LETTER.heightMm) < 0.5;
+}
 
 /** ISO/IEC 7810 ID-1, the size of a TonUINO RFID card (53.98 mm rounded to 54). */
 export const CARD_WIDTH_MM = 85.6;
@@ -507,11 +515,12 @@ export function customTemplate(params: CustomTemplateParams): LabelTemplate {
       : '',
   ];
   const template: LabelTemplate = {
-    id: customTemplateId(`custom-${shape === 'round' ? 'rund-' : ''}${fmtId(w)}x${fmtId(h)}-${grid.cols}x${grid.rows}`, kind, output),
+    // A Letter sheet is another paper with its own printer correction: its own id.
+    id: customTemplateId(`custom-${shape === 'round' ? 'rund-' : ''}${fmtId(w)}x${fmtId(h)}-${grid.cols}x${grid.rows}${kind !== 'single' && isLetter(page) ? '-letter' : ''}`, kind, output),
     name: params.name?.trim() || `Eigene Größe ${sizeText}`,
     description: images
       ? `Jeder Sticker wird ein eigenes Bild mit ${sizeText}.`
-      : `${grid.cols * grid.rows} ${grid.cols * grid.rows === 1 ? 'Etikett' : 'Etiketten'} mit ${sizeText} pro Seite.`,
+      : `${grid.cols * grid.rows} ${grid.cols * grid.rows === 1 ? 'Etikett' : 'Etiketten'} mit ${sizeText} pro ${kind !== 'single' && isLetter(page) ? 'Letter-Seite' : 'Seite'}.`,
     page,
     label,
     grid,

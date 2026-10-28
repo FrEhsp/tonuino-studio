@@ -33,6 +33,10 @@ jobs:
     timeout-minutes: 90
     env:
       VITE_SOURCES_CONTACT: f.ehspanner@posteo.de
+      # Tauri's updater (docs/BUILD.md, "Automatische Updates"): only once the
+      # owner has stored the key as a secret of the repository; empty otherwise.
+      TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+      TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
     steps:
       - uses: actions/checkout@v4
 
@@ -59,6 +63,8 @@ jobs:
         env:
           TAURI_ENV_PLATFORM: darwin
         run: |
+          # With the updater built in and its key there, the app offers "Jetzt aktualisieren".
+          if [ -n "$TAURI_SIGNING_PRIVATE_KEY" ] && grep -q '^tauri-plugin-updater' src-tauri/Cargo.toml; then export VITE_SELF_UPDATE=on; fi
           npm run build -- --sourcemap false
           map="$(find dist -name '*.map' -print -quit)"
           if [ -n "$map" ]; then echo "dist/ enthält Source Maps: $map"; exit 1; fi
@@ -67,7 +73,11 @@ jobs:
           fi
 
       - name: Mac-App bauen (tauri build, universal)
-        run: npm run tauri -- build --target universal-apple-darwin --bundles app,dmg --config '{"build":{"beforeBuildCommand":null}}'
+        run: |
+          # With the key: also the signed update file (TonUINO Studio.app.tar.gz and .sig).
+          updater=()
+          if [ -n "$TAURI_SIGNING_PRIVATE_KEY" ]; then updater=(--config src-tauri/tauri.updater.conf.json); fi
+          npm run tauri -- build --target universal-apple-darwin --bundles app,dmg --config '{"build":{"beforeBuildCommand":null}}' "${updater[@]}"
 
       - name: App packen und prüfen
         id: pack
@@ -92,7 +102,12 @@ jobs:
           name="TonUINO-Studio_${version}_macOS-universal"
           cp "$dmg" "out/$name.dmg"
           ditto -c -k --sequesterRsrc --keepParent "$app" "out/$name.app.zip"
-          ls -lh out
+          # The updater's file for latest.json (scripts/updater-latest.mjs), only with the key.
+          if [ -f "$bundle/macos/TonUINO Studio.app.tar.gz.sig" ]; then
+            mkdir -p out/updater
+            cp "$bundle/macos/TonUINO Studio.app.tar.gz" "$bundle/macos/TonUINO Studio.app.tar.gz.sig" out/updater/
+          fi
+          ls -lhR out
           echo "name=$name" >> "$GITHUB_OUTPUT"
 
       - uses: actions/upload-artifact@v4
@@ -108,3 +123,10 @@ jobs:
           path: out/${{ steps.pack.outputs.name }}.app.zip
           compression-level: 0
           if-no-files-found: error
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.pack.outputs.name }}.updater
+          path: out/updater
+          compression-level: 0
+          if-no-files-found: ignore

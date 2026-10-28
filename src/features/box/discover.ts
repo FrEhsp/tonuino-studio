@@ -54,7 +54,9 @@ export async function discoverFolder(root: Dir, scan: SdScan, n: number, signal?
  */
 export function entryFromTags(folder: SdFolder, infos: readonly TrackInfo[]): CatalogFolder {
   const first = infos[0] ?? {};
-  const album = tidyName(first.album) ?? infos.map((i) => tidyName(i.album)).find(Boolean);
+  // A name given in Tonuino-Manager (TXXX "TONUINO_FOLDER_NAME" of the first track, as it reads it) comes before the album.
+  const managerName = first.folderName?.replace(/\s+/g, ' ').trim() || undefined;
+  const album = managerName ?? tidyName(first.album) ?? infos.map((i) => tidyName(i.album)).find(Boolean);
   const now = Date.now();
   const names = infos.map((i) => ({ title: i.title, artist: i.artist, albumArtist: i.albumArtist }));
   // No title tags, but each track names another "artist": a downloader put the titles there.

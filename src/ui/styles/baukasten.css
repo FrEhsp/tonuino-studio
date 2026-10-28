@@ -1,0 +1,805 @@
+/**
+ * Firmware-Baukasten and „Verhalten“ (0.6, design/06-umbau/loetplan,
+ * quelle/werkstatt.css): the steps in one line, the box from the front, the
+ * tiles with pictures, „Deine Auswahl“, and the sentences with their marks
+ * „in die Firmware“ and „an der Box“. The frame of a screen (.schirm) is in
+ * schlank.css.
+ */
+
+/* ------------------------------------------------------------------ the screen */
+
+/*
+ * „Extras“ drawn ahead while „Tasten“ is asked (FirmwareTool): laid out at the
+ * size it will have, but not shown, not to be clicked (clipped away) and not
+ * to be reached with Tab (useVorab, FirmwareBaukasten.tsx). Nothing here is
+ * inherited, so „Weiter“, which only takes the attribute away, does not make
+ * the browser work out the styles inside again. On a phone its long page
+ * does not lengthen the page of „Tasten“ (overflow: clip).
+ */
+.schirm[data-vorab] {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: clip;
+  opacity: 0;
+  clip-path: inset(50%);
+}
+
+/* The page edges stay those of schlank.css, so the title sits where it sits on every page. */
+.schirm.bk-schirm .arbeit {
+  gap: 32px;
+}
+
+/* Opened „Mehr“ scrolls in the big part; the room round it keeps the drawn frames whole. */
+.schirm.bk-schirm .gross {
+  overflow-y: auto;
+  margin: -8px -10px 0;
+  padding: 8px 10px 8px;
+}
+
+.schirm.bk-schirm .gross > h1,
+.schirm.bk-schirm .bk-kopf > h1 {
+  margin: 0 0 10px;
+  font-size: 28px;
+  line-height: 1.15;
+  font-weight: 700;
+}
+
+.schirm.bk-schirm .spalte {
+  width: 340px;
+}
+
+/*
+ * On a computer the column scrolls on its own when its notes grow (more extras chosen), and the
+ * „Weiter“ button stays at the bottom of the window (Prüfrunde 2, bastler 5, as step 5).
+ */
+@media (min-width: 901px) {
+  .schirm.bk-schirm .spalte {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    margin: -8px -10px 0;
+    padding: 8px 10px 0;
+  }
+
+  .schirm.bk-schirm .spalte > .unten {
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+    padding-bottom: 4px;
+    background: var(--bg) var(--paper-grain);
+    background-attachment: fixed;
+  }
+}
+
+.schirm.bk-schirm .spalte > h2 {
+  margin: 0 0 12px;
+  font-size: 22px;
+}
+
+@media (min-width: 1800px) {
+  .schirm.bk-schirm .arbeit {
+    gap: 56px;
+  }
+
+  .schirm.bk-schirm .spalte {
+    width: 400px;
+  }
+}
+
+/* ------------------------------------------------------------------ the steps */
+
+/* The bar of all five steps (FirmwareSteps): on a phone the arrow back in front of the circles. */
+.fw-steps {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.schirm.bk-schirm .fw-steps {
+  flex: none;
+  margin: 0 0 16px;
+}
+
+.fw-steps .zurueck {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  margin-left: -10px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  background: none;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.bk-kopf .back-link {
+  margin-bottom: 4px;
+}
+
+@media (min-width: 901px) {
+  .fw-steps .zurueck {
+    display: none;
+  }
+}
+
+/* On a phone the numbers stay at 14 px, as all text there. */
+@media (max-width: 900px) {
+  .ws-steps.fw-steps .steps {
+    font-size: 15px;
+  }
+
+  .ws-steps.fw-steps .steps .step .step-num {
+    width: 28px;
+    height: 28px;
+    font-size: 14px;
+  }
+}
+
+/* ------------------------------------------------------------------ Baukasten */
+
+.bk {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 290px minmax(0, 1fr);
+  gap: 28px;
+}
+
+.bk-bild {
+  align-self: start;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 14px;
+}
+
+.bk-bild .bk-box {
+  max-width: 100%;
+  height: auto;
+}
+
+.unter-bild {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-soft);
+  text-align: center;
+}
+
+.bk-wahl {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+.bk-wahl h2 {
+  margin: 0 0 8px;
+  font-size: 18px;
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+}
+
+.bk-wahl h2 span {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+/* The tiles shrink a little and wrap, never scroll sideways out of view (Prüfrunde 1, bastler 21). */
+.bilder {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(128px, 1fr));
+  gap: 12px;
+  max-width: 636px;
+}
+
+.choice.bk-kachel {
+  min-width: 0;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 6px 9px;
+  text-align: center;
+  cursor: pointer;
+}
+
+.bk-kachel b {
+  font-size: 15px;
+  line-height: 1.2;
+}
+
+.bk-kachel.gesperrt {
+  opacity: 0.5;
+}
+
+.bk-bildchen {
+  display: block;
+}
+
+.bk-leer {
+  stroke: var(--text-muted);
+}
+
+.bk-pfeil {
+  stroke: var(--text);
+}
+
+.satz-wahl {
+  margin: 6px 0 0;
+  font-size: 15px;
+  color: var(--text-soft);
+}
+
+.satz-wahl b {
+  color: var(--text);
+}
+
+.satz-wahl.warum {
+  color: var(--warning-text);
+}
+
+.teile-liste {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 18px;
+  padding: 4px 14px;
+}
+
+.teil {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  font-size: 15.5px;
+  cursor: pointer;
+  border-top: 1.5px solid var(--border);
+}
+
+.teil:nth-child(-n + 2) {
+  border-top: 0;
+}
+
+.teil input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+
+.teil:has(input:focus-visible) .lp-kasten {
+  outline: 2px solid var(--focus-color, var(--primary));
+  outline-offset: 2px;
+}
+
+.teil.gesperrt {
+  color: var(--text-muted);
+  cursor: help;
+}
+
+.teil .was {
+  flex: 1;
+  min-width: 0;
+}
+
+.teil .was small {
+  display: block;
+  font-size: 14px;
+  color: var(--text-muted);
+  line-height: 1.25;
+}
+
+.teil .pin {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-soft);
+  background: var(--bg-sunken);
+  padding: 1px 6px;
+  border-radius: 3px;
+}
+
+.zugeklappt {
+  font-size: 15px;
+  color: var(--text-soft);
+}
+
+.zugeklappt > summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.zugeklappt > summary::-webkit-details-marker {
+  display: none;
+}
+
+.zugeklappt > summary::before {
+  content: '▸';
+  color: var(--text);
+}
+
+.zugeklappt[open] > summary::before {
+  content: '▾';
+}
+
+.zugeklappt > summary b {
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.zugeklappt > summary .namen {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.zugeklappt ul {
+  margin: 4px 0 8px;
+  padding-left: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.bk-mehr-inhalt {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 4px 0 8px;
+}
+
+.bk-aus .segmented {
+  max-width: 100%;
+}
+
+/* On a phone nothing is smaller than 14px (REGELN). */
+.bk-aus .segmented button {
+  font-size: 15px;
+}
+
+.bk-mehr-inhalt .small {
+  font-size: 14px;
+}
+
+.bk-hinweis {
+  margin: 0;
+  font-size: 15px;
+  color: var(--text-soft);
+}
+
+/* ------------------------------------------------------------------ Deine Auswahl */
+
+.auswahl {
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.auswahl h2 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.auswahl ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 15px;
+}
+
+.auswahl li {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+}
+
+.auswahl li i {
+  font-style: normal;
+  color: var(--text-muted);
+  font-size: 14px;
+  flex: none;
+  width: 80px;
+}
+
+.auswahl .muted {
+  color: var(--text-muted);
+}
+
+.firmware-name {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  background: var(--bg-sunken);
+  border-radius: 3px;
+  padding: 6px 8px;
+  color: var(--text-soft);
+}
+
+.auswahl .link-button {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  font-size: 15px;
+}
+
+.bk-eigene {
+  margin: 12px 0 0;
+  font-size: 15px;
+  color: var(--text-soft);
+}
+
+.bk-eigene .link-button {
+  font-size: inherit;
+  min-height: 32px;
+}
+
+/* ------------------------------------------------------------------ Verhalten */
+
+.vh-frage {
+  margin: 4px 0 4px;
+  font-size: 22px;
+}
+
+.einleitung {
+  margin: 0 0 14px;
+  color: var(--text-soft);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.saetze {
+  display: flex;
+  flex-direction: column;
+}
+
+.satzzeile {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px 16px;
+  padding: 12px 18px;
+  border-top: 1.5px solid var(--border);
+}
+
+.saetze > .satzzeile:first-child {
+  border-top: 0;
+}
+
+.satzzeile .wenn {
+  font-size: 17.5px;
+}
+
+.satzzeile .wenn b {
+  font-weight: 700;
+}
+
+.satzzeile .folge {
+  grid-column: 1 / -1;
+  font-size: 15px;
+  color: var(--text-soft);
+}
+
+.wo-marke {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.wo-marke .link-button {
+  font-size: 14px;
+  min-height: 28px;
+}
+
+.vh-jetzt {
+  font-style: italic;
+}
+
+.vh-nicht {
+  color: var(--text-soft);
+}
+
+.marke-fw,
+.marke-box {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 24px;
+  padding: 0 9px 0 4px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #1f1a16;
+  white-space: nowrap;
+}
+
+.marke-fw {
+  background: #e8eef7;
+  box-shadow: inset 0 0 0 1.4px #6d87ad;
+}
+
+.marke-box {
+  background: #f3ead9;
+  box-shadow: inset 0 0 0 1.4px #a8723e;
+}
+
+.marke-fw svg,
+.marke-box svg {
+  display: block;
+}
+
+.vh-kurz {
+  display: none;
+}
+
+/* The answers: the segmented control, as in the design light and with the purple of a choice. */
+.segmented.vh-wahl {
+  align-self: center;
+  justify-self: end;
+  padding: 0;
+  gap: 0;
+  background: var(--surface-raised);
+  border-radius: 4px;
+  box-shadow: 0 0 0 1.5px var(--border-strong);
+}
+
+:root:where([data-stil='holz']) .segmented.vh-wahl::before {
+  display: none;
+}
+
+.segmented.vh-wahl button {
+  height: 40px;
+  padding: 0 12px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-soft);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.segmented.vh-wahl button:hover {
+  color: var(--text);
+  background: var(--surface-hover);
+}
+
+:root .segmented.vh-wahl button[aria-pressed='true'] {
+  background: var(--primary-soft);
+  color: var(--text);
+  font-weight: 700;
+  box-shadow: inset 0 0 0 2px var(--primary);
+}
+
+.vh-mehr > summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 52px;
+  padding: 0 18px;
+  border-top: 1.5px solid var(--border);
+  font-size: 15.5px;
+  color: var(--text-soft);
+  cursor: pointer;
+  list-style: none;
+}
+
+.vh-mehr > summary::-webkit-details-marker {
+  display: none;
+}
+
+.vh-mehr > summary::before {
+  content: '▸';
+  color: var(--text);
+}
+
+.vh-mehr[open] > summary::before {
+  content: '▾';
+}
+
+.vh-mehr > summary b {
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.vh-mehr-namen {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vh-mehr .ws-shortcut {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.passiert {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.passiert .block {
+  padding: 12px 14px;
+}
+
+.passiert .block h2 {
+  margin: 0 0 6px;
+  font-size: 17px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.passiert .block ol {
+  margin: 0;
+  padding-left: 22px;
+  font-size: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.passiert .block p {
+  margin: 0;
+  font-size: 15px;
+}
+
+.passiert .block .klein {
+  margin-top: 6px;
+  font-size: 14px;
+  color: var(--text-soft);
+}
+
+.vh-danach {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  font-size: 15px;
+  color: var(--text-soft);
+}
+
+/* ------------------------------------------------------------------ phone */
+
+@media (max-width: 900px) {
+  .schirm.bk-schirm .arbeit {
+    padding: 8px 16px 0;
+  }
+
+  /* The page scrolls as one: the big part keeps its height. */
+  .schirm.bk-schirm .gross {
+    flex: none;
+    overflow: visible;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* The column's links come after the choice, the button stays last (schlank.css .unten). */
+  .schirm.bk-schirm .spalte > :not(.unten) {
+    order: 3;
+  }
+
+  .schirm.bk-schirm .spalte > .unten {
+    order: 4;
+  }
+
+  .schirm.bk-schirm .gross > h1,
+  .schirm.bk-schirm .bk-kopf > h1 {
+    font-size: 24px;
+  }
+
+  .bk {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .bk-oben {
+    display: grid;
+    grid-template-columns: 112px minmax(0, 1fr);
+    gap: 14px;
+    align-items: start;
+  }
+
+  .bk-oben .bk-box {
+    width: 112px;
+    height: auto;
+  }
+
+  .bk-oben .auswahl {
+    padding: 10px 12px;
+  }
+
+  .bk-oben .auswahl li i {
+    width: 64px;
+  }
+
+  /* The tiles in one row to swipe, as many as fit, the next one cut (entwurf-baukasten-handy). */
+  .bilder {
+    display: flex;
+    margin: 0 -16px;
+    padding: 2px 16px 6px;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    overscroll-behavior-x: contain;
+  }
+
+  .choice.bk-kachel {
+    flex: none;
+    width: 132px;
+    scroll-snap-align: start;
+  }
+
+  .choice.bk-kachel .bk-bildchen {
+    width: 104px;
+    height: auto;
+  }
+
+  .teile-liste {
+    grid-template-columns: 1fr;
+  }
+
+  .teil:nth-child(2) {
+    border-top: 1.5px solid var(--border);
+  }
+
+  .satzzeile {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 12px 14px;
+  }
+
+  .segmented.vh-wahl {
+    justify-self: stretch;
+    display: flex;
+    flex-wrap: wrap;
+  }
+
+  .segmented.vh-wahl button {
+    flex: 1 1 auto;
+    justify-content: center;
+    min-height: 44px;
+  }
+
+  .vh-lang {
+    display: none;
+  }
+
+  .vh-kurz {
+    display: inline;
+  }
+
+  .vh-mehr > summary {
+    padding: 0 14px;
+  }
+
+  .einleitung {
+    font-size: 15px;
+  }
+}
+
+@media (min-width: 901px) {
+  .bk-oben .nur-handy-inline {
+    display: none;
+  }
+}

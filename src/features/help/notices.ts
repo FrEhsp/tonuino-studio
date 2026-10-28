@@ -258,8 +258,30 @@ export const PACKAGE_NOTICES: readonly PackageNotice[] = [
  */
 export const FONT_NOTICES: readonly FontNotice[] = [
   {
+    family: 'Roboto',
+    use: 'Schrift der App, wo das Gerät keine eigene hat (Linux), wie auf Android-Handys',
+    copyright: 'Copyright 2011 The Roboto Project Authors (https://github.com/googlefonts/roboto-classic)',
+    license: 'OFL-1.1',
+    packages: [],
+    bundled: {
+      files: [
+        'roboto-latin-400-normal.woff2',
+        'roboto-latin-ext-400-normal.woff2',
+        'roboto-latin-500-normal.woff2',
+        'roboto-latin-ext-500-normal.woff2',
+        'roboto-latin-700-normal.woff2',
+        'roboto-latin-ext-700-normal.woff2',
+        'roboto-latin-800-normal.woff2',
+        'roboto-latin-ext-800-normal.woff2',
+      ],
+      licenseFile: 'OFL-Roboto.txt',
+      version: 'Version 3.015',
+    },
+    url: 'https://github.com/googlefonts/roboto-classic',
+  },
+  {
     family: 'Fira Sans',
-    use: 'Schrift der ganzen App: Texte, Knöpfe und Eingabefelder',
+    use: 'Die Schrift auf gedruckten Blättern, zum Beispiel der Inhaltsliste',
     copyright: 'Digitized data copyright (c) 2012-2015, The Mozilla Foundation and Telefonica S.A.',
     license: 'OFL-1.1',
     packages: [],
@@ -280,7 +302,7 @@ export const FONT_NOTICES: readonly FontNotice[] = [
   },
   {
     family: 'Shantell Sans',
-    use: 'Name der App, Überschriften, Notizen und Sprechblasen',
+    use: 'Überschriften auf gedruckten Blättern: Inhaltsliste, Bedienkarte, QR-Bogen',
     copyright: 'Copyright 2022 The Shantell Sans Project Authors (https://github.com/arrowtype/shantell-sans)',
     license: 'OFL-1.1',
     packages: [],
@@ -289,7 +311,7 @@ export const FONT_NOTICES: readonly FontNotice[] = [
   },
   {
     family: 'Permanent Marker',
-    use: 'Die Ordnernummer auf den Karten im Regal und auf Stickern ohne Bild',
+    use: 'Die Ordnernummer auf Stickern und Covern ohne Bild',
     copyright: 'Copyright (c) 2010 by Font Diner, Inc. All rights reserved.',
     license: 'Apache-2.0',
     packages: [],

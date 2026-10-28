@@ -65,7 +65,17 @@ export function episodeNumber(title: string): number | undefined {
   return splitTitle(title)?.number;
 }
 
+/**
+ * A name the app or the system gives a folder it knows nothing about
+ * („Ordner 03“, „Neuer Ordner 12“, „Folder 7“): never a series (Prüfrunde 1,
+ * bastler 17). Packing those would throw strangers' content together.
+ */
+export function isPlaceholderTitle(title: string): boolean {
+  return /^\s*(neuer\s+ordner|ordner|new\s+folder|folder)(\s*(nr\.?|no\.?)?\s*\d{1,3})?\s*$/iu.test(title);
+}
+
 function splitTitle(title: string): { series: string; number: number } | undefined {
+  if (isPlaceholderTitle(title)) return undefined;
   const t = title.trim();
   for (const m of t.matchAll(NUMBER)) {
     const stem = t.slice(0, (m.index ?? 0) + m[1].length).replace(TRAIL, '').trim();
@@ -112,6 +122,7 @@ export function findSeries(folders: readonly SeriesCandidate[], min = MIN_SERIES
   }
   // A folder titled just like a series found (packed before, or the first episode without a number) joins it.
   for (const f of plain) {
+    if (isPlaceholderTitle(f.title)) continue;
     const g = groups.get(seriesKey(f.title));
     if (g) g.folders.add(f.number);
   }

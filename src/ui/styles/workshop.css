@@ -98,14 +98,18 @@
 }
 
 @media (max-width: 560px) {
-  /* Only the current step keeps its name; the others shrink to their number. */
+  /* Only the current step shows its name; the others shrink to their number (screen readers still hear the name). */
   .ws-steps .step:not(.active) {
-    font-size: 0;
     gap: 0;
   }
 
-  .ws-steps .step:not(.active) .step-num {
-    font-size: var(--text-xs);
+  .ws-steps .step:not(.active) :is(.step-name, .step-wahl) {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
   }
 
   .ws-steps .sep {
@@ -172,6 +176,17 @@
 
 .ws-nav .spacer {
   flex: 1;
+}
+
+/* The upload button stays at the bottom of the window while the card above it scrolls (Prüfrunde 1 Bastler 3). */
+.ws-nav.ws-nav-fest {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  margin: 0 calc(-1 * var(--space-6)) calc(-1 * var(--space-6));
+  padding: var(--space-3) var(--space-6) var(--space-4);
+  background: var(--surface);
+  border-top: 1.5px solid var(--border);
 }
 
 .ws-numbered {
@@ -1022,6 +1037,17 @@
   margin-bottom: var(--space-4);
 }
 
+/* A command for the terminal, folded under its step (Prüfrunde 1 B6). */
+.ws-befehl > summary {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  color: var(--link, var(--primary));
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+
 /* ------------------------------------------------------------------ sounds */
 
 .ws-sounds-state {
@@ -1330,4 +1356,42 @@
 
 .keys-colors legend {
   padding: 0;
+}
+
+/* Box testen has eight steps: shorter lines between them, and as wide as the stage below, keep the bar on one line. */
+.bt-steps .steps {
+  gap: 6px;
+}
+
+.bt-steps .steps .sep {
+  width: 14px;
+}
+
+@media (min-width: 1100px) {
+  .bt-page > .bt-steps {
+    max-width: 1040px;
+  }
+}
+
+@media (max-width: 560px) {
+  .bt-steps .steps {
+    gap: 4px;
+  }
+
+  .bt-steps .steps .sep {
+    width: 6px;
+  }
+}
+
+/* The second part of the Steckbrief, in the look of its rows' labels (Prüfrunde 1, bastler 12). */
+.ws-facts-kopf {
+  margin: 4px 0 0;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+/* Systemansagen › Mehr: the beep switch and the player under the numbers. */
+.ws-sounds-more > p,
+.ws-sounds-more > .row {
+  margin: 10px 0 0;
 }

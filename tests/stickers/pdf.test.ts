@@ -9,6 +9,8 @@ import {
   printBleeds,
   type Segment,
   type StickerBitmap,
+  FOOTER_GREY,
+  FOOTER_PT,
 } from '../../src/core/stickers/pdf';
 import { growRect, paginate, rectInside, rectsOverlap, slotRects, type RectMm } from '../../src/core/stickers/slots';
 import {
@@ -263,6 +265,16 @@ describe('buildSheetPdf', () => {
     expect(footer).toBe('Bibi -> Tina Lódz · HERMA 5028 (83,8 × 50,8 mm) · mit „Tatsächliche Größe“ (100 %) drucken');
     // The document title keeps every character: jsPDF stores it as UTF-16 (byte order mark FE FF).
     expect(pdf).toContain('/Title (þÿ');
+  });
+
+  it('writes the hint under the labels small and light (TODO #127)', async () => {
+    const pdf = await pdfSource(await buildSheetPdf({ template: herma, pages: [[sticker(herma)]], cutMarks: false, title: 'z', compress: false }));
+    const grey = (FOOTER_GREY / 255).toFixed(3).replace(/0+$/, '');
+    // jsPDF writes the grey as "g" and the size as "Tf" right before the line.
+    expect(pdf).toMatch(new RegExp(`${grey.replace('.', '\\.')}\\d* g`));
+    expect(pdf).toMatch(new RegExp(`/F\\d+ ${FOOTER_PT} Tf`));
+    expect(FOOTER_PT).toBeLessThan(6.5);
+    expect(FOOTER_GREY).toBeGreaterThan(120);
   });
 
   it('compresses by default', async () => {

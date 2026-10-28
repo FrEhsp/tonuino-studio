@@ -27,8 +27,7 @@
 .sources-filters {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
-  padding: var(--space-4) var(--space-5);
+  gap: var(--space-3);
 }
 
 .sources-search .input {
@@ -68,47 +67,46 @@
   color: var(--text-muted);
 }
 
+.sources-choices {
+  align-items: center;
+}
+
+/* How much fits the choices: quietly at the end of their line. */
 .sources-count {
-  min-height: 1.5em;
-  margin-bottom: calc(-1 * var(--space-3));
+  margin-left: auto;
   font-size: var(--text-sm);
-  font-weight: 600;
   color: var(--text-muted);
 }
 
-/* Empty above the list's own heading ("Weitere Quellen"): no gap of its own. */
 .sources-count:empty {
-  min-height: 0;
+  display: none;
 }
 
-/* ------------------------------------------------------------------ source cards */
+/* ------------------------------------------------------------------ found titles (search) */
 
-.sources-grid,
-.sources-loading,
-.sources-series-cards {
+/* What the search found: cover and words on the paper, no box around each (TODO #119). */
+.sources-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
-  gap: var(--space-4);
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 380px), 1fr));
+  gap: var(--space-6) var(--space-8);
 }
 
-/* A series in the list: the whole width, its name over three of its stories. */
-.sources-series {
-  grid-column: 1 / -1;
+/* While the list loads: the shape of a row, a name and covers. */
+.sources-loading {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: var(--space-3);
 }
 
-.sources-series-head {
+.sources-loading-head {
+  width: min(320px, 60%);
+  height: 24px;
+}
+
+.sources-loading-row {
   display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: var(--space-1) var(--space-4);
-}
-
-.sources-series-head h3 {
-  margin: 0;
-  font-size: var(--text-lg);
+  gap: var(--space-5);
+  overflow: hidden;
 }
 
 /* The desktop app while it builds the list on this computer. */
@@ -117,28 +115,11 @@
   color: var(--text-muted);
 }
 
-.source-card {
+.source-hit {
   position: relative;
   display: flex;
   gap: var(--space-4);
-  padding: var(--space-4);
-  border-radius: var(--radius-lg);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow-xs);
-  transition:
-    border-color 0.15s var(--ease),
-    box-shadow 0.15s var(--ease);
-}
-
-.source-card:hover {
-  border-color: var(--border-strong);
-  box-shadow: var(--shadow);
-}
-
-.source-card.skeleton-card:hover {
-  border-color: var(--border);
-  box-shadow: var(--shadow-xs);
+  border-radius: var(--radius);
 }
 
 .source-cover {
@@ -241,8 +222,8 @@
   text-decoration: none;
 }
 
-.source-card:hover .source-card-link {
-  color: var(--primary);
+.source-hit:hover .source-card-link {
+  color: var(--primary-text);
 }
 
 .source-card-link:focus-visible {
@@ -265,7 +246,8 @@
   gap: 6px;
 }
 
-.source-card-people {
+.source-card-people,
+.source-card-meta {
   font-size: var(--text-sm);
   color: var(--text-soft);
 }
@@ -641,6 +623,12 @@ label.source-item-main {
   padding: 0 var(--space-4) var(--space-4);
 }
 
+/* „So kommt die Folge auf die Box“: three numbered steps, no box around them. */
+.save-steps h3 {
+  margin: 0;
+  font-size: var(--text-md, 17px);
+}
+
 .source-steps {
   margin: 0;
   padding-left: 1.4em;
@@ -650,19 +638,18 @@ label.source-item-main {
   margin-top: 2px;
 }
 
-.dropzone.source-drop {
-  gap: var(--space-3);
-  padding: var(--space-8) var(--space-6);
+.ablage.source-drop {
+  border-radius: 3px;
+  background: var(--surface);
 }
 
-.dropzone.source-drop h2 {
-  font-size: var(--text-md);
+.ablage.source-drop.over {
+  background: var(--primary-soft);
 }
 
-.dropzone.source-drop .dropzone-icon {
-  width: 56px;
-  height: 56px;
-  border-radius: 18px;
+.ablage.leer.source-drop .gross-satz {
+  max-width: none;
+  font-size: 22px;
 }
 
 .import-bar.source-bar,
@@ -793,13 +780,8 @@ a.badge.source-licence-link:hover {
     height: 40px;
   }
 
-  .source-card {
-    padding: var(--space-3);
+  .source-hit {
     gap: var(--space-3);
-  }
-
-  .sources-filters {
-    padding: var(--space-3) var(--space-4);
   }
 
   .sources-choice {
@@ -863,113 +845,315 @@ a.badge.source-licence-link:hover {
   }
 }
 
-/* ------------------------------------------------------------------ recommendations */
+/* ------------------------------------------------------------------ the tip and the rows (TODO #119) */
 
-.sources-picks {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
+/* The overview uses the whole window: rows of covers want the width. */
+.page.sources-overview {
+  max-width: none;
 }
 
-.sources-picks-head {
+/* The one big thing: the tip, its cover large, its words beside it. */
+.sources-lead {
   display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: var(--space-1) var(--space-3);
-}
-
-.sources-picks-head h2 {
-  display: inline-flex;
   align-items: center;
-  gap: var(--space-2);
-  font-size: var(--text-lg);
+  gap: var(--space-8);
 }
 
-.sources-picks-grid {
-  display: grid;
-  /* At most two columns: four picks always fill whole rows, and the cards stay big. */
-  grid-template-columns: repeat(auto-fill, minmax(max(min(100%, 340px), calc((100% - var(--space-4)) / 2)), 1fr));
-  gap: var(--space-4);
-}
-
-/* An odd number of picks: the last one takes the whole row instead of standing alone. */
-.sources-picks-grid > .source-pick:last-child:nth-child(odd):not(:only-child) {
-  grid-column: 1 / -1;
-}
-
-.source-pick {
-  position: relative;
-  display: flex;
-  gap: var(--space-4);
-  padding: var(--space-4);
+.sources-lead-cover {
+  flex: none;
+  display: block;
   border-radius: var(--radius-lg);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-top: 3px solid var(--accent-500);
-  box-shadow: var(--shadow-xs);
 }
 
-.source-pick-body {
-  flex: 1;
+.source-cover.xl {
+  width: 240px;
+  height: 240px;
+  border-radius: var(--radius-lg);
+}
+
+.sources-lead-text {
   min-width: 0;
+  max-width: 64ch;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--space-2);
 }
 
-.source-pick-title {
-  font-size: var(--text-md);
-  line-height: 1.3;
+.sources-lead-kicker {
+  font-size: var(--text-sm);
+  font-weight: 650;
+  color: var(--text-muted);
 }
 
-.source-pick-meta {
+.sources-lead-title {
+  font-size: var(--text-xl);
+  line-height: 1.2;
+}
+
+.sources-lead-from {
+  color: var(--text-soft);
+}
+
+.sources-lead-meta {
   font-size: var(--text-sm);
   font-weight: 600;
   color: var(--text-soft);
 }
 
-.source-pick-why {
-  margin-top: 2px;
-  font-size: var(--text-sm);
-  color: var(--text);
+.sources-lead-why {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  line-clamp: 4;
+  overflow: hidden;
 }
 
-.source-pick-action {
+.sources-lead-go {
   align-self: flex-start;
   margin-top: var(--space-2);
 }
 
-/* The whole pick opens it, like a card of the list: the title link covers the card. */
-.source-pick-link {
+/* The rows: a show each, its name over its covers. Space between them, no boxes. */
+.sources-rows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-10);
+}
+
+.sources-row {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.sources-row-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-1) var(--space-4);
+}
+
+.sources-row-head h2 {
+  font-size: var(--text-lg);
+}
+
+.sources-row-all {
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.sources-row-scroller {
+  position: relative;
+}
+
+.sources-row-tiles {
+  display: flex;
+  gap: var(--space-5);
+  margin: 0;
+  /* Room for the focus ring of a tile; the row scrolls sideways, the page never does. */
+  padding: 4px 4px var(--space-2);
+  list-style: none;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+  scrollbar-width: thin;
+}
+
+.sources-row-tiles > li {
+  flex: none;
+  width: 168px;
+  scroll-snap-align: start;
+}
+
+.sources-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-radius: var(--radius);
   color: var(--text);
 }
 
-.source-pick-link::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  border-radius: inherit;
-}
-
-.source-pick-link:hover {
+.sources-tile,
+.sources-tile:hover {
   text-decoration: none;
 }
 
-.source-pick:hover .source-pick-link {
-  color: var(--primary);
+.sources-tile:hover .sources-tile-title {
+  color: var(--primary-text);
 }
 
-.source-pick-link:focus-visible {
-  box-shadow: none;
-}
-
-.source-pick-link:focus-visible::after {
+.sources-tile:focus-visible {
+  outline: none;
   box-shadow: var(--focus-ring);
 }
 
-.sources-picks-more {
-  align-self: flex-start;
+.source-cover.tile {
+  width: 168px;
+  height: 168px;
+}
+
+.sources-tile .source-cover {
+  margin-bottom: 4px;
+}
+
+.sources-tile-title {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.sources-tile-meta {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+/*
+ * The covers of the rows lie straight, with a thin edge: many paper prints in
+ * a row made a wall. Two classes more than the wooden look's print, so it
+ * wins whatever comes later; the tip on top keeps its print.
+ */
+.sources-rows .source-cover.tile,
+.sources-loading .source-cover.tile {
+  border: 0;
+  border-radius: var(--radius);
+  box-shadow: 0 0 0 1px var(--border);
+  transform: none;
+}
+
+/* Arrows for the mouse; only while there is more to that side, never on a touch screen. Two classes beat the wooden look's position of every button. */
+.sources-row-scroller > .sources-row-arrow {
+  position: absolute;
+  top: 88px;
+  z-index: 1;
+  transform: translateY(-50%);
+  border-radius: 50%;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.sources-row-scroller > .sources-row-arrow.left {
+  left: -10px;
+}
+
+.sources-row-scroller > .sources-row-arrow.right {
+  right: -10px;
+}
+
+@media (hover: none) {
+  .sources-row-scroller > .sources-row-arrow {
+    display: none;
+  }
+}
+
+/* A show whose stories share one picture: the picture once, the titles beside it. */
+.sources-row-list {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-6);
+}
+
+.sources-row-cover {
+  flex: none;
+  display: block;
+  margin: 4px;
+  border-radius: var(--radius);
+}
+
+.sources-row-titles {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-width: 960px;
+  columns: 2 300px;
+  column-gap: var(--space-8);
+}
+
+.sources-row-titles li {
+  padding: 5px 0;
+  break-inside: avoid;
+  line-height: 1.35;
+}
+
+.sources-row-titles a {
+  font-weight: 600;
+}
+
+@media (max-width: 720px) {
+  .sources-lead {
+    align-items: flex-start;
+    gap: var(--space-4);
+  }
+
+  .source-cover.xl {
+    width: 112px;
+    height: 112px;
+  }
+
+  .sources-lead-title {
+    font-size: var(--text-lg);
+  }
+
+  .sources-lead-why {
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+  }
+
+  .sources-rows {
+    gap: var(--space-8);
+  }
+
+  .sources-row-tiles {
+    gap: var(--space-3);
+  }
+
+  .sources-row-tiles > li {
+    width: 132px;
+  }
+
+  .source-cover.tile {
+    width: 132px;
+    height: 132px;
+  }
+
+  .sources-row-list {
+    gap: var(--space-4);
+  }
+
+  .sources-row-list .source-cover.tile {
+    width: 88px;
+    height: 88px;
+  }
+
+  .sources-count {
+    margin-left: 0;
+  }
+}
+
+/* A phone: the tip's button takes the whole line below the cover and the words. */
+@media (max-width: 480px) {
+  /* "Alles · Hörspiele" and "Jedes Alter · Bis 5" say what they choose; the words before them would push the tip down. */
+  .sources-choice-label {
+    display: none;
+  }
+
+  .sources-choices {
+    row-gap: var(--space-2);
+  }
+
+  .sources-lead {
+    flex-wrap: wrap;
+  }
+
+  .sources-lead-text {
+    flex: 1 1 160px;
+  }
 }
 
 /* The small teaser on the start page: three lines and a link. */
@@ -1067,11 +1251,6 @@ a.badge.source-licence-link:hover {
 }
 
 @media (max-width: 720px) {
-  .source-pick {
-    padding: var(--space-3);
-    gap: var(--space-3);
-  }
-
   .picks-teaser {
     padding: var(--space-3) var(--space-4);
   }
@@ -1084,23 +1263,5 @@ a.badge.source-licence-link:hover {
   .source-cover.sm svg {
     width: 18px;
     height: 18px;
-  }
-}
-
-/* On a phone the picks are compact, so the search stays close to the top. */
-@media (max-width: 480px) {
-  .source-pick .source-cover {
-    width: 56px;
-    height: 56px;
-    border-radius: var(--radius-sm);
-  }
-
-  .source-pick .source-cover svg {
-    width: 26px;
-    height: 26px;
-  }
-
-  .source-pick-action {
-    margin-top: var(--space-1);
   }
 }

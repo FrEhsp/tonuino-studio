@@ -1,5 +1,5 @@
 /**
- * "Box wird nicht erkannt?": what the computer sees right now, and the usual
+ * "Computer findet die Box am USB-Kabel nicht": what the computer sees right now, and the usual
  * reasons why it does not see the box, for the system the app runs on.
  */
 import { useEffect, useState } from 'preact/hooks';
@@ -18,17 +18,34 @@ import { theDevice } from '../../app/device';
 
 const OS_NAMES = { linux: 'Linux', windows: 'Windows', macos: 'macOS', other: 'dein System' } as const;
 
+/** The name of this page, also in the list of the Werkstatt: what one sees, not a word of the technician (Prüfrunde 1 B6). */
+export const USB_HELP_TITLE = 'Computer findet die Box am USB-Kabel nicht';
+
 export function UsbHelpTool() {
   const p = plat();
   const desktop = desktopSerial(p.serial);
   const help = usbHelp({ os: p.os, kind: p.kind, serialSupported: p.capabilities.serial, canSetupAccess: !!desktop && p.os === 'linux', mayAskForAddon: p.serial.mayAskForAddon, phone: !!p.mobile });
   return (
     <div class="page narrow ws-page">
-      <ToolHeader title="Box wird nicht erkannt?" intro={`Die häufigsten Gründe, warum ${theDevice()} die Box am USB-Kabel nicht findet. Passend für ${p.mobile ? 'Android' : OS_NAMES[p.os]}.`} />
+      <ToolHeader title={USB_HELP_TITLE} intro={`Die häufigsten Gründe, warum ${theDevice()} die Box am USB-Kabel nicht findet, die einfachen zuerst. Passend für ${p.mobile ? 'Android' : OS_NAMES[p.os]}.`} />
       {p.capabilities.serial ? <LiveCheck desktop={desktop} /> : null}
-      {help.sections.map((s) => (
-        <HelpCard key={s.id} section={s} desktop={desktop} />
-      ))}
+      {help.sections
+        .filter((s) => !s.terminal)
+        .map((s) => (
+          <HelpCard key={s.id} section={s} desktop={desktop} />
+        ))}
+      {help.sections.some((s) => s.terminal) ? (
+        <details class="ws-later">
+          <summary>Hilft das alles nicht? Mehr für Linux, mit Befehlen im Terminal</summary>
+          <div class="stack loose">
+            {help.sections
+              .filter((s) => s.terminal)
+              .map((s) => (
+                <HelpCard key={s.id} section={s} desktop={desktop} />
+              ))}
+          </div>
+        </details>
+      ) : null}
       {help.later.length ? (
         <details class="ws-later">
           <summary>Erst wichtig, wenn du Chrome, Edge, Firefox ab 151 oder die Desktop-App benutzt</summary>
@@ -206,7 +223,13 @@ function HelpCard({ section, desktop }: { section: HelpSection; desktop: Desktop
           <li key={st.text}>
             <div class="stack tight">
               <span>{st.text}</span>
-              {st.command ? <CommandLine command={st.command} /> : null}
+              {/* Terminal commands only for those who look for them (Prüfrunde 1 B6). */}
+              {st.command ? (
+                <details class="ws-befehl">
+                  <summary>Befehl fürs Terminal zeigen</summary>
+                  <CommandLine command={st.command} />
+                </details>
+              ) : null}
             </div>
           </li>
         ))}

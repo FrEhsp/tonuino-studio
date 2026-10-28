@@ -20,6 +20,7 @@ import { toast, toastError, toastSaved } from '../../ui/components/Toast';
 import { plat } from '../../app/state';
 import { marginChoices } from '../../core/stickers/margin';
 import { calibration, printOptions, saveCalibration, setMargin, template } from './design';
+import { activePrinter, ANY_PRINTER, printerLabel } from './printers';
 import { printDocument, printWay } from './print';
 
 /** "+1,5", "-0,5", "–2" → number; empty → undefined; garbage → NaN. */
@@ -43,6 +44,8 @@ export function CalibrationDialog({ onClose }: { onClose: () => void }) {
   const measure = measureLinePlacement(t);
   // The test page goes the way the stickers go ("Drucken"), so both come out the same size.
   const printsHere = printWay(plat()) !== null;
+  // The desktop app's own print dialog always prints in real size: it has no 100 % to look for (Prüfrunde 1, bastler 24).
+  const realSize = printWay(plat()) === 'system';
 
   const values = [x, y, x2, y2].map(parseMm);
   const invalid = values.some((v) => Number.isNaN(v));
@@ -58,7 +61,7 @@ export function CalibrationDialog({ onClose }: { onClose: () => void }) {
   const printTest = async () => {
     setBusy('print');
     try {
-      await printDocument(plat(), { name: fileName, page: t.page, pages: 1, pdf: () => buildTestPagePdf(t, current), pictures: async () => [await testPagePicture(t, current)] });
+      await printDocument(plat(), { name: fileName, page: t.page, pages: 1, pdf: () => buildTestPagePdf(t, calibration.value), pictures: async () => [await testPagePicture(t, calibration.value)] });
     } catch (e) {
       toastError('Die Testseite ließ sich nicht drucken', e);
     } finally {
@@ -124,7 +127,7 @@ export function CalibrationDialog({ onClose }: { onClose: () => void }) {
           <li>
             <div class="stack tight">
               <strong>Testseite drucken</strong>
-              <span class="soft small">Auf normales Papier, im Druckdialog „Tatsächliche Größe“ oder 100 % wählen.</span>
+              <span class="soft small">{realSize ? 'Auf normales Papier. Ich drucke sie in echter Größe.' : 'Auf normales Papier, im Druckdialog „Tatsächliche Größe“ oder 100 % wählen.'}</span>
               <div class="row wrap calibration-test">
                 {printsHere ? (
                   <Button icon={Drucker} onClick={() => void printTest()} loading={busy === 'print'} disabled={busy !== null}>
@@ -147,7 +150,11 @@ export function CalibrationDialog({ onClose }: { onClose: () => void }) {
             <li>
               <div class="stack tight">
                 <strong>{`Die ${measure.lengthMm / 10}-cm-Linie nachmessen`}</strong>
-                <span class="soft small">Ist sie mit dem Lineal kürzer oder länger, stimmt die Größe im Druckdialog nicht. Stelle dort 100 % ein und drucke die Seite noch einmal.</span>
+                <span class="soft small">
+                  {realSize
+                    ? 'Ist sie mit dem Lineal kürzer oder länger, obwohl ich in echter Größe drucke, verkleinert der Drucker selbst. Schaue in seinen Einstellungen nach „An Seite anpassen“ oder „Randlos“ und schalte es aus.'
+                    : 'Ist sie mit dem Lineal kürzer oder länger, stimmt die Größe im Druckdialog nicht. Stelle dort 100 % ein und drucke die Seite noch einmal.'}
+                </span>
               </div>
             </li>
           ) : null}
@@ -190,7 +197,7 @@ export function CalibrationDialog({ onClose }: { onClose: () => void }) {
         {savedSize ? (
           <Callout tone="warning">
             {`Die gespeicherte Korrektur gleicht aus, dass dein Drucker etwa ${savedSize.percent} % ${savedSize.smaller ? 'zu klein' : 'zu groß'} druckt. `}
-            Das kommt fast immer vom Druckdialog. Stelle dort 100 % ein, setze die Korrektur zurück und miss neu.
+            {realSize ? 'Ich drucke in echter Größe: Schaue in den Einstellungen des Druckers nach „An Seite anpassen“, setze die Korrektur zurück und miss neu.' : 'Das kommt fast immer vom Druckdialog. Stelle dort 100 % ein, setze die Korrektur zurück und miss neu.'}
           </Callout>
         ) : null}
         <div class="row wrap calibration-now">
@@ -199,6 +206,7 @@ export function CalibrationDialog({ onClose }: { onClose: () => void }) {
               ? 'Bisher ohne Korrektur.'
               : `Aktuelle Korrektur: ${describeCalibration(current)}.`}
             {next ? ` Neu: ${describeCalibration(next)}.` : ''}
+            {activePrinter.value !== ANY_PRINTER ? ` Gilt für „${printerLabel(activePrinter.value)}“.` : ''}
           </span>
           {!isIdentityCalibration(current) ? (
             <Button

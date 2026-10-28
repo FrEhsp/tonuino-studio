@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'preact/hooks';
-import { CircleAlert, Copy, FileDown, Smartphone } from 'lucide-preact';
+import { CircleAlert, Copy, FileDown } from 'lucide-preact';
 import { phoneAppSteps, readCrashNotice, splitForPhoneApp, unknownNotice } from '../../core/tonuino/androidapp';
 import { cardToQrLine, qrGroups } from '../../core/tonuino/card';
 import { Button, Callout, Field, Segmented } from '../../ui/components/controls';
@@ -8,6 +8,7 @@ import { catalog, plat } from '../../app/state';
 import { ExternalLink } from '../help/ExternalLink';
 import type { CardItem } from './items';
 import { linesFor, qrSheetPdf } from './qrsheet';
+import { ArcadeCap, CapHandy } from '../../ui/icons/caps';
 
 /** F-Droid has the newest version; Google Play turned down its updates (forum 2151#207). */
 const F_DROID = 'https://f-droid.org/packages/de.mw136.tonuino/';
@@ -50,13 +51,11 @@ export function QrPanel({ items }: { items: CardItem[] }) {
       {unknown.length ? <Callout tone="info">{unknownNotice(unknown.map((i) => i.title))}</Callout> : null}
 
       <div class="qr-intro">
-        <span class="qr-intro-icon">
-          <Smartphone size={22} />
-        </span>
+        <ArcadeCap icon={CapHandy} color="blau" size={36} />
         <div class="stack tight">
           {/* Our own Android app first (audit 0.4 #16): it needs no code to scan. */}
           <p>
-            <strong>Hast du TonUINO Studio auf dem Android-Handy?</strong> Dann öffne dort „Karten“. Steckt die SD-Karte der Box in einem SD-Kartenleser am Handy, siehst du dort alle Ordner.
+            <strong>Hast du TonUINO Studio auf dem Android-Handy?</strong> Dann öffne dort „Karte“. Steckt die SD-Karte der Box in einem SD-Kartenleser am Handy, siehst du dort alle Ordner.
           </p>
           <p class="qr-second-way">
             Ohne TonUINO Studio am Handy geht es mit einem QR-Code. Du brauchst ein Android-Handy mit NFC und die kostenlose App <strong>TonUINO NFC Tools</strong>. Die neueste Version gibt es bei{' '}
@@ -72,19 +71,22 @@ export function QrPanel({ items }: { items: CardItem[] }) {
       </div>
 
       <div class="row wrap" style={{ gap: 16, alignItems: 'flex-end' }}>
-        <Field label="Karten pro Code">
-          <Segmented<number>
-            label="Karten pro Code"
-            value={perCode}
-            options={[
-              { value: 1, label: '1' },
-              { value: 4, label: '4' },
-              { value: 8, label: '8' },
-              { value: 99, label: 'alle' },
-            ]}
-            onChange={setPerCode}
-          />
-        </Field>
+        {/* Only a choice with more than one card (Prüfrunde 1, eltern B14). */}
+        {items.length > 1 ? (
+          <Field label="Karten pro Code">
+            <Segmented<number>
+              label="Karten pro Code"
+              value={perCode}
+              options={[
+                { value: 1, label: '1' },
+                { value: 4, label: '4' },
+                { value: 8, label: '8' },
+                { value: 99, label: 'alle' },
+              ]}
+              onChange={setPerCode}
+            />
+          </Field>
+        ) : null}
         <div class="spacer" />
         <Button icon={Copy} onClick={copy}>
           Liste kopieren

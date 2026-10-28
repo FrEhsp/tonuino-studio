@@ -155,7 +155,7 @@ describe('Lötplan for the other boards', () => {
   });
 
   it('offers the extras that fit, the rotary knob only with 3 buttons', () => {
-    expect(extras({ ...DEFAULT_WAHL, platine: 'classic' }).map((x) => x.id)).toEqual(['drehgeber', 'poti', 'ring', 'ledtasten', 'pololu', 'dauerled', 'lsaus', 'hperkennung', 'wecker', 'akkumessung', 'usbc']);
+    expect(extras({ ...DEFAULT_WAHL, platine: 'classic' }).map((x) => x.id)).toEqual(['drehgeber', 'poti', 'ring', 'ledtasten', 'schalter', 'pololu', 'dauerled', 'akku', 'lsaus', 'hperkennung', 'wecker', 'akkumessung', 'usbc']);
     expect(extras({ ...DEFAULT_WAHL, platine: 'classic', tasten: 5 }).find((x) => x.id === 'drehgeber')?.plan).toBeNull();
     expect(extras({ ...DEFAULT_WAHL, platine: 'aio' }).map((x) => x.id)).toEqual(['drehgeber', 'poti', 'ring', 'akku']);
     const pololu = extras({ ...DEFAULT_WAHL, platine: 'frei' }).find((x) => x.id === 'pololu')!.plan!;
@@ -171,5 +171,45 @@ describe('Lötplan for the other boards', () => {
     const plan = schema({ ...DEFAULT_WAHL, platine: 'aioplus' })!;
     const t = texts(flatten(LoetplanSchema({ plan, label: 'x' })));
     expect(t).toEqual(expect.arrayContaining(['AiO+-Platine', 'PBP', 'PBN', 'V+', 'SPEAKER (8)', 'NFC (13)', 'MISO']));
+  });
+});
+
+describe('Lötplan: on/off switch', () => {
+  const schalter = (w: Partial<LoetplanWahl>) => extras({ ...DEFAULT_WAHL, extras: ['schalter'], ...w }).find((x) => x.id === 'schalter')!;
+
+  it('asks for the legs of the switch first and draws nothing before', () => {
+    const x = schalter({});
+    expect(x.frage?.text).toBe('Wie viele Beinchen hat dein Schalter?');
+    expect(x.frage?.optionen.map((o) => o.wert)).toEqual([2, 3, 4]);
+    expect(x.frage?.gewaehlt).toBeUndefined();
+    expect(x.plan).toBeNull();
+    expect(toWahl({ ...DEFAULT_WAHL, schalter: 3 }).schalter).toBe(3);
+    expect(toWahl({ ...DEFAULT_WAHL, schalter: 7 })).not.toHaveProperty('schalter');
+  });
+
+  it('runs only the red wire through the switch, and keeps the data wires', () => {
+    const zwei = schalter({ schalter: 2 }).plan!;
+    expect(zwei.kabel.map((k) => `${k.von.join('.')}→${k.nach.join('.')}`)).toEqual(['pb.rot→sw.1', 'sw.2→box.rot']);
+    expect(zwei.kabel.every((k) => /rote Ader/i.test(k.text))).toBe(true);
+    expect(zwei.frei?.[0].text).toContain('Grün und Weiß');
+    const drei = schalter({ schalter: 3 }).plan!;
+    expect(drei.kabel.map((k) => `${k.von.join('.')}→${k.nach.join('.')}`)).toEqual(['pb.rot→sw.M', 'sw.A→box.rot']);
+    expect(drei.frei?.map((f) => f.text)).toContain('Das andere äußere Beinchen bleibt frei');
+    const x = schalter({ schalter: 2 });
+    expect(x.tabelle?.zeilen.map((z) => z[0])).toEqual(['Rot', 'Schwarz', 'Grün und Weiß']);
+    expect(x.warnung).toContain('Stecker am Nano');
+    expect(x.links?.map((l) => l.href)).toEqual(['https://bluetchen.de/FSU/TonUINO_FSU.html', 'https://discourse.voss.earth/t/usb-kabel-aufdroesseln-um-schalter-einzubauen/952/9']);
+  });
+
+  it('does not draw a switch with 4 legs, and warns about 12-V battery shields', () => {
+    const vier = schalter({ schalter: 4 });
+    expect(vier.plan).toBeNull();
+    expect(vier.fehlt?.beweis).toContain('Beschriftung der Beinchen');
+    for (const n of [2, 3, 4] as const) expect(schalter({ schalter: n }).text.join(' ')).toMatch(/nur ein Shield mit 5-V-Ausgang.*12 V.*zerstört Nano und MP3-Player/);
+  });
+
+  it('is only for boxes without their own power switch', () => {
+    expect(extras({ ...DEFAULT_WAHL, platine: 'aio' }).map((x) => x.id)).not.toContain('schalter');
+    expect(extras({ ...DEFAULT_WAHL, platine: 'frei', nano: 'every' }).map((x) => x.id)).toContain('schalter');
   });
 });

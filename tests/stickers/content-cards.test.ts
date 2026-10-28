@@ -10,6 +10,7 @@ import { MODIFIER_ICONS } from '../../src/features/cards/SpecialCardDialog';
 import { renderKey, type RenderSetup } from '../../src/features/stickers/pipeline';
 import { folderPart, stickerFromCard } from '../../src/features/stickers/content';
 import { badgeText, titleShown } from '../../src/features/stickers/render';
+import { pictogramWord } from '../../src/features/stickers/pictogramWord';
 import type { StickerDesign } from '../../src/features/stickers/design';
 
 const defaults = settings.value;
@@ -49,6 +50,37 @@ describe('stickerFromCard', () => {
     const s = stickerFromCard(jukebox);
     const setup = { design: {}, template: { id: 't', label: 'T', safeMarginMm: 1 }, bleedMm: 1 } as unknown as RenderSetup;
     expect(renderKey(s, setup, 10)).not.toBe(renderKey({ ...s, icon: KeyRound, flatColor: '#000000' }, setup, 10));
+  });
+
+  it('gives a special card the pictogram chosen for it, its text and colour stay (TODO 0.3 #103)', () => {
+    const [plain] = buildCardItems(undefined, null, [extra({ label: 'Schlummerkarte', mode: 1, special: 15 })], 'tng');
+    const [withPicto] = buildCardItems(undefined, null, [extra({ label: 'Schlummerkarte', mode: 1, special: 15, sticker: { pictogram: 2369 } })], 'tng');
+    const a = stickerFromCard(plain);
+    const b = stickerFromCard(withPicto);
+    expect(a.pictogram).toBeUndefined();
+    expect('pictogram' in a).toBe(false);
+    expect(b.pictogram).toBe(2369);
+    expect(b.title).toBe(a.title);
+    expect(b.flatColor).toBe(a.flatColor);
+    const setup = { design: {}, template: { id: 't', label: 'T', safeMarginMm: 1 }, bleedMm: 1 } as unknown as RenderSetup;
+    expect(renderKey(b, setup, 10)).not.toBe(renderKey(a, setup, 10));
+    const [again] = buildCardItems(undefined, null, [extra({ label: 'Nochmal', folder: 0xff, mode: 0, sticker: { pictogram: 7 } })], 'tng');
+    expect(stickerFromCard(again).pictogram).toBe(7);
+  });
+});
+
+describe('the word the pictogram search starts with', () => {
+  it('is what a special card does, not its name', () => {
+    expect(pictogramWord('Schlummerkarte', true)).toBe('schlafen');
+    expect(pictogramWord('Stopptanz', true)).toBe('tanzen');
+    expect(pictogramWord('Admin-Karte', true)).toBe('Schlüssel');
+    expect(pictogramWord('Titel wiederholen', true)).toBe('wiederholen');
+    expect(pictogramWord('Etwas Neues', true)).toBe('Etwas Neues');
+  });
+
+  it('is the first three words of any other title', () => {
+    expect(pictogramWord('  Der kleine Drache Kokosnuss 3 ')).toBe('Der kleine Drache');
+    expect(pictogramWord('Schlummerkarte')).toBe('Schlummerkarte');
   });
 });
 

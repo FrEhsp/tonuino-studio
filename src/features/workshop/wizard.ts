@@ -15,7 +15,7 @@ import {
   type HostOs,
   type FlashSuccess,
 } from '../../core/firmware/flash';
-import { parseIntelHex, type HexImage } from '../../core/firmware/intelhex';
+import { HexError, parseIntelHex, type HexImage } from '../../core/firmware/intelhex';
 import {
   VARIANTS,
   askShutdown,
@@ -47,17 +47,21 @@ import {
   type LocalFetch,
 } from '../../core/firmware/baukasten';
 import type { FirmwareProfile } from '../../core/tonuino/card';
+import { CHECKED_TNG, isChecked, knownStand, standTitle } from '../../core/firmware/tngstands';
 import { tngStandOf } from '../../core/tonuino/firmwaredetect';
 import type { ByteSource, SerialPortInfo } from '../../platform/types';
 import { formatBytes, formatDuration } from '../../app/format';
 
-export type WizardStep = 'board' | 'variant' | 'source' | 'flash';
+/** `source`: „Firmware“, or „Extras“ for Classic and AiO (the Firmware-Baukasten), which then have „Verhalten“ before the upload. */
+export type WizardStep = 'board' | 'variant' | 'source' | 'verhalten' | 'flash';
 
 /** A build of the Firmware-Baukasten that came with the app (src/core/firmware/baukasten.ts). */
 export interface BaukastenInfo {
   id: string;
-  /** "Drehregler, Weitermachen" */
+  /** "Drehregler, Weitermachen"; empty for the build without extras (the ready-made firmware of Classic and AiO). */
   summary: string;
+  /** "TonUINO TNG 3.3.3 vom 17.09.2026": the checked state of TNG the build is made from. */
+  stand: string;
   /** Where it comes from (GPL): TNG version, commit, flags. */
   source: string;
   /** Classic: only fits a Nano with the new bootloader. */
@@ -76,8 +80,17 @@ export type FirmwareChoice =
       /** Size of the .hex file (Baukasten: of the image). */
       fileBytes: number;
       image: HexImage;
-      /** Set for a build with extras from the Firmware-Baukasten instead of the official one. */
+      /**
+       * Set for a build of the Firmware-Baukasten (in the app, from the checked TNG state), with or
+       * without extras: Classic and AiO always get one. Unset for a download from tonuino.github.io.
+       */
       baukasten?: BaukastenInfo;
+      /**
+       * A download from tonuino.github.io that is not the checked TNG state (CHECKED_TNG): the server
+       * always has the newest main. What its version line says; {} when it has none. Goes on the box
+       * only after the user said so (WizardState.uncheckedOk).
+       */
+      unchecked?: { version?: string; date?: string };
     }
   | { kind: 'file'; board: BoardId; fileName: string; fileBytes: number; image: HexImage }
   | { kind: 'backup'; board: BoardId; fileName: string; fileBytes: number; image: HexImage };
@@ -91,6 +104,8 @@ export interface WizardState {
   shutdown?: ShutdownKind;
   /** Extras of the Firmware-Baukasten ticked under „Extras“ (Classic and AiO). */
   extras?: ExtrasChoice;
+  /** The user wants the downloaded firmware although TonUINO Studio has not checked it (FirmwareChoice.unchecked). */
+  uncheckedOk?: boolean;
 }
 
 export function initialWizard(): WizardState {
@@ -100,6 +115,17 @@ export function initialWizard(): WizardState {
 /** Steps shown in the header. ESP32 boxes update over Wi-Fi, so their third step is the guide and there is no fourth. */
 export function stepsFor(board: BoardInfo | undefined): { id: WizardStep; label: string }[] {
   if (board?.method === 'unsupported') return [{ id: 'board', label: 'Platine' }];
+  // Classic and AiO: the Firmware-Baukasten, with „Verhalten“ (design/06-umbau/loetplan, entwurf-baukasten, entwurf-verhalten).
+  // Without a board yet, the way of most boxes (Classic, AiO): the bar keeps its length when one is chosen (Prüfrunde 2, bastler 4).
+  if (!board || isBaukastenBoard(board.id)) {
+    return [
+      { id: 'board', label: 'Platine' },
+      { id: 'variant', label: 'Tasten' },
+      { id: 'source', label: 'Extras' },
+      { id: 'verhalten', label: 'Verhalten' },
+      { id: 'flash', label: 'Aufspielen' },
+    ];
+  }
   if (board?.method === 'esp32') {
     return [
       { id: 'board', label: 'Platine' },
@@ -142,7 +168,14 @@ export function chooseExtras(s: WizardState, extras: ExtrasChoice): WizardState 
 }
 
 export function chooseFirmware(s: WizardState, firmware: FirmwareChoice | undefined): WizardState {
-  return { ...s, firmware };
+  // A yes to unchecked firmware is for that one download only.
+  const { uncheckedOk: _, ...rest } = s;
+  return { ...rest, firmware };
+}
+
+/** The user says yes (or no) to a download TonUINO Studio has not checked. */
+export function acceptUnchecked(s: WizardState, ok: boolean): WizardState {
+  return { ...s, uncheckedOk: ok };
 }
 
 /** The answer how the box switches off. A ready-made build that does not fit that box is dropped; a file of your own stays. */
@@ -163,16 +196,21 @@ export function baukastenChoice(s: WizardState): { board: BaukastenBoard; button
   return { board: s.board, buttons: s.variant, choice };
 }
 
-/** True when the box needs a build of the Baukasten instead of the official one. */
+/** True when the box needs a build with extras (something ticked, or the carrier board). */
 export function wantsBaukasten(s: WizardState): boolean {
   const b = baukastenChoice(s);
   return !!b && !isPlain(b.choice);
 }
 
-/** The id of the Baukasten build the wizard wants, or undefined for the official build. */
+/**
+ * The id of the Baukasten build the wizard wants. Classic and AiO always get
+ * one: without extras the plain build ("classic-3"), the checked TNG state
+ * that comes with the app instead of the newest main from tonuino.github.io
+ * (tngstands.ts). Undefined for the other boards, which download.
+ */
 export function wantedBuildId(s: WizardState): string | undefined {
   const b = baukastenChoice(s);
-  return b && !isPlain(b.choice) ? buildId(b.board, b.buttons, b.choice) : undefined;
+  return b ? buildId(b.board, b.buttons, b.choice) : undefined;
 }
 
 /** A ready-made build that is not the one the choices ask for goes; a file of your own stays. */
@@ -196,7 +234,7 @@ export function baukastenProblem(e: unknown): FlashProblem {
 /** Loads the Baukasten build the wizard wants from the files that came with the app. */
 export async function loadBaukasten(fetchFn: LocalFetch, base: string, manifest: BaukastenManifest, s: WizardState): Promise<FirmwareChoice> {
   const b = baukastenChoice(s);
-  if (!b || isPlain(b.choice)) throw new RangeError('no Baukasten build wanted');
+  if (!b) throw new RangeError('no Baukasten build wanted');
   const status = choiceStatus(manifest, b.board, b.buttons, b.choice);
   if (status.kind !== 'ok') throw new RangeError(`Baukasten build ${buildId(b.board, b.buttons, b.choice)}: ${status.kind}`);
   const build = status.build;
@@ -209,8 +247,21 @@ export async function loadBaukasten(fetchFn: LocalFetch, base: string, manifest:
     url: `${base}firmware/baukasten/${build.pack}`,
     fileBytes: build.bytes,
     image,
-    baukasten: { id: build.id, summary: choiceSummary(b.choice), source: baukastenSource(manifest, build), needsNewBootloader: build.needsNewBootloader },
+    baukasten: {
+      id: build.id,
+      summary: choiceSummary(b.choice),
+      stand: build.writeCard && manifest.writeCardPreview ? `TonUINO TNG ${manifest.writeCardPreview.versionString.slice(1)}` : standTitle(manifestStand(manifest)),
+      source: baukastenSource(manifest, build),
+      needsNewBootloader: build.needsNewBootloader,
+    },
   };
+}
+
+/** The TNG state of the Baukasten builds, from the manifest ("V3.3.3 17.09.26"). */
+function manifestStand(manifest: BaukastenManifest): { version: string; date: string } {
+  const m = /(\d{1,2})\.(\d{1,2})\.(\d{2})$/.exec(manifest.tng.versionString);
+  const date = manifest.tng.date ?? (m ? `20${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}` : '');
+  return { version: manifest.tng.version, date };
 }
 
 /**
@@ -256,29 +307,41 @@ export function canEnter(s: WizardState, step: WizardStep): boolean {
       return !!board && board.method !== 'unsupported';
     case 'source':
       return canEnter(s, 'variant') && !!s.variant && board!.variants.includes(s.variant);
+    case 'verhalten':
+      // A file of your own goes straight to the upload: what it does is in the file.
+      return canEnter(s, 'source') && isBaukastenBoard(board!.id) && s.firmware?.kind !== 'file' && readyMadeAllowed(board!, s.shutdown);
     case 'flash':
       return (
         canEnter(s, 'source') &&
         board!.method === 'stk500' &&
         !!s.firmware &&
         s.firmware.board === board!.id &&
-        (s.firmware.kind !== 'download' || (readyMadeAllowed(board!, s.shutdown) && s.firmware.baukasten?.id === wantedBuildId(s)))
+        (s.firmware.kind !== 'download' ||
+          (readyMadeAllowed(board!, s.shutdown) && s.firmware.baukasten?.id === wantedBuildId(s) && (!s.firmware.unchecked || s.uncheckedOk === true)))
       );
   }
+}
+
+/** Whether the wizard passes „Verhalten“: not with a file of your own. */
+function skipsVerhalten(s: WizardState): boolean {
+  return s.firmware?.kind === 'file';
 }
 
 /** The step after this one, or null at the end. */
 export function nextStep(s: WizardState): WizardStep | null {
   const steps = stepsFor(s.board ? getBoard(s.board) : undefined);
   const i = steps.findIndex((x) => x.id === s.step);
-  const next = steps[i + 1];
+  let next = steps[i + 1];
+  if (next?.id === 'verhalten' && skipsVerhalten(s)) next = steps[i + 2];
   return next && canEnter(s, next.id) ? next.id : null;
 }
 
 export function previousStep(s: WizardState): WizardStep | null {
   const steps = stepsFor(s.board ? getBoard(s.board) : undefined);
   const i = steps.findIndex((x) => x.id === s.step);
-  return i > 0 ? steps[i - 1].id : null;
+  if (i <= 0) return null;
+  const prev = steps[i - 1].id;
+  return prev === 'verhalten' && skipsVerhalten(s) ? steps[i - 2].id : prev;
 }
 
 /** Moves to `step` when it may open; otherwise stays. */
@@ -368,8 +431,10 @@ export function sizeProblem(image: HexImage, board: BoardInfo): FlashProblem | n
 }
 
 /**
- * Downloads the ready-made TonUINO-TNG build and parses it. Rejects with
- * FirmwareDownloadError, whose `problem` is ready for the page.
+ * Downloads the ready-made TonUINO-TNG build from tonuino.github.io and parses
+ * it (boards without the Baukasten: AiO+). The server always has the newest
+ * main; a build that is not the checked state comes back marked `unchecked`.
+ * Rejects with FirmwareDownloadError, whose `problem` is ready for the page.
  */
 export async function loadReadyMade(fetchFn: FetchFn, board: BoardInfo, variant: ButtonVariant, signal?: AbortSignal): Promise<FirmwareChoice> {
   const file = await downloadFirmwareFile(fetchFn, board, variant, signal);
@@ -384,7 +449,28 @@ export async function loadReadyMade(fetchFn: FetchFn, board: BoardInfo, variant:
       steps: ['Versuche den Download noch einmal.', `Klappt es wieder nicht, lade die Datei selbst von ${file.url} herunter und wähle sie als eigene Datei aus.`],
     });
   }
-  return { kind: 'download', board: board.id, variant, fileName: file.fileName, url: file.url, fileBytes: file.bytes.length, image };
+  const choice: FirmwareChoice = { kind: 'download', board: board.id, variant, fileName: file.fileName, url: file.url, fileBytes: file.bytes.length, image };
+  const version = firmwareVersion(image);
+  if (!isChecked(version)) choice.unchecked = version ? { ...(version.version ? { version: version.version } : {}), ...(version.date ? { date: version.date } : {}) } : {};
+  return choice;
+}
+
+/**
+ * What the page says about a download TonUINO Studio has not checked: which
+ * state it is and what the user should know before saying yes.
+ */
+export function uncheckedText(unchecked: { version?: string; date?: string }): { title: string; text: string; confirm: string } {
+  const named = unchecked.version ? `TonUINO TNG ${unchecked.version}${unchecked.date ? ` vom ${unchecked.date.split('-').reverse().join('.')}` : ''}` : 'eine Firmware ohne Versionsangabe';
+  const layout = knownStand(unchecked)?.settingsLayout;
+  return {
+    title: 'Diese Firmware hat TonUINO Studio noch nicht geprüft',
+    text:
+      `Auf der Seite von TonUINO TNG liegt immer der neueste Entwicklungsstand, gerade ${named}. Geprüft ist bei TonUINO Studio ${standTitle(CHECKED_TNG)}. ` +
+      'Meist klappt auch der neue Stand, aber er kann sich anders verhalten, als die App erwartet.' +
+      (layout && layout > CHECKED_TNG.settingsLayout ? ' Er speichert die Einstellungen in neuer Form. Prüfe danach unter „Box einstellen“, ob alles stimmt.' : '') +
+      ' Die alte Firmware sichere ich vorher, du kannst sie zurückspielen.',
+    confirm: 'Ich möchte diese Firmware trotzdem aufspielen',
+  };
 }
 
 /** A .hex file is text; a few hundred KB at most. Anything far bigger is not a firmware file. */
@@ -423,12 +509,16 @@ export async function readOwnFirmware(source: ByteSource, board: BoardInfo): Pro
   } catch (e) {
     const problem = describeFlashError(e, { board });
     const isBin = /\.bin$/i.test(source.name);
+    // A file named .hex that holds no HEX at all: „Wähle eine Datei mit der Endung .hex“ sent one looking in the wrong place (Prüfrunde 1, bastler 4).
+    const brokenHex = e instanceof HexError && e.reason === 'not-hex' && !e.message.includes('Webseite') && /\.hex$/i.test(source.name);
     return {
       problem: {
         ...problem,
         explanation: isBin
           ? `„${source.name}“ ist eine .bin-Datei. Für „${board.shortName}“ brauchst du die Firmware als .hex-Datei.`
-          : `Mit „${source.name}“ stimmt etwas nicht. ${problem.explanation}`,
+          : brokenHex
+            ? `„${source.name}“ ist keine gültige Firmware im HEX-Format. Ist die Datei vollständig heruntergeladen?`
+            : `Mit „${source.name}“ stimmt etwas nicht. ${problem.explanation}`,
         steps: ['Lade die Firmware-Datei neu herunter.', 'Oder nimm die fertige Firmware von TonUINO TNG.'],
       },
     };
@@ -528,7 +618,7 @@ export function versionFacts(file: FirmwareVersion | undefined, box: FirmwareVer
   const order = file && box ? compareVersions(file, box) : undefined;
   if (order === 0) return { facts, note: 'Diese Version ist schon auf der Box. Aufspielen schadet nicht, ändert aber nichts.' };
   // Back from a test build to the release before it is the way out the Logbuch suggests (TNG PR 352).
-  if (order === -1 && box && tngStandOf(box)?.preview) return { facts, note: 'Auf der Box läuft eine Testversion. Diese hier ist älter, aber ein erprobtes Release.' };
+  if (order === -1 && box && tngStandOf(box)?.preview) return { facts, note: 'Auf der Box läuft eine Testversion. Diese hier ist älter, aber erprobt.' };
   if (order === -1) return { facts, note: 'Diese Version ist älter als die auf der Box.' };
   return { facts };
 }
@@ -611,7 +701,7 @@ export function successFacts(result: FlashSuccess, board: BoardInfo, firmware: F
   if (firmware.kind === 'download') {
     facts.push({ label: 'Tasten', value: VARIANTS[firmware.variant].label });
     facts.push({ label: 'Firmware', value: `${version ? versionText(version) : 'TonUINO TNG'}, ${firmware.fileName}` });
-    if (firmware.baukasten) facts.push({ label: 'Extras', value: firmware.baukasten.summary });
+    if (firmware.baukasten?.summary) facts.push({ label: 'Extras', value: firmware.baukasten.summary });
   } else if (firmware.kind === 'backup') {
     facts.push({ label: 'Firmware', value: `die alte Firmware aus der Sicherung${version ? ` (${versionText(version)})` : ''}` });
   } else {
@@ -684,6 +774,8 @@ export interface AfterUpload {
   shutdown?: ShutdownKind;
   /** The old firmware was saved and can be put back from the done page. */
   backup?: boolean;
+  /** What was chosen under „Verhalten“ for the admin menu („Karte wegnehmen = Pause“): set at the box next. */
+  einstellen?: string[];
 }
 
 /** What to do after a successful upload, most important first. */
@@ -711,7 +803,20 @@ export function nextSteps(board: BoardInfo, firmware: FirmwareChoice, profile: F
       text: 'In TonUINO Studio ist noch die alte Firmware 2.1 eingestellt. Stelle auf TNG um, damit neue Karten und Ansagen zur Box passen.',
     });
   }
+  // Chosen under „Verhalten“: the steps at the box come right after the upload, before anything else to check.
+  if (after.einstellen?.length) {
+    steps.push({
+      id: 'einstellen',
+      title: 'Jetzt an der Box einstellen',
+      text: `Du hast unter „Verhalten“ gewählt: ${after.einstellen.join(', ')}. Die App zeigt dir Schritt für Schritt, welche Tasten du dafür drückst.`,
+      link: { label: 'Jetzt an der Box einstellen', href: SETTINGS_LINK.href },
+    });
+  }
   steps.push(logbook);
+  if (after.einstellen?.length) {
+    steps.push({ id: 'reset', title: 'Nur wenn die Box spinnt: Einstellungen zurücksetzen', text: RESET_GUIDE, link: SETTINGS_LINK });
+    return steps;
+  }
   // Both firmwares ship with the Ausschalt-Timer off: an AiO then runs until the battery is empty.
   // An update keeps the settings, so this is a check, not a "set it again".
   steps.push({

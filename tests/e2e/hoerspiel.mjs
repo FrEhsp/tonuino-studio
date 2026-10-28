@@ -7,21 +7,29 @@
  *
  * The shops are not asked: iTunes and MusicBrainz answer from the fixtures
  * (tests/fixtures/library/*-bibi-tina.json, in the form of their answers).
- * The file is 41:04 of MP3 frames, named like a download from a video site, no tags.
+ * The file is 41:04 of MP3 frames, named like a download from a video site, no tags:
+ * 20 seconds of a channel's jingle before the Hörspiel, 4 after it, and a second
+ * and a half of silence between its eight parts (TODO 0.3 #129: the cuts follow
+ * the pauses, lined up from the end of the file).
  */
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { check, chooseFiles, chooseFolder, FIXTURES, makeCard, MP3, noErrors, openApp, OUT, shot, shown } from './lib.mjs';
+import { check, chooseFiles, chooseFolder, FIXTURES, makeCard, MP3, noDeezer, noErrors, openApp, OUT, shot, shown } from './lib.mjs';
 
 const NAME = 'Bibi & Tina - Das Kürbisfest (Folge 50) | HÖRSPIEL DES MONATS OKTOBER [Xq7Lm2Pz9Rt].mp3';
 const LENGTH_SEC = 41 * 60 + 4;
 const fixture = (name) => readFileSync(join(FIXTURES, name), 'utf8');
 
+/** Where the eight parts of the shop's list begin in the file (after the jingle), and its silences between them. */
+const PART_SEC = [312, 298.5, 305.2, 301.8, 309.4, 296.7, 310.1, 306.3];
+const SILENCES = PART_SEC.slice(0, -1).map((_, i) => [20 + PART_SEC.slice(0, i + 1).reduce((a, b) => a + b, 0) - 0.75, 1.5]);
+
 /**
  * An MP3 of `sec` seconds: the frames of a short MP3 (MPEG-2, 22.05 kHz,
- * 576 samples a frame) over and over, without its tag and Xing frame.
+ * 576 samples a frame) over and over, without its tag and Xing frame, with
+ * silent frames (no Huffman data) for each [start, length] of `silences`.
  */
-function longMp3(sec, path) {
+function longMp3(sec, path, silences = []) {
   const src = readFileSync(join(FIXTURES, 'short.mp3'));
   let at = src[0] === 0x49 && src[1] === 0x44 && src[2] === 0x33 ? 10 + ((src[6] << 21) | (src[7] << 14) | (src[8] << 7) | src[9]) : 0;
   const frames = [];
@@ -35,8 +43,11 @@ function longMp3(sec, path) {
     at += size;
   }
   const need = Math.round((sec * 22050) / 576);
+  const silent = Buffer.from(frames[0]);
+  silent.fill(0, 4);
+  const quiet = (i) => silences.some(([at, len]) => i * 576 >= at * 22050 && i * 576 < (at + len) * 22050);
   const out = [];
-  for (let i = 0; i < need; i++) out.push(frames[i % frames.length]);
+  for (let i = 0; i < need; i++) out.push(quiet(i) ? silent : frames[i % frames.length]);
   writeFileSync(path, Buffer.concat(out));
   return path;
 }
@@ -45,15 +56,17 @@ const CORS = { 'access-control-allow-origin': '*', 'content-type': 'application/
 
 /**
  * The shops for this page: `itunes(url)` and `musicbrainz(url)` give the
- * JSON for a request (undefined: an empty answer). Cover pictures are a
- * small PNG.
+ * JSON for a request (undefined: an empty answer); Deezer, which the cover
+ * search asks as well, knows nothing. Cover pictures are a small PNG. Every
+ * service is answered here, so the test needs no network.
  */
 async function shops(page, { itunes = () => undefined, musicbrainz = () => undefined }) {
   await page.unrouteAll({ behavior: 'ignoreErrors' });
   await page.route('https://itunes.apple.com/**', (route) => route.fulfill({ headers: CORS, body: itunes(route.request().url()) ?? '{"resultCount":0,"results":[]}' }));
   await page.route('https://musicbrainz.org/**', (route) => route.fulfill({ headers: CORS, body: musicbrainz(route.request().url()) ?? '{"releases":[]}' }));
   const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64');
-  await page.route(/mzstatic\.com|coverartarchive\.org/, (route) => route.fulfill({ headers: { 'access-control-allow-origin': '*', 'content-type': 'image/png' }, body: png }));
+  await noDeezer(page);
+  await page.route(/mzstatic\.com|coverartarchive\.org|dzcdn\.net/, (route) => route.fulfill({ headers: { 'access-control-allow-origin': '*', 'content-type': 'image/png' }, body: png }));
 }
 
 /** A card with one folder, read in; then the file on "Hinzufügen". */
@@ -70,7 +83,7 @@ async function review(page, file) {
 export async function hoerspiel(browser) {
   console.log('Hörspiel in einer Datei (TODO 0.5 #81)');
   mkdirSync(OUT, { recursive: true });
-  const file = longMp3(LENGTH_SEC, join(OUT, NAME));
+  const file = longMp3(LENGTH_SEC, join(OUT, NAME), SILENCES);
 
   // 1. The shops know nothing by that name: a line and a search field.
   {

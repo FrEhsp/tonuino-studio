@@ -40,7 +40,7 @@ export type Arduino = 'nano' | 'every';
  * The extras, each with its own picture or, where nothing is proven well
  * enough to draw, an explanation (loetplanVerdrahtung.ts extras()).
  */
-export const EXTRAS = ['drehgeber', 'poti', 'ring', 'ledtasten', 'pololu', 'dauerled', 'akku', 'lsaus', 'hperkennung', 'wecker', 'akkumessung', 'usbc'] as const;
+export const EXTRAS = ['drehgeber', 'poti', 'ring', 'ledtasten', 'schalter', 'pololu', 'dauerled', 'akku', 'lsaus', 'hperkennung', 'wecker', 'akkumessung', 'usbc'] as const;
 export type ExtraId = (typeof EXTRAS)[number];
 
 export interface LoetplanWahl {
@@ -51,7 +51,12 @@ export interface LoetplanWahl {
   nano: Arduino;
   /** The extras chosen under "Extras", in the order of EXTRAS. */
   extras: ExtraId[];
+  /** Extra „Ein/Aus-Schalter“: how many legs the switch has; unset until answered. */
+  schalter?: SchalterPins;
 }
+
+/** Legs of an on/off switch: 2 (on/off), 3 (a changeover switch), 4 (often with a light). */
+export type SchalterPins = 2 | 3 | 4;
 
 /** 0 = the whole picture, 1–5 = one step lit, the rest faded. */
 export type Schritt = 0 | 1 | 2 | 3 | 4 | 5;
@@ -583,23 +588,58 @@ export function toWahl(raw: unknown): LoetplanWahl {
     ansicht: o.ansicht === 'unten' ? 'unten' : 'oben',
     nano: o.nano === 'every' ? 'every' : 'nano',
     extras: Array.isArray(o.extras) ? EXTRAS.filter((x) => (o.extras as unknown[]).includes(x)) : [],
+    ...(o.schalter === 2 || o.schalter === 3 || o.schalter === 4 ? { schalter: o.schalter } : {}),
   };
 }
 
-/** Extras that use the same pins and so exclude each other (TNG constants.hpp: A3 for knob and poti, D5 for ring and LED buttons). */
+/**
+ * Extras that exclude each other, because they use the same pin (TNG
+ * constants.hpp: A3 for knob and poti, D5 for ring and LED buttons, A5 for
+ * the LED of Play/Pause and the battery measurement, D6 for the LED of
+ * „Vor“ and SPKONOFF) or because there is one way for the power (switch in
+ * the cable, Pololu, battery, USB-C socket): one picture can only show one.
+ */
 export const SCHLIESST_AUS: Partial<Record<ExtraId, ExtraId[]>> = {
   drehgeber: ['poti'],
   poti: ['drehgeber'],
   ring: ['ledtasten'],
-  ledtasten: ['ring'],
+  ledtasten: ['ring', 'akkumessung', 'lsaus'],
+  akkumessung: ['ledtasten'],
+  lsaus: ['ledtasten'],
+  schalter: ['pololu', 'akku', 'usbc'],
+  pololu: ['schalter', 'akku', 'usbc'],
+  akku: ['schalter', 'pololu', 'usbc'],
+  usbc: ['schalter', 'pololu', 'akku'],
 };
+
+/** What the last click switched off, so the page can say so; null when nothing. */
+export const zuletztWeg = signal<{ an: ExtraId; weg: ExtraId[] } | null>(null);
 
 /** Switches an extra on or off; switching one on switches off what it excludes. */
 export function schalteExtra(id: ExtraId) {
   const jetzt = loetplanWahl.value.extras;
   const an = !jetzt.includes(id);
   const weg = new Set(an ? (SCHLIESST_AUS[id] ?? []) : [id]);
+  const aus = an ? jetzt.filter((x) => weg.has(x)) : [];
+  zuletztWeg.value = aus.length ? { an: id, weg: aus } : null;
   waehle({ extras: an ? [...jetzt.filter((x) => !weg.has(x)), id] : jetzt.filter((x) => !weg.has(x)) });
+}
+
+/** The answer to „Wie viele Beinchen hat dein Schalter?“; the Pololu switch is one of the answers. */
+export type SchalterArt = SchalterPins | 'pololu';
+
+export function schalterArt(w: LoetplanWahl): SchalterArt | undefined {
+  if (w.extras.includes('pololu')) return 'pololu';
+  return w.extras.includes('schalter') ? w.schalter : undefined;
+}
+
+/** Sets the kind of switch: the Pololu answer swaps the extra „schalter“ for „pololu“ and back. */
+export function waehleSchalter(art: SchalterArt) {
+  const w = loetplanWahl.value;
+  const ohne = w.extras.filter((x) => x !== 'schalter' && x !== 'pololu');
+  const mit = art === 'pololu' ? 'pololu' : 'schalter';
+  const weg = new Set(SCHLIESST_AUS[mit] ?? []);
+  waehle({ extras: [...ohne.filter((x) => !weg.has(x)), mit], ...(art === 'pololu' ? {} : { schalter: art }) });
 }
 
 function load(): LoetplanWahl {

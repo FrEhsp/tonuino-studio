@@ -66,6 +66,11 @@ export interface BoxInfo {
   headphones?: boolean;
   wifi?: WifiStatus;
   batteryEmpty?: boolean;
+  /**
+   * The box logs its battery voltage in millivolts: a TNG build for
+   * calibration (from 26.10.2026). Then it may take "BAT <mV>" (batcalib.ts).
+   */
+  batteryCalibration?: boolean;
 }
 
 export interface LogIssue {
@@ -107,6 +112,8 @@ export class BootLogParser {
   private batteryVolts: number | undefined;
   /** The last voltage line was a "BatVoltage low" one. */
   private batteryLow = false;
+  /** "Shortcut not configured!" since the start (TonUINO 2.1). */
+  private shortcutMisses = 0;
   private classicVolume: Partial<VolumeLevels> = {};
   private garbledStreak = 0;
   private boots = 0;
@@ -166,6 +173,7 @@ export class BootLogParser {
     this.lastFile = undefined;
     this.batteryVolts = undefined;
     this.batteryLow = false;
+    this.shortcutMisses = 0;
     this.classicVolume = {};
     this.garbledStreak = 0;
     this.boots = 0;
@@ -215,6 +223,7 @@ export class BootLogParser {
 
     if (record?.kind === 'banner') this.startBoot(record.firmware, raw, events);
 
+    if (record?.kind === 'shortcut-missing') this.shortcutMisses++;
     let explanation: LineExplanation | null = null;
     if (record?.kind === 'garbled') {
       // A single line of noise is normal right after a reset; report a streak once.
@@ -243,6 +252,7 @@ export class BootLogParser {
     this.lastFile = undefined;
     this.batteryVolts = undefined;
     this.batteryLow = false;
+    this.shortcutMisses = 0;
     this.classicVolume = {};
     if (unexpected) {
       this.reboots++;
@@ -257,7 +267,9 @@ export class BootLogParser {
     if (this.state.board) ctx.board = this.state.board;
     if (this.state.firmware) ctx.firmware = this.state.firmware;
     if (this.state.buttons) ctx.buttons = this.state.buttons;
+    if (this.state.version) ctx.version = { version: this.state.version, ...(this.state.versionDate ? { date: this.state.versionDate } : {}) };
     if (this.lastFile) ctx.lastFile = this.lastFile;
+    if (this.shortcutMisses) ctx.shortcutMisses = this.shortcutMisses;
     if (this.batteryVolts !== undefined) {
       ctx.batteryVolts = this.batteryVolts;
       ctx.batteryLow = this.batteryLow;
@@ -343,6 +355,14 @@ export class BootLogParser {
       }
       case 'battery-empty':
         s.batteryEmpty = true;
+        return true;
+      case 'battery-voltage':
+        // Once only: the voltage itself comes every 2 s and stays out of the info.
+        if (record.millivolts === undefined || s.batteryCalibration) return false;
+        s.batteryCalibration = true;
+        return true;
+      case 'battery-correction':
+        s.settings.voltMeasCorrection = record.value;
         return true;
       default:
         return false;

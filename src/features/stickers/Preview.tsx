@@ -6,10 +6,11 @@ import type { LabelTemplate } from '../../core/stickers/templates';
 import type { Spot } from '../../core/stickers/placement';
 import type { StickerItem } from './content';
 import { usePageShown } from '../../app/pageAlive';
-import { inQuietTurn } from '../../ui/quiet';
+import { inQuietTurn, pageSettled } from '../../ui/quiet';
 import { canvasEpoch } from '../../ui/repaint';
 import { labelGeometry, renderKey, renderPreview, type RenderSetup } from './pipeline';
 import { useSheetMove, type CarryVia } from './sheetMove';
+import { Kreuz } from '../../ui/icons';
 
 /**
  * One sticker as the finished, cut label (no bleed). `size` is the CSS length
@@ -73,12 +74,17 @@ export function StickerThumb({ item, setup, size, label, fluid }: { item: Sticke
 
 /**
  * A page built ahead stays hidden behind the shelf (App.tsx): its stickers
- * are drawn one by one in quiet moments, not while the shelf scrolls.
+ * are drawn one by one in quiet moments, not while the shelf scrolls. A page
+ * just come to the front is painted first, its stickers follow (quiet.ts).
  */
 function useRender(): <T>(run: () => Promise<T>) => Promise<T> {
   const shown = useRef(true);
   shown.current = usePageShown();
-  return (run) => (shown.current ? run() : inQuietTurn(run));
+  return (run) => {
+    if (!shown.current) return inQuietTurn(run);
+    const settled = pageSettled();
+    return settled ? settled.then(run) : run();
+  };
 }
 
 /** Rounds the resolution so small layout changes reuse cached renderings. */
@@ -98,6 +104,7 @@ export function SheetPreview({
   used,
   setup,
   onEdit,
+  onRemove,
   onToggleUsed,
   onPlace,
   onSheet,
@@ -112,6 +119,8 @@ export function SheetPreview({
   used: number[];
   setup: RenderSetup;
   onEdit: (item: StickerItem) => void;
+  /** The × at a sticker's corner: takes it off the sheet. */
+  onRemove?: (item: StickerItem) => void;
   onToggleUsed?: (slot: number) => void;
   onPlace?: (from: Spot, to: Spot) => boolean;
   onSheet?: (sheet: number) => void;
@@ -203,7 +212,7 @@ export function SheetPreview({
           const item = page[i];
           const style = slotStyle(slot);
           if (item) {
-            return (
+            return [
               <button
                 type="button"
                 class="sheet-hit"
@@ -221,8 +230,21 @@ export function SheetPreview({
                 <span class="sheet-hit-tag" aria-hidden="true">
                   Anpassen
                 </span>
-              </button>
-            );
+              </button>,
+              onRemove ? (
+                <button
+                  type="button"
+                  class="sheet-remove"
+                  key={`x${i}`}
+                  style={{ left: `${((slot.x + slot.width) / pw) * 100}%`, top: `${(slot.y / ph) * 100}%` }}
+                  title={lifted ? undefined : 'Vom Bogen nehmen'}
+                  aria-label={`„${item.title}“ vom Bogen nehmen`}
+                  onClick={() => onRemove(item)}
+                >
+                  <Kreuz size={14} strokeWidth={2.6} aria-hidden="true" />
+                </button>
+              ) : null,
+            ];
           }
           if (!onToggleUsed) return null;
           const isUsed = usedHere.includes(i);

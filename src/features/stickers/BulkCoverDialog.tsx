@@ -1,8 +1,7 @@
-import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
+import { useEffect, useRef, useState } from 'preact/hooks';
 import { ImagePlus, RotateCcw, Search, X } from 'lucide-preact';
 import {
   chosenCandidate,
-  coverlessFolders,
   dropCandidate,
   inPool,
   isUnreachable,
@@ -16,7 +15,7 @@ import {
   rowsToSave,
   runBulkSearch,
   SEARCH_CONCURRENCY,
-  SEARCH_SPACING_MS,
+  SEARCH_SECONDS_PER_FOLDER,
   searchProgress,
   setChecked,
   UnreachableError,
@@ -26,6 +25,8 @@ import {
   type BulkTarget,
 } from '../../core/stickers/bulkcover';
 import { searchCovers, type CoverCandidate } from '../../core/stickers/coversearch';
+import { searchOptionsFor } from '../../core/covers/autofind';
+import { webFilterHint } from '../../core/covers/net';
 import { isAbortError } from '../../core/stickers/image';
 import { folderName } from '../../core/tonuino/sd';
 import { Dialog } from '../../ui/components/Dialog';
@@ -40,18 +41,7 @@ import { pickCoverFile, prepareCover, type ReadyCover } from '../box/CoverDialog
 import { coverFetch, loadSearchCover, SOURCE_LABEL } from '../box/CoverSearch';
 import '../../ui/styles/bulkcover.css';
 
-/**
- * Folders on the open card that have no cover yet (see coverlessFolders).
- * `only` limits the list, e.g. to the folders picked for printing.
- */
-export function coverlessOnCard(only?: readonly number[]): BulkTarget[] {
-  const s = card.value;
-  // The remembered box: the covers found wait on this device until its card is open again.
-  const m = s ? null : shownMemory.value;
-  if (m) return coverlessFolders(m.scan, m.catalog, m.coverUrls, only);
-  if (s?.status !== 'ready' || !s.scan || !s.catalog) return [];
-  return coverlessFolders(s.scan, s.catalog, s.covers, only);
-}
+export { coverlessOnCard, useCoverless } from './coverless';
 
 type Phase =
   /** What will happen; nothing has gone to the internet yet. */
@@ -145,13 +135,14 @@ export function BulkCoverDialog({ targets, onClose }: { targets: readonly BulkTa
     try {
       await runBulkSearch(list, {
         signal: ctrl.signal,
-        search: (query, signal) => searchCovers(query, { fetchFn: coverFetch, signal }),
+        search: (query, signal, target) => searchCovers(query, { fetchFn: coverFetch, ...searchOptionsFor(target, signal) }),
         onStart: (folder) => update(folder, (r) => withStatus(r, 'searching')),
         onResult: (folder, result) => {
           if (ctrl.signal.aborted) return;
           update(folder, (r) => withResult(r, result));
-          // A service that did not answer is worth saying, unless neither did (then the row says it).
-          if (result.warnings.length && !isUnreachable(result)) setWarnings((ws) => [...new Set([...ws, ...result.warnings])].slice(-2));
+          // A service that did not answer while others did: the search goes on without it, and a web filter may be why (TODO #110).
+          const hint = result.failed?.length && !isUnreachable(result) ? webFilterHint(result.failed) : null;
+          if (hint) setWarnings([hint]);
         },
       });
       if (search.current === ctrl) setPhase('review');
@@ -390,7 +381,7 @@ export function BulkCoverDialog({ targets, onClose }: { targets: readonly BulkTa
               />
             ))}
           </ul>
-          <p class="hint">Bilder von iTunes und MusicBrainz (Cover Art Archive). Cover sind urheberrechtlich geschützt: Nutze sie nur für deine eigenen Karten und gib sie nicht weiter.</p>
+          <p class="hint">Bilder von iTunes, Deezer und MusicBrainz (Cover Art Archive). Cover sind urheberrechtlich geschützt: Nutze sie nur für deine eigenen Karten und gib sie nicht weiter.</p>
         </div>
       )}
     </Dialog>
@@ -400,8 +391,8 @@ export function BulkCoverDialog({ targets, onClose }: { targets: readonly BulkTa
 function Intro({ targets, fatal }: { targets: readonly BulkTarget[]; fatal: string | null }) {
   const searchable = targets.filter((t) => t.query);
   const unnamed = targets.filter((t) => !t.query);
-  // One search after the other, a few seconds apart (see SEARCH_SPACING_MS).
-  const seconds = Math.ceil((searchable.length * SEARCH_SPACING_MS) / 1000);
+  // Several at a time, each service at its own pace (see src/core/covers/net.ts).
+  const seconds = Math.ceil(searchable.length * SEARCH_SECONDS_PER_FOLDER);
   return (
     <div class="stack">
       {fatal ? <Callout tone="danger">{fatal}</Callout> : null}
@@ -413,7 +404,7 @@ function Intro({ targets, fatal }: { targets: readonly BulkTarget[]; fatal: stri
       </p>
       {searchable.length ? (
         <ul class="bulk-facts">
-          <li>Gesucht wird bei iTunes (Apple) und MusicBrainz. Diese Dienste bekommen dafür die Namen deiner Hörspiele.</li>
+          <li>Gesucht wird bei iTunes (Apple) und Deezer, wenn nötig auch bei MusicBrainz. Diese Dienste bekommen dafür die Namen deiner Hörspiele.</li>
           <li>{seconds < 60 ? 'Das dauert weniger als eine Minute.' : `Das dauert etwa ${plural(Math.round(seconds / 60), 'Minute', 'Minuten')}, weil ich die Dienste nicht überlasten will.`}</li>
           {unnamed.length ? (
             <li>
@@ -513,7 +504,7 @@ function RowState({ row, hit, weak }: { row: BulkRow; hit?: CoverCandidate; weak
     case 'nothing':
       return <span class="soft">Nichts gefunden. Nimm ein eigenes Bild oder gib dem Ordner einen genaueren Namen.</span>;
     case 'failed':
-      return <span class="soft">Die Suche hat nicht geklappt, weil ein Dienst nicht geantwortet hat. Suche noch einmal oder nimm ein eigenes Bild.</span>;
+      return <span class="soft">Die Suche hat nicht geklappt, weil ein Dienst nicht geantwortet hat. Blockiert vielleicht ein Filter? Suche noch einmal oder nimm ein eigenes Bild.</span>;
     case 'stopped':
       return <span class="muted">Nicht gesucht.</span>;
     case 'found':
@@ -539,10 +530,3 @@ function Alternative({ candidate: c, checked, disabled, onPick, onBroken }: { ca
   );
 }
 
-/** Folders on the open card without a cover, kept up to date for entry points like "Cover suchen". */
-export function useCoverless(only?: readonly number[]): BulkTarget[] {
-  const s = card.value;
-  const m = shownMemory.value;
-  const key = only?.join(',');
-  return useMemo(() => coverlessOnCard(only), [s?.scan, s?.catalog, s?.covers, s?.status, m?.catalog, m?.coverUrls, key]);
-}

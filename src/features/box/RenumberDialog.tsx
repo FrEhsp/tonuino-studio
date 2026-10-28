@@ -8,7 +8,7 @@ import { Button, Callout, Field, Progress } from '../../ui/components/controls';
 import { Dialog } from '../../ui/components/Dialog';
 import { toast, toastError } from '../../ui/components/Toast';
 import { navigate } from '../../app/router';
-import { card, renumberCover, runRepair, selection, settings, swapCover, updateCatalog } from '../../app/state';
+import { card, renumberCover, runRepair, revealPicked, selection, settings, swapCover, updateCatalog } from '../../app/state';
 import { extraSelection } from '../cards/items';
 
 /**
@@ -278,6 +278,7 @@ export function RenumberedNote({ folder }: { folder: number }) {
             selection.value = new Set(numbers);
             extraSelection.value = new Set(r.extras);
             renumbered.value = null;
+            revealPicked.value = true;
             navigate({ page: 'cards' });
           }}
         >

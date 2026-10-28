@@ -7,7 +7,8 @@
  *   and the wire list names it;
  * - no proof is stronger than the checked notes of the build assistant it
  *   stands for (fixture: tests/fixtures/bauassistent/geprueft-stufen.json);
- * - an extra without a picture says why and what would prove it.
+ * - an extra without a picture of its own says why and what would prove it,
+ *   or is drawn in the big picture of its board (loetplan-bild.test.ts).
  * For every board, both Arduinos, 3 and 5 buttons, every headphone choice.
  */
 import { readFileSync } from 'node:fs';
@@ -17,6 +18,7 @@ import { BELEGE, stufeVon, type BelegId, type Stufe } from '../../src/features/w
 import { a5Konflikt, d6Konflikt, extras, gewaehlteExtras, schema, type SchemaPlan, type SKabel } from '../../src/features/workshop/loetplanVerdrahtung';
 import { D6_WARNING } from '../../src/core/firmware/baukasten';
 import { NANO_SPI, TNG_PINS } from '../../src/features/workshop/tngPins';
+import { bild } from '../../src/features/workshop/loetplanBild';
 
 const NOTIZEN = JSON.parse(readFileSync(new URL('../fixtures/bauassistent/geprueft-stufen.json', import.meta.url), 'utf8')) as Record<string, { confidence: 'belegt' | 'wahrscheinlich' | 'unsicher' }>;
 
@@ -28,6 +30,8 @@ function alleWahlen(): LoetplanWahl[] {
         for (const kh of ['platine', 'buchse', 'keine'] as const) {
           if ((platine === 'aio' || platine === 'aioplus') && (kh !== 'platine' || nano !== 'nano')) continue;
           out.push({ ...DEFAULT_WAHL, platine, nano, tasten, kh, extras: [...EXTRAS] });
+          // Every answer to „Wie viele Beinchen hat dein Schalter?“.
+          for (const schalter of [2, 3, 4] as const) out.push({ ...DEFAULT_WAHL, platine, nano, tasten, kh, extras: ['schalter'], schalter });
         }
   return out;
 }
@@ -109,12 +113,16 @@ describe('Lötplan: every wire is proven', () => {
     for (const unsicher of ['aio-encoder-clk', 'ap-drehgeber-plus', 'oas-v29', 'oas-v24', 'oas-v40', 'ev-poti-vcc']) expect(NOTIZEN[unsicher].confidence).toBe('unsicher');
     const every = { ...DEFAULT_WAHL, nano: 'every' as const };
     expect(extras(every).find((x) => x.id === 'poti')?.plan).toBeNull();
-    for (const platine of ['aio', 'aioplus'] as const)
-      for (const id of ['drehgeber', 'poti'] as const) {
-        const x = extras({ ...DEFAULT_WAHL, platine }).find((e) => e.id === id)!;
-        expect(x.plan, `${platine} ${id}`).toBeNull();
-        expect(x.fehlt?.beweis, `${platine} ${id}`).toBeTruthy();
-      }
+    // The knob and the poti of the AiO are proven since the research of 27.10.2026 (aio-v-a3-a4) and drawn in the
+    // big picture (loetplan-bild.test.ts); the + and GND of the AiO+ still rest on one forum post.
+    for (const id of ['drehgeber', 'poti'] as const) {
+      const aio = extras({ ...DEFAULT_WAHL, platine: 'aio' }).find((e) => e.id === id)!;
+      expect(aio.plan, `aio ${id}`).toBeNull();
+      expect(aio.fehlt, `aio ${id}`).toBeUndefined();
+      const plus = extras({ ...DEFAULT_WAHL, platine: 'aioplus' }).find((e) => e.id === id)!;
+      expect(plus.plan, `aioplus ${id}`).toBeNull();
+      expect(plus.fehlt?.beweis, `aioplus ${id}`).toBeTruthy();
+    }
     for (const id of ['lsaus', 'hperkennung', 'wecker', 'akkumessung', 'usbc'] as const) expect(extras(DEFAULT_WAHL).find((x) => x.id === id)?.plan).toBeNull();
   });
 });
@@ -126,7 +134,12 @@ describe('Lötplan extras', () => {
         if (x.plan) {
           expect(x.fehlt, `${name(w)} ${x.id}`).toBeUndefined();
           expect(x.teile.length, `${name(w)} ${x.id}`).toBeGreaterThan(0);
-        } else expect(x.fehlt ?? x.gesperrt, `${name(w)} ${x.id}`).toBeTruthy();
+        } else {
+          // Without an old picture: it says why, or the big picture of its board draws it (loetplanBild.ts).
+          const gross = bild({ ...w, platine: w.platine === 'frei' ? 'classic' : w.platine, ansicht: 'oben', extras: [x.id] });
+          const gezeichnet = gross?.schritte.some((s) => s.extra === x.id) ? 'im großen Bild' : undefined;
+          expect(x.fehlt ?? x.gesperrt ?? (x.frage && !x.frage.gewaehlt ? 'erst die Frage' : undefined) ?? gezeichnet, `${name(w)} ${x.id}`).toBeTruthy();
+        }
         expect(x.firmware.length, `${name(w)} ${x.id}`).toBeGreaterThan(10);
       }
   });
@@ -167,7 +180,9 @@ describe('Lötplan extras', () => {
       expect(fw({ nano: 'every' }, id), id).not.toMatch(/„Firmware aufspielen“/);
     }
     expect(fw({ platine: 'aio' }, 'drehgeber')).toMatch(/„Firmware aufspielen“/);
-    expect(fw({ platine: 'aioplus' }, 'drehgeber')).not.toMatch(/„Firmware aufspielen“/);
+    // The AiO+ has no Baukasten (ATmega4809): its own build goes on as „Eigene Datei“.
+    expect(fw({ platine: 'aioplus' }, 'drehgeber')).not.toMatch(/Schritt „Extras“/);
+    expect(fw({ platine: 'aioplus' }, 'drehgeber')).toMatch(/„Eigene Datei“/);
     expect(fw({ platine: 'aio' }, 'ring')).toMatch(/passt nicht/);
   });
 

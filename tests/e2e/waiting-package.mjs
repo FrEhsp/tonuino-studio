@@ -33,7 +33,8 @@ export async function waitingPackage(browser) {
   const go = (hash) => page.goto(`${page.url().split('#')[0]}${hash}`);
   const readCard = async () => {
     await go('#/');
-    await chooseFolder(page, card, page.getByRole('button', { name: 'SD-Karte einlesen' }).first());
+    // On the page shown: Meine Box comes as its own file, the page before may still stand meanwhile.
+    await chooseFolder(page, card, shown(page).getByRole('button', { name: 'SD-Karte einlesen' }).first());
     await shown(page).locator('.page-header h1').waitFor();
   };
   const banner = () => shown(page).locator('.package-banner.downloaded');
@@ -84,7 +85,7 @@ export async function waitingPackage(browser) {
   await shot(page, 'waiting-02-restored');
   await go('#/hinzufuegen');
   await page.getByRole('heading', { name: 'Erst das Paket auf die Karte bringen' }).waitFor();
-  check(await page.getByText(new RegExp(`ein Paket heruntergeladen: „${name1.replace(/\./g, '\\.')}“`)).isVisible(), 'the gate names the Paket too');
+  check(await shown(page).getByText(new RegExp(`ein Paket heruntergeladen: „${name1.replace(/\./g, '\\.')}“`)).isVisible(), 'the gate names the Paket too');
   await page.getByRole('button', { name: 'Noch nicht entpackt? Paket verwerfen' }).click();
   await page.getByText('Hast du auf der Karte schon den Ordner 02 gelöscht?').waitFor();
   check(true, 'before throwing it away: asked about folder 02');

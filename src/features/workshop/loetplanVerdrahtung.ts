@@ -11,9 +11,10 @@
  * not proven well enough is not drawn; the extra says instead why, and what
  * would prove it (`fehlt`).
  */
-import { ALARM_TEXT, D6_WARNING, HEADPHONES_TEXT, KNOB_TEXTS, LIGHT_TEXTS, SPEAKER_OFF_TEXT } from '../../core/firmware/baukasten';
+import { ALARM_TEXT, D6_WARNING, HEADPHONES_TEXT } from '../../core/firmware/baukasten';
+import { knopfName, lichtName } from './baukastenWahl';
 import { firmwareEnv } from '../../core/firmware/variants';
-import { AUDIO, EXTRAS, F, LINKS_INNEN, SCHLIESST_AUS, tastenDerClassic, type ExtraId, type ListenKabel, type LoetplanWahl, type Pt } from './loetplan';
+import { AUDIO, EXTRAS, F, LINKS_INNEN, SCHLIESST_AUS, tastenDerClassic, type ExtraId, type ListenKabel, type LoetplanWahl, type Pt, type SchalterPins } from './loetplan';
 import type { BelegId } from './loetplanBelege';
 import { tngPin, type TngFunktion, type TngPlatine } from './tngPins';
 
@@ -86,12 +87,18 @@ export interface ExtraPlan {
   teile: string[];
   /** Which firmware it needs. */
   firmware: string;
-  /** Not drawn: why not, and what would prove it. */
+  /** Something in the picture is not proven yet (drawn in pencil with "?"): what, and what would prove it. */
   fehlt?: { warum: string; beweis: string };
   /** Cannot be chosen with this choice (5 buttons, a board without it): why. */
   gesperrt?: string;
   /** A page of the help that says more. */
   hilfe?: { href: string; label: string };
+  /** Asked before the picture, e.g. how many legs the switch has; no picture until it is answered. */
+  frage?: { text: string; optionen: { wert: SchalterPins; titel: string; text: string }[]; gewaehlt?: SchalterPins };
+  /** A small table under the text, e.g. the colours of a USB cable. */
+  tabelle?: { titel: string; kopf: [string, string]; zeilen: [string, string][] };
+  /** Pages on the web that show more (forum, Kompendium). */
+  links?: { href: string; label: string }[];
 }
 
 /* ------------------------------------------------------------------ helpers */
@@ -879,10 +886,10 @@ const AUDIO_Y = 600;
  * FIRMWARE-BAUKASTEN.md, labels from core/firmware/baukasten.ts); the Nano
  * Every and the AiO+ it cannot build.
  */
-const BAUKASTEN = (label: string, extra = '') => `In TonUINO Studio: „Firmware aufspielen“ → „Fertige Firmware“, bei den Extras „${label}“ anhaken.${extra ? ` ${extra}` : ''}`;
+const BAUKASTEN = (label: string, extra = '') => `In TonUINO Studio: „Firmware aufspielen“, im Schritt „Extras“ „${label}“ wählen.${extra ? ` ${extra}` : ''}`;
 const EVERY_SELBST = (define: string, w: LoetplanWahl) =>
   `Keine fertige Firmware für den Nano Every hat das. Du brauchst eine Fassung mit ${define}${w.tasten === 3 ? ' und 3 Tasten' : ''}, gebaut und aufgespielt mit der Arduino IDE oder PlatformIO.`;
-const FW_KNOPF = (kind: 'encoder' | 'poti', define: string, w: LoetplanWahl) => (w.nano === 'every' ? EVERY_SELBST(define, w) : BAUKASTEN(KNOB_TEXTS[kind].label, 'Geht nur mit 3 Tasten.'));
+const FW_KNOPF = (kind: 'encoder' | 'poti', define: string, w: LoetplanWahl) => (w.nano === 'every' ? EVERY_SELBST(define, w) : BAUKASTEN(knopfName(kind), 'Geht nur mit 3 Tasten.'));
 
 function drehgeber(w: LoetplanWahl): ExtraPlan {
   const base = {
@@ -958,12 +965,13 @@ function poti(w: LoetplanWahl): ExtraPlan {
   if (w.nano === 'every')
     return {
       ...base,
-      text: ['Die Mitte des Potis kommt an A3, ein äußeres Beinchen an GND (TNG constants.hpp:232).'],
+      text: [
+        'Die Mitte des Potis kommt an A3, ein äußeres Beinchen an GND (TNG constants.hpp:232).',
+        'Das andere äußere Beinchen an 3V3: Der Nano Every misst mit 2,5 V (TNG tonuino.cpp:190), an 5V wäre schon ab der Hälfte des Drehwegs „ganz laut“. Aus dem Quelltext abgeleitet, noch nicht ausprobiert. Gefährlich ist beides nicht.',
+        'Wenn du magst: Im Box-Logbuch über den ganzen Drehweg „poti volume“ ansehen.',
+      ],
+      warnung: 'Die äußeren Beinchen an 3V3 und GND, nie an mehr als 5 V.',
       plan: null,
-      fehlt: {
-        warum: 'Der Nano Every misst mit einer Vergleichsspannung von 2,5 V (TNG tonuino.cpp:190). Ob das andere Beinchen besser an 5V oder an 3V3 kommt, hat noch niemand mit TNG berichtet (Notiz ev-poti-vcc: unsicher). Gefährlich ist beides nicht.',
-        beweis: 'Ein Bericht aus dem Forum mit Poti am Nano Every, oder ein Versuch: Poti an 3V3, dann im Logbuch die Zeilen „poti volume“ über den ganzen Drehweg ansehen.',
-      },
     };
   const teile: STeil[] = [
     ...stummel(w, ['A3', '5V', 'GNDa'], AUDIO_Y),
@@ -1017,7 +1025,7 @@ function ringClassic(w: LoetplanWahl): ExtraPlan {
       ? w.tasten === 5
         ? 'Fertig gibt es TonUINO_Every_5f. Achtung: Die schaltet auch die Kopfhörer-Erkennung an D8 ein. Ohne Kabel an D8 meint die Box, ein Kopfhörer steckt, und nimmt dessen Lautstärke-Grenzen (TNG mp3.cpp:407, gpioHelper.hpp:21). Sonst eine eigene Fassung mit NEO_RING.'
         : 'Fertig gibt es den Ring beim Nano Every nur mit 5 Tasten (TonUINO_Every_5f). Mit 3 Tasten brauchst du eine eigene Fassung mit NEO_RING. Den Nano Every bespielst du mit der Arduino IDE oder PlatformIO.'
-      : BAUKASTEN(LIGHT_TEXTS.ring.label, 'Der Leuchtring braucht einen Nano mit neuem Bootloader; das prüfe ich beim Aufspielen, bevor ich etwas schreibe.'),
+      : BAUKASTEN(lichtName('ring'), 'Der Leuchtring braucht einen Nano mit neuem Bootloader; das prüfe ich beim Aufspielen, bevor ich etwas schreibe.'),
     text: [...RING_BASE.text, 'Der Widerstand 470 Ω kommt in die Datenleitung, möglichst nah an den Ring.', 'Nimm entweder den LED-Ring oder LED-Tasten, nicht beides: Beide brauchen D5.'],
     plan: { id: 'ring', breite: 1000, hoehe: hoeheVon(teile), teile, kabel, frei: [{ farbe: null, text: 'LED-Ring DOUT (Daten raus) bleibt frei', belege: ['cl-neo-din'] }] },
   };
@@ -1102,7 +1110,7 @@ function ledtasten(w: LoetplanWahl): ExtraPlan {
     ],
     warnung: 'Nie eine LED ohne Widerstand an den Arduino: Das kann den Pin zerstören.',
     teile: ['3 Tasten mit eingebauter LED', '3 Widerstände 1 kΩ', '7 Kabel'],
-    firmware: w.nano === 'every' ? EVERY_SELBST('USE_LED_BUTTONS', { ...w, tasten: 5 }) : BAUKASTEN(LIGHT_TEXTS.ledButtons.label, `Nicht zusammen mit „${SPEAKER_OFF_TEXT.label}“: Beide brauchen D6.`),
+    firmware: w.nano === 'every' ? EVERY_SELBST('USE_LED_BUTTONS', { ...w, tasten: 5 }) : BAUKASTEN(lichtName('ledButtons'), 'Nicht zusammen mit „Lautsprecher stumm“: Beide brauchen D6.'),
     plan: { id: 'ledtasten', breite: 1000, hoehe: 690, teile, kabel },
   };
 }
@@ -1216,16 +1224,20 @@ function lsaus(w: LoetplanWahl): ExtraPlan {
     id: 'lsaus',
     titel: 'Kein Knacken beim Ein- und Ausschalten',
     kurz: 'Lautsprecher erst nach dem Start einschalten (SPKONOFF)',
-    text: ['Die Firmware kann dafür D6 schalten (Einstellung SPKONOFF, TNG constants.hpp:284). Bei der AiO und AiO+ ist das schon eingebaut.', D6_WARNING],
+    text: [
+      'Die Firmware kann dafür D6 schalten (Einstellung SPKONOFF, TNG constants.hpp:284): D6 HIGH heißt Lautsprecher an. Bei der AiO und AiO+ ist das schon eingebaut.',
+      'Dazwischen gehört eine Schaltung, die die Lautsprecherkabel trennt (Relais oder MOSFET). Für den Nano ist sie noch nicht belegt; im Bild ist sie ein Kasten mit „?“.',
+      D6_WARNING,
+    ],
     warnung: '',
     plan: null,
-    teile: [],
+    teile: ['Schaltung zum Stummschalten (Relais oder MOSFET), noch nicht belegt'],
     firmware:
       w.nano === 'every'
         ? 'TonUINO_Every_5f hat es schon eingeschaltet, sonst eine eigene Fassung mit SPKONOFF. Nicht zusammen mit LED-Tasten (beide D6).'
-        : BAUKASTEN(SPEAKER_OFF_TEXT.label, 'Nicht zusammen mit „Leuchtende Tasten“: Beide brauchen D6.'),
+        : BAUKASTEN('Lautsprecher stumm', 'Nicht zusammen mit „Leuchtende Tasten“: Beide brauchen D6.'),
     fehlt: {
-      warum: 'Der MP3-Player hat keinen Eingang zum Stummschalten. Welche Zusatzschaltung D6 schalten soll, ist nirgends belegt (Notiz oas-v29: unsicher).',
+      warum: 'Der MP3-Player hat keinen Eingang zum Stummschalten. Eine Schaltung gibt es nur für den ESP32 (Forum 14972), nicht für den Nano (Notiz oas-v29: unsicher).',
       beweis: 'Ein Schaltplan oder Forumsbericht mit TNG, der zeigt, was an D6 hängt (zum Beispiel ein Verstärker mit Ein/Aus-Eingang), am besten mit Foto.',
     },
   };
@@ -1238,15 +1250,17 @@ function hperkennung(w: LoetplanWahl): ExtraPlan {
     kurz: 'Eigene Lautstärke für Kopfhörer (HPJACKDETECT)',
     text: [
       'Die Firmware liest dafür D8 (TNG constants.hpp:303): D8 an GND heißt „kein Kopfhörer“, D8 offen heißt „Kopfhörer steckt“. Dann gelten eigene Lautstärke-Grenzen.',
+      'Die Kopfhörerplatine (G, DR, DL, SK, SK) hat dafür keinen Kontakt. Du brauchst eine Buchse mit Schaltkontakt, zum Beispiel PJ-307: Pin 6 (JD) kommt an D8 (Forum 13613).',
+      'Achtung: Das TNG-Wiki und die Platine „Easy Headphone“ beschreiben es umgekehrt. Mit TNG gilt: ohne Stecker an GND, mit Stecker offen.',
       'Für den Lautsprecher allein brauchst du das nicht: Die Kopfhörerplatine schaltet ihn beim Einstecken selbst ab.',
     ],
     warnung: '',
     plan: null,
-    teile: [],
+    teile: ['Kopfhörerbuchse mit Schaltkontakt (z. B. PJ-307)', '2 Kabel'],
     firmware: w.nano === 'every' ? 'TonUINO_Every_5f hat sie schon eingeschaltet, sonst eine eigene Fassung mit HPJACKDETECT.' : BAUKASTEN(HEADPHONES_TEXT.label),
     fehlt: {
-      warum: 'Welche Buchse oder Kopfhörerplatine D8 genau so schaltet, ist nicht belegt. Das Forum beschreibt für eine ältere Firmware die umgekehrte Logik (Notizen oas-v24 und oas-v25: unsicher).',
-      beweis: 'Mit dem Messgerät an deiner Buchse: Welcher Kontakt hat ohne Stecker Durchgang zu GND und mit Stecker nicht? Dazu ein Bericht aus dem Forum mit TNG 3.',
+      warum: 'Welcher Kontakt der Buchse ohne Stecker an GND liegt, steht nur in einem Bild (Forum 13613 #22). Pin 6 an D8 ist im Forum mit Erfolg berichtet.',
+      beweis: 'Messgerät auf Durchgang. Ohne Stecker: Welcher Kontakt piept gegen GND? Stecker rein: Hört das Piepen auf? Dieser Kontakt gehört an D8. Danach im Box-Logbuch beim Einstecken auf „hpJackDetect: 1“ achten.',
     },
   };
 }
@@ -1270,17 +1284,139 @@ function wecker(w: LoetplanWahl): ExtraPlan {
         ? 'Der Nano Every liest A6 als gewöhnlichen Eingang: 5 V an A6 zählen als „high“.'
         : 'Der Nano misst A6 dafür: Ab dem Messwert 512 von 1023 zählt es als „high“, also ab etwa 2,5 V bei 5 V Betriebsspannung.',
       'Nach dem Start schaut die Firmware nicht mehr auf A6: Der Wecker muss A6 schon hochhalten, wenn die Box angeht.',
-      'Die Firmware schaltet an A6 keinen Pull-up-Widerstand ein (gpioHelper.hpp:21).',
+      'Die Firmware schaltet an A6 keinen Pull-up-Widerstand ein (gpioHelper.hpp:21). Darum kommt ein Widerstand 100 kΩ von A6 an GND, sonst spielt die Box zufällig den Weckton (TNG-Autor, Forum 13947 #2).',
     ],
     warnung: '',
     plan: null,
-    teile: [],
-    firmware: every ? EVERY_SELBST('SPECIAL_START_SHORTCUT', w) : BAUKASTEN(ALARM_TEXT.label, 'Gibt es nur ohne Licht, „Lautsprecher stumm“ und Kopfhörer-Erkennung.'),
+    teile: ['Widerstand 100 kΩ', 'Wecker mit Schaltausgang'],
+    firmware: every ? EVERY_SELBST('SPECIAL_START_SHORTCUT', w) : BAUKASTEN(ALARM_TEXT.label, 'Steht dort unter „Mehr“ und geht nur ohne Licht, „Lautsprecher stumm“ und Kopfhörer-Erkennung.'),
     fehlt: {
       warum:
-        'Wie der Wecker an A6 kommt und die Box dabei einschaltet, steht in keiner geprüften Unterlage: TNG nennt nur einen „externen Wecker mit Signalausgang“. Ob ein Schaltkontakt nach 5 V reicht oder A6 zusätzlich einen Widerstand nach GND braucht, damit es ohne Wecker sicher „low“ bleibt, ist nicht belegt.',
-      beweis: 'Ein Schaltplan oder Forumsbericht mit TNG und Wecker-Start, der zeigt, was an A6 hängt und wie der Wecker die Box einschaltet, am besten mit Foto.',
+        'Wie der Wecker A6 hochzieht und dabei die Box einschaltet, steht nirgends: TNG nennt nur einen „externen Wecker mit Signalausgang“. Der Widerstand 100 kΩ nach GND ist belegt.',
+      beweis: 'Hast du einen Wecker mit Schaltausgang? Ein Foto seiner Anschlüsse und ein Bericht mit TNG würden helfen.',
     },
+  };
+}
+
+const SCHALTER_FRAGE: NonNullable<ExtraPlan['frage']>['optionen'] = [
+  { wert: 2, titel: '2 Beinchen', text: 'Ein einfacher Ein/Aus-Schalter, ohne Licht.' },
+  { wert: 3, titel: '3 Beinchen', text: 'Ein Umschalter. Du brauchst davon nur zwei.' },
+  { wert: 4, titel: '4 Beinchen', text: 'Oft ein Schalter mit Licht.' },
+];
+
+const USB_FARBEN: [string, string][] = [
+  ['Rot', '+5 V: nur diese Ader geht durch den Schalter'],
+  ['Schwarz', 'Minus (GND): bleibt ganz'],
+  ['Grün und Weiß', 'Daten, zum Aufspielen der Firmware: nicht anfassen'],
+];
+
+/**
+ * A plain on/off switch in the power line (forum 14673): the USB cable from
+ * the power bank is cut open and only its red wire runs through the switch.
+ * The switch type is asked first (2, 3 or 4 legs): an LED switch is wired
+ * differently, and someone with a 2-leg switch got lost in guides for those.
+ */
+function schalter(w: LoetplanWahl): ExtraPlan {
+  const pins = w.schalter;
+  const basis = {
+    id: 'schalter' as const,
+    titel: 'Ein/Aus-Schalter',
+    kurz: 'Ein Schalter im Stromkabel: Die Box ist ganz aus',
+    warnung: 'Schneide nicht den Stecker am Nano ab und löte das Kabel an 5V und GND: Dann fehlen Grün und Weiß, und du kannst keine Firmware mehr aufspielen. Schneide das Kabel in der Mitte auf.',
+    teile: ['Schalter', 'USB-Kabel zum Aufschneiden (Powerbank zur Box)', 'Schrumpfschlauch'],
+    firmware: 'Keine eigene Firmware nötig.',
+    frage: { text: 'Wie viele Beinchen hat dein Schalter?', optionen: SCHALTER_FRAGE, ...(pins ? { gewaehlt: pins } : {}) },
+    tabelle: { titel: 'Die Adern im USB-Kabel', kopf: ['Farbe', 'Was sie tut'] as [string, string], zeilen: USB_FARBEN },
+    links: [
+      { href: 'https://bluetchen.de/FSU/TonUINO_FSU.html', label: 'TonUINO-Kompendium: Stromversorgung' },
+      { href: 'https://discourse.voss.earth/t/usb-kabel-aufdroesseln-um-schalter-einzubauen/952/9', label: 'Forum: USB-Kabel für den Schalter aufdröseln (mit Foto)' },
+    ],
+  };
+  const akkuText =
+    'Mit Akku statt Powerbank (Battery Shield): Nimm nur ein Shield mit 5-V-Ausgang (Aufdruck GND und 5V). Ein Shield mit 12 V (Aufdruck + und −) zerstört Nano und MP3-Player. GND kommt an GND, 5V an 5V der Box, der Schalter in die Plus-Leitung. Prüfe die Polung vorher mit dem Messgerät.';
+  if (!pins) return { ...basis, text: ['Schaue dir deinen Schalter an und zähle die Beinchen. Dann zeige ich dir, wie er angeschlossen wird.'], plan: null };
+  if (pins === 4) {
+    return {
+      ...basis,
+      text: [
+        'Bei 4 Beinchen sind meist zwei für den Schalter und zwei für sein Licht. Welche welche sind, steht auf dem Schalter oder in seiner Beschreibung.',
+        'Für den Schalter gilt dasselbe wie bei 2 Beinchen: Nur die rote Ader geht hindurch.',
+        akkuText,
+      ],
+      plan: null,
+      fehlt: {
+        warum: 'Schalter mit 4 Beinchen sind je nach Modell anders belegt, und das Licht braucht zusätzlich Minus. Eine geprüfte Anleitung für einen bestimmten Schalter gibt es noch nicht.',
+        beweis: 'Ein Foto oder Datenblatt deines Schalters mit der Beschriftung der Beinchen (zum Beispiel „+“, „−“ oder „Lamp“) und ein Bericht aus dem Forum, dass es so an einer TonUINO-Box läuft.',
+      },
+    };
+  }
+  const teile: STeil[] = [
+    {
+      id: 'pb',
+      name: 'Powerbank',
+      x: 30,
+      y: 60,
+      w: 220,
+      h: 150,
+      farbe: '#4a4a4a',
+      notiz: ['USB-Kabel, Ende zur Powerbank'],
+      pins: [{ id: 'rot', txt: '+ rot', seite: 'R', at: 90 }],
+    },
+    {
+      id: 'sw',
+      name: pins === 2 ? 'Schalter (2 Beinchen)' : 'Umschalter (3 Beinchen)',
+      x: 400,
+      y: 60,
+      w: 200,
+      h: 150,
+      farbe: '#2a6db0',
+      pins:
+        pins === 2
+          ? [
+              { id: '1', txt: '1', seite: 'L', at: 90 },
+              { id: '2', txt: '2', seite: 'R', at: 90 },
+            ]
+          : [
+              { id: 'M', txt: 'Mitte', seite: 'L', at: 90 },
+              { id: 'A', txt: 'außen', seite: 'R', at: 60 },
+              { id: 'B', txt: 'außen', seite: 'R', at: 120 },
+            ],
+    },
+    {
+      id: 'box',
+      name: 'Zur Box',
+      x: 750,
+      y: 60,
+      w: 220,
+      h: 150,
+      farbe: '#4a4a4a',
+      notiz: ['USB-Kabel, Ende zur Box'],
+      pins: [{ id: 'rot', txt: '+ rot', seite: 'L', at: 90 }],
+    },
+  ];
+  const kabel: SKabel[] =
+    pins === 2
+      ? [
+          { von: ['pb', 'rot'], nach: ['sw', '1'], farbe: F.v5, text: 'Rote Ader vom Ende zur Powerbank → Schalter, ein Beinchen', belege: ['schalter-rot'] },
+          { von: ['sw', '2'], nach: ['box', 'rot'], farbe: F.v5, text: 'Schalter, anderes Beinchen → rote Ader vom Ende zur Box', belege: ['schalter-rot'] },
+        ]
+      : [
+          { von: ['pb', 'rot'], nach: ['sw', 'M'], farbe: F.v5, text: 'Rote Ader vom Ende zur Powerbank → Umschalter, mittleres Beinchen', belege: ['schalter-rot', 'schalter-mitte'] },
+          { von: ['sw', 'A'], nach: ['box', 'rot'], farbe: F.v5, text: 'Umschalter, ein äußeres Beinchen → rote Ader vom Ende zur Box', belege: ['schalter-rot', 'schalter-mitte'] },
+        ];
+  const frei: ListenKabel[] = [
+    { farbe: null, text: 'Schwarz, Grün und Weiß: nicht durchschneiden, sie bleiben ganz', belege: ['schalter-rot'] },
+    ...(pins === 3 ? [{ farbe: null, text: 'Das andere äußere Beinchen bleibt frei', belege: ['schalter-mitte'] as BelegId[] }] : []),
+  ];
+  return {
+    ...basis,
+    text: [
+      'Schneide das USB-Kabel zwischen Powerbank und Box in der Mitte vorsichtig auf. Durchtrenne nur die rote Ader.',
+      pins === 2 ? 'Löte die zwei Enden der roten Ader an die zwei Beinchen des Schalters. Welches an welches, ist egal.' : 'Löte das Ende von der Powerbank an das mittlere Beinchen und das Ende zur Box an ein äußeres. In der anderen Stellung ist die Box aus.',
+      'Isoliere die Lötstellen mit Schrumpfschlauch. Prüfe danach: Schalter an, Box geht an. Schalter aus, Box ist aus.',
+      akkuText,
+    ],
+    plan: { id: 'schalter', breite: 1000, hoehe: 280, teile, kabel, frei },
   };
 }
 
@@ -1290,38 +1426,55 @@ function akkumessung(): ExtraPlan {
     titel: 'Akku-Anzeige',
     kurz: 'Die Box warnt, wenn der Akku leer wird',
     text: [
-      'Die Firmware misst dafür an A5 über einen Spannungsteiler aus zwei Widerständen 100 kΩ (TNG constants.hpp:405, 415). Für die Classic steht im Quelltext: „nicht empfohlen“.',
+      'Die Firmware misst dafür an A5 über einen Spannungsteiler aus zwei Widerständen 100 kΩ (TNG constants.hpp:405, 415): einer von A5 an GND, einer von A5 an Plus der Akku-Zelle. Für die Classic steht im Quelltext: „nicht empfohlen“.',
+      'Gemessen wird an der Zelle, nicht hinter dem Wandler auf 5 V (TNG-Wiki, Forum 13947).',
       'Nicht zusammen mit „Tasten mit LED“: Deren Play/Pause-LED hängt auch an A5 (constants.hpp:508).',
       'Bei der AiO+ ist die Messung schon eingebaut.',
+      'Heute bringt das Löten allein nichts: Erst eine Firmware mit Akku-Messung warnt. Läuft sie, gleichst du die Messung im Box-Logbuch ab („Akku-Messung abgleichen“, oben rechts, solange die Box verbunden ist).',
     ],
     warnung: '',
     plan: null,
-    teile: [],
-    firmware: 'Keine fertige Firmware hat das, auch der Firmware-Baukasten der App nicht. Du brauchst eine eigene Fassung mit BAT_VOLTAGE_MEASUREMENT.',
-    fehlt: {
-      warum: 'Dafür braucht die Box einen Akku mit Lade- und Schutzschaltung statt Powerbank. Wie der an der Classic angeschlossen wird, ist nicht geprüft (Notizen oas-v40 bis oas-v42: unsicher).',
-      beweis: 'Ein Forumsbericht mit TNG und Akku an der Classic, mit Schaltplan: wo der Akku hängt, wo der Spannungsteiler abgreift, welche Ladeplatine.',
-    },
+    teile: ['2 Widerstände 100 kΩ', 'Akku mit Lade- und Schutzschaltung'],
+    firmware:
+      'Keine fertige Firmware hat das, auch der Firmware-Baukasten der App nicht. Du brauchst eine eigene Fassung mit BAT_VOLTAGE_MEASUREMENT. Nimm dafür nicht TonUINO TNG vom 26.10.2026: Es rechnet die Messung auf Classic, Nano Every und AiO+ falsch, die Box hält den Akku dann für leer und geht aus.',
   };
 }
 
 function usbc(w: LoetplanWahl): ExtraPlan {
   return {
     id: 'usbc',
-    titel: 'USB-C',
-    kurz: 'Nano mit USB-C, Buchse in der Gehäusewand, Lademodul',
+    titel: 'USB-C-Buchse',
+    kurz: 'Strom über eine USB-C-Buchse in der Gehäusewand',
     text: [
-      `Hat dein ${w.nano === 'every' ? 'Nano Every' : 'Nano'} eine USB-C-Buchse, ändert das an der Verdrahtung nichts: Löte jeden Pin nach dem Aufdruck auf dem Arduino, nicht nach seiner Lage.`,
-      'Eine USB-C-Buchse in der Gehäusewand oder ein USB-C-Lademodul zeichnen wir nicht.',
+      'Eine USB-C-Buchse auf einer kleinen Platine: VBUS an 5V, GND an GND. CC1 und CC2 brauchen je einen Widerstand 5,1 kΩ nach GND, sonst liefern viele USB-C-Netzteile keinen Strom (USB-C-Norm). Viele kleine Buchsen-Platinen haben sie schon: Aufdruck „5.1k“ suchen.',
+      'Die Datenleitungen gehen nicht zum Nano: Firmware aufspielen weiter über die Buchse am Nano.',
+      `Hat dein ${w.nano === 'every' ? 'Nano Every' : 'Nano'} selbst eine USB-C-Buchse, ändert das an der Verdrahtung nichts: Löte jeden Pin nach dem Aufdruck auf dem Arduino, nicht nach seiner Lage.`,
     ],
-    warnung: '',
+    warnung: 'Nie zugleich ein Kabel im Nano und in der USB-C-Buchse: Dann kommen zwei Netzteile zusammen.',
     plan: null,
-    teile: [],
+    teile: ['USB-C-Buchse auf kleiner Platine (mit 5,1 kΩ an CC1 und CC2)', 'USB-C-Netzteil 5 V', '2 Kabel'],
     firmware: 'Keine Firmware nötig.',
-    fehlt: {
-      warum: 'Für Einbaubuchsen und Lademodule gibt es in den geprüften Unterlagen keine Belegung: welcher Anschluss Plus ist und ob die Buchse Widerstände an CC hat. Ohne die liefern viele USB-C-Netzteile gar keinen Strom.',
-      beweis: 'Das Datenblatt deiner Buchse oder deines Moduls (VBUS, GND, CC mit 5,1 kΩ) und ein Bericht aus dem Forum, dass es an einer TonUINO-Box läuft.',
-    },
+  };
+}
+
+/** Battery on the Classic: cell, charger with protection, switch and step-up to 5 V (forum 744, recherche-extras.md 1). */
+function akkuClassic(w: LoetplanWahl): ExtraPlan {
+  return {
+    id: 'akku',
+    titel: 'Akku statt Powerbank',
+    kurz: 'Akku mit Ladeplatine und Wandler auf 5 V',
+    text: [
+      'Akku + an B+, Akku − an B− des Lademoduls (mit Schutzschaltung, z. B. TP4056).',
+      'OUT+ des Lademoduls über den Schalter an IN+ des Wandlers, OUT− an IN−.',
+      `Den Wandler vorher mit dem Messgerät auf 5 V einstellen. Dann OUT+ an 5V und OUT− an GND der Audio-Leiste${w.nano === 'every' ? '' : ''}.`,
+      'Geladen wird über die USB-Buchse des Lademoduls. Kein Kabel im Nano, wenn der Akku dran ist.',
+      'Module unterscheiden sich: nach dem Aufdruck löten.',
+    ],
+    warnung: 'Nur Akkus mit Schutzschaltung. Laden nur unter Aufsicht, nicht über Nacht.',
+    plan: null,
+    teile: ['Akku, 1 Zelle, mit Schutzschaltung', 'Lademodul mit Schutz (TP4056)', 'Wandler auf 5 V (Step-Up)', 'Schalter', '6 Kabel'],
+    firmware: 'Für den Akku allein keine eigene Firmware nötig.',
+    links: [{ href: 'https://discourse.voss.earth/t/tutorial-bau-dir-deine-eigene-powerbank/744', label: 'Forum: Tutorial zur eigenen Powerbank' }],
   };
 }
 
@@ -1410,8 +1563,8 @@ function ringAioPlus(w: LoetplanWahl): ExtraPlan {
     ],
     firmware:
       w.tasten === 5
-        ? 'Fertig: ALLinONE_Plus_5f (5 Tasten mit allen Extras) hat den LED-Ring schon eingeschaltet.'
-        : 'Fertig gibt es den Ring für die AiO+ nur mit 5 Tasten (ALLinONE_Plus_5f). Mit 3 Tasten brauchst du eine eigene Fassung mit NEO_RING.',
+        ? 'Fertig dabei: Wähle unter „Firmware aufspielen“ die AiO+ und „5 Tasten mit allen Extras“ (ALLinONE_Plus_5f). Darin ist der LED-Ring schon eingeschaltet.'
+        : `Fertig gibt es den Ring für die AiO+ nur mit 5 Tasten: „5 Tasten mit allen Extras“ (ALLinONE_Plus_5f). Für 3 Tasten: ${AIOPLUS_SELBST('NEO_RING')}`,
     plan: {
       id: 'ring',
       breite: 1000,
@@ -1426,6 +1579,14 @@ function ringAioPlus(w: LoetplanWahl): ExtraPlan {
   };
 }
 
+/**
+ * Why the app has no AiO+ firmware with extras: its ATmega4809 is neither in
+ * the avr-gcc the Baukasten builds with nor in the box simulator (simavr) that
+ * checks every build (docs/FIRMWARE-BAUKASTEN.md). Unchecked firmware it does not offer.
+ */
+const AIOPLUS_SELBST = (define: string) =>
+  `Baue sie selbst mit PlatformIO (${define} einschalten) und spiele sie unter „Firmware aufspielen“ → „Eigene Datei“ auf. TonUINO Studio kann für den Chip der AiO+ (ATmega4809) noch keine Firmware bauen und vorher prüfen, darum bietet es dafür keine an.`;
+
 function knopfAio(w: LoetplanWahl, id: 'drehgeber' | 'poti'): ExtraPlan {
   const plus = w.platine === 'aioplus';
   const dreh = id === 'drehgeber';
@@ -1433,10 +1594,12 @@ function knopfAio(w: LoetplanWahl, id: 'drehgeber' | 'poti'): ExtraPlan {
     id,
     titel: dreh ? 'Drehknopf für die Lautstärke' : 'Lautstärke-Regler mit Anschlag (Poti)',
     kurz: dreh ? 'Endlos-Drehknopf (KY-040) für lauter und leiser' : 'Drehregler wie am Radio: links leise, rechts laut',
-    warnung: '',
+    warnung: '+ nur an 3,3 V: Die Platine arbeitet mit 3,3-V-Pegeln.',
     plan: null,
-    teile: [],
-    firmware: plus ? `Keine fertige Firmware für die AiO+ hat das. Du brauchst eine eigene Fassung mit ${dreh ? 'ROTARY_ENCODER' : 'POTI'}.` : BAUKASTEN(KNOB_TEXTS[dreh ? 'encoder' : 'poti'].label, 'Geht nur mit 3 Tasten.'),
+    teile: dreh ? ['Drehknopf-Modul KY-040 (kleine Platine mit 5 Anschlüssen)', '4 Kabel'] : ['Poti 10 kΩ mit 3 Beinchen', '3 Kabel'],
+    firmware: plus
+      ? `Fertige Firmware mit ${dreh ? 'Drehknopf' : 'Poti'} gibt es für die AiO+ noch nicht. ${AIOPLUS_SELBST(dreh ? 'ROTARY_ENCODER' : 'POTI')}`
+      : BAUKASTEN(knopfName(dreh ? 'encoder' : 'poti'), 'Geht nur mit 3 Tasten.'),
   };
   if (!plus && w.tasten === 5)
     return {
@@ -1449,21 +1612,27 @@ function knopfAio(w: LoetplanWahl, id: 'drehgeber' | 'poti'): ExtraPlan {
   if (plus)
     return {
       ...base,
-      text: dreh ? ['CLK kommt an PF2, DT an PF3 der OPT-Leiste (TNG constants.hpp:201–202, Pintabelle der Leiterkartenpiraten).'] : ['Die Mitte des Potis kommt an PF4 der OPT-Leiste (TNG constants.hpp:226, Pintabelle der Leiterkartenpiraten).'],
+      text: dreh
+        ? ['CLK kommt an PF2, DT an PF3 der OPT-Leiste (TNG constants.hpp:201–202, Pintabelle der Leiterkartenpiraten). Wo die beiden auf der Leiste sitzen: nach dem Aufdruck.', '+ an 3,3 V, nicht an 5 V: TNG schaltet keine eigenen Widerstände ein (constants.hpp:214), das Modul braucht +.']
+        : ['Die Mitte des Potis kommt an PF4 der OPT-Leiste (TNG constants.hpp:226, Pintabelle der Leiterkartenpiraten).', 'Die AiO+ misst mit 2,5 V: An 3,3 V ist ab etwa drei Vierteln des Drehwegs schon „ganz laut“. Das schadet nicht.'],
       fehlt: {
-        warum: dreh
-          ? 'Woher + (3,3 V) und GND für den Drehknopf kommen, ist für die AiO+ nirgends beschrieben (Notizen ap-drehgeber-plus und ap-drehgeber-gnd: unsicher).'
-          : 'Woher die beiden äußeren Beinchen 3,3 V und GND bekommen, ist für die AiO+ nirgends beschrieben (Notiz ap-poti-schleifer: Enden unsicher).',
-        beweis: 'Ein Foto oder eine Pinbelegung der OPT-Leiste der AiO+ mit 3,3 V und GND, oder ein Forumsbericht mit TNG.',
+        warum: 'Woher 3,3 V und GND kommen, nennt nur ein Forumsbeitrag (14193 #1): die Stifte 3,3V, GND, 5V und WS am Button-Adapter. Die OPT-Leiste hat laut Pintabelle keinen Strom-Pin.',
+        beweis: 'Wer eine AiO+ hat: ein Foto vom Button-Adapter von oben, oder Durchgang messen: Stift „3,3V“ am Button-Adapter gegen „3.3V“ am NFC-Adapter.',
       },
     };
   return {
     ...base,
-    text: [`TNG nutzt dafür ${dreh ? 'A3 (CLK) und A4 (DT)' : 'A3'} (constants.hpp:${dreh ? '209–210' : '232'}).`],
-    fehlt: {
-      warum: 'Auf der AiO liegen A3 und A4 vermutlich an V− und V+ des Button-Adapters. Das ist aber nicht belegt (Notizen aio-encoder-clk und aio-encoder-dt: unsicher), und woher + und GND kommen, auch nicht.',
-      beweis: 'Der Schaltplan der AiO oder ein Forumsbericht mit TNG und Drehknopf oder Poti an der AiO.',
-    },
+    text: dreh
+      ? [
+          'CLK an V− (das ist A3), DT an V+ (A4) am Button-Adapter. So steht es in der Original-Firmware für die AiO (Lauter an A4, Leiser an A3) und in TNG (constants.hpp:209–210).',
+          '+ an 3V3 der Leiste „Diverse“, GND an GND daneben oder am Button-Adapter. SW bleibt frei.',
+          'Geht nur mit 3 Tasten: V− und V+ sind sonst Leiser und Lauter.',
+        ]
+      : [
+          'Die Mitte an V− (A3) am Button-Adapter (TNG constants.hpp:232), die äußeren Beine an 3V3 und GND der Leiste „Diverse“.',
+          'Die AiO misst mit 2,048 V: An 3,3 V ist ab gut der Hälfte des Drehwegs schon „ganz laut“. Abgeleitet, nicht ausprobiert. Besser ist der Drehregler.',
+          'Geht nur mit 3 Tasten.',
+        ],
   };
 }
 
@@ -1525,7 +1694,7 @@ export function extras(w: LoetplanWahl): ExtraPlan[] {
   const aioBoard = w.platine === 'aio' || w.platine === 'aioplus';
   const liste: ExtraPlan[] = aioBoard
     ? [knopfAio(w, 'drehgeber'), knopfAio(w, 'poti'), w.platine === 'aio' ? ringAio() : ringAioPlus(w), akku(w)]
-    : [drehgeber(w), poti(w), ringClassic(w), ledtasten(w), pololu(w), dauerled(w), lsaus(w), hperkennung(w), wecker(w), akkumessung(), usbc(w)];
+    : [drehgeber(w), poti(w), ringClassic(w), ledtasten(w), schalter(w), pololu(w), dauerled(w), akkuClassic(w), lsaus(w), hperkennung(w), wecker(w), akkumessung(), usbc(w)];
   return liste.sort((a, b) => EXTRAS.indexOf(a.id) - EXTRAS.indexOf(b.id));
 }
 

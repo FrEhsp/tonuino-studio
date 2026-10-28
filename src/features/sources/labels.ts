@@ -265,7 +265,7 @@ export function blockerText(b: Blocker, packaged = false): string {
     case 'reading':
       return 'Gerade werden Dateien gelesen. Einen Moment.';
     case 'result':
-      return 'Schaue dir zuerst das Ergebnis der Übertragung an.';
+      return 'Beim letzten Kopieren ist nicht alles gut gegangen. Schaue es dir zuerst an.';
     case 'rest':
       return 'Die letzte Übertragung ist nicht fertig. Übertrage zuerst den Rest oder verwirf ihn.';
   }
@@ -283,7 +283,7 @@ export function waitingText(b: Blocker | null, packaged = false): string {
     case 'reading':
       return 'Geladen. Gerade werden noch Dateien gelesen. Danach geht es von selbst weiter.';
     case 'result':
-      return 'Geladen. Schaue dir zuerst das Ergebnis der Übertragung an. Danach geht es von selbst weiter.';
+      return 'Geladen. Beim letzten Kopieren ist nicht alles gut gegangen. Schaue es dir zuerst an, danach geht es von selbst weiter.';
     case 'rest':
       return 'Geladen. Die letzte Übertragung ist nicht fertig. Übertrage den Rest oder verwirf ihn, danach geht es von selbst weiter.';
     default:
@@ -372,13 +372,13 @@ export function whichQuestion(entry: Pick<IndexEntry, 'type' | 'editPolicy'>, fi
 
 /** The text under that question. `guessed`: how many files the app chose a title for by length or name. `known`: files it knew by name. */
 export function whichText(entry: Pick<IndexEntry, 'type' | 'editPolicy' | 'rights' | 'publisher'>, o: { files: number; known: number; guessed: number }): string {
-  const what = o.files > 1 ? 'Diese Dateien erkennen wir nicht am Namen.' : 'Diese Datei erkennen wir nicht am Namen.';
+  const what = o.files > 1 ? 'Diese Dateien erkenne ich nicht am Namen.' : 'Diese Datei erkenne ich nicht am Namen.';
   const choose = !o.guessed
     ? 'Wähle aus, was es ist.'
     : o.guessed >= o.files
-      ? 'Wir haben nach Länge und Name vorausgewählt. Prüfe kurz, ob es stimmt.'
-      : `${o.guessed === 1 ? 'Eine' : o.guessed.toLocaleString('de-DE')} davon haben wir nach Länge und Name erkannt, bei ${o.files - o.guessed === 1 ? 'der anderen' : 'den anderen'} wähle bitte aus.`;
-  const known = o.known ? (o.known === 1 ? ' Die andere Datei haben wir erkannt.' : ' Die anderen Dateien haben wir erkannt.') : '';
+      ? 'Ich habe nach Länge und Name vorausgewählt. Prüfe kurz, ob es stimmt.'
+      : `${o.guessed === 1 ? 'Eine' : o.guessed.toLocaleString('de-DE')} davon habe ich nach Länge und Name erkannt, bei ${o.files - o.guessed === 1 ? 'der anderen' : 'den anderen'} wähle bitte aus.`;
+  const known = o.known ? (o.known === 1 ? ' Die andere Datei habe ich erkannt.' : ' Die anderen Dateien habe ich erkannt.') : '';
   const unchanged = canAddUnmatched(entry) ? '' : ` ${holderOf(entry.rights, entry.publisher)} erlaubt keine Änderungen. Darum ${o.files > 1 ? 'kommen die Dateien' : 'kommt die Datei'} genau so auf die Karte, wie du sie gespeichert hast.`;
   return `${what} ${choose}${known}${unchanged}`;
 }

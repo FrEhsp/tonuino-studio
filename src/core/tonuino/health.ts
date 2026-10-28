@@ -168,6 +168,31 @@ export function isComputerDrive(v: Pick<VolumeInfo, 'removable' | 'fsType'> | un
   return !isFatFilesystem(fs) && !/^exfat$/i.test(fs);
 }
 
+/**
+ * What the red mark at the card's name says (bar on top, Prüfrunde 1 B1):
+ * `short` in a few words next to the name, `long` as a sentence on the
+ * mark. Missing announcements are named, since a new card's box then stays
+ * silent; everything else is counted. Null when nothing is wrong.
+ */
+export function problemWords(report: Pick<HealthReport, 'status' | 'issues'> | undefined): { short: string; long: string; sounds: boolean } | null {
+  if (!report || report.status === 'ok') return null;
+  const shown = report.issues.filter((i) => i.severity === report.status);
+  if (!shown.length) return null;
+  const sounds = shown.find((i) => i.fix?.kind === 'install-system-sounds');
+  const rest = shown.length - (sounds ? 1 : 0);
+  const more = rest ? ` Dazu ${rest === 1 ? 'ein weiteres Problem' : `${rest} weitere Probleme`}, siehe „Meine Box“.` : '';
+  if (sounds) {
+    const gone = sounds.id === 'system-missing';
+    return {
+      short: 'Ansagen fehlen',
+      long: `${gone ? 'Auf der Karte fehlen die Ansagen der Box. Ohne sie sagt die Box nichts.' : 'Auf der Karte fehlen manche Ansagen der Box.'}${more}`,
+      sounds: true,
+    };
+  }
+  const word = report.status === 'error' ? (shown.length === 1 ? 'Problem' : 'Probleme') : shown.length === 1 ? 'Hinweis' : 'Hinweise';
+  return { short: `${shown.length} ${word}`, long: shown.length === 1 ? `${shown[0].title}. Mehr unter „Meine Box“.` : `${shown[0].title}, und ${shown.length - 1} mehr. Alles unter „Meine Box“.`, sounds: false };
+}
+
 export function checkHealth(scan: SdScan, ctx: HealthContext): HealthReport {
   const issues: Issue[] = [];
   const add = (i: Issue) => issues.push(i);

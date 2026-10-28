@@ -1,7 +1,7 @@
 /** Small pieces the workshop tools share. */
 import { Fragment, type ComponentChildren } from 'preact';
 import { useEffect, useRef, useState } from 'preact/hooks';
-import { ArrowLeft, Check, Copy, Keyboard, ListChecks, ScanLine } from 'lucide-preact';
+import { Check, Copy, Keyboard, ListChecks, ScanLine } from 'lucide-preact';
 import { Button, Callout, Segmented } from '../../ui/components/controls';
 import { PenCheck } from '../../ui/components/Hand';
 import { toast } from '../../ui/components/Toast';
@@ -9,17 +9,12 @@ import { DesktopAppLink } from '../help/DesktopAppLink';
 import { DESKTOP_DOWNLOAD_URL } from '../help/desktopapp';
 import { BoxMeldungen } from './BoxMeldungen';
 import { platform } from '../../app/state';
+import { BackToWorkshop } from '../../ui/components/BackToWorkshop';
 
 /** The Android app: the box's USB talk needs a computer there, whatever the browser. */
 const onPhone = () => !!platform.value?.mobile;
 
-export function BackToWorkshop() {
-  return (
-    <a class="back-link" href="#/werkstatt">
-      <ArrowLeft size={16} /> Werkstatt
-    </a>
-  );
-}
+export { BackToWorkshop };
 
 /** `meldungen`: the banner with the problems the connected box reported (BoxMeldungen); Box testen shows them itself. */
 export function ToolHeader({ title, intro, children, meldungen = true }: { title: string; intro?: ComponentChildren; children?: ComponentChildren; meldungen?: boolean }) {

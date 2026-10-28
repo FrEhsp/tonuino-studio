@@ -86,7 +86,6 @@ export function SpecialCardDialog({ onClose }: { onClose: () => void }) {
 
   const special = picked.params === 'sleep' ? (minutesProblem ? 15 : typed) + (atEnd && prof === 'tng' ? 0x80 : 0) : picked.params === 'dancePause' && prof === 'tng' ? pause : 0;
   const data = picked.build(special);
-  const Icon = picked.icon;
   const isModifier = picked.id.startsWith('m');
   /** The same card, with the same settings, is in the list already. */
   const listed = extras.value.find((x) => sameCard(x, data));
@@ -141,9 +140,6 @@ export function SpecialCardDialog({ onClose }: { onClose: () => void }) {
           })}
         </div>
         <div class="special-detail stack">
-          <span class="special-detail-icon">
-            <Icon size={26} strokeWidth={2} />
-          </span>
           <div class="stack tight">
             <h3>{picked.name}</h3>
             <p>{picked.tagline}</p>

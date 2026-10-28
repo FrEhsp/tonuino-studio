@@ -103,6 +103,16 @@ Entscheidungen aus 0.4 (2026-10-15):
 - OHRKA: Speichern ist erlaubt. Für Alice im Wunderland und Der Zauberer von Oz steht die Datei im
   Katalog; die übrigen bringt der Lauf von ihren Seiten, sobald er sie lesen kann.
 
+Aus der Wochenrunde vom 27.10.2026 (0.6), alles nur als Link:
+
+- Neu: Mimi Sandmädchen (rbb), Hörspiele für die Kleinsten. Die Seiten nennen kein Alter; die Redaktion
+  schätzt 2 bis 4, neue Folgen bekommen das Alter der Reihe (`series.agesFromSeries`). Nicht angehört.
+- Ohrenbär: zwei komplette Hörgeschichten dazu, „Als der Herbst seine Farben verlor“ (ab 6) und „Emil und
+  die Zauberlaterne“ (ab 4), Player und Ablauf von ihren Seiten.
+- Krümelgeschichten (MDR SACHSEN) wartet als `check`: Der MDR nennt kein Alter, vorher anhören.
+- In `snapshot/index-v1.json` stehen die neuen Titel so, wie `buildIndex` sie aus dem Katalog baut
+  (ohne Netz); der nächste Lauf ersetzt die Datei.
+
 ## Altersangaben
 
 `ages.source` sagt, woher die Angabe kommt: `publisher` (mit dem Wortlaut in `text`, wörtlich

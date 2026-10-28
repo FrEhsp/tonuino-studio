@@ -9,11 +9,114 @@ bauen.
 
 Der Baukasten nimmt das ab: Unter „Firmware aufspielen“ → „Fertige Firmware“
 gibt es den Bereich **Extras**. Wer dort etwas anhakt, bekommt eine fertig
-gebaute Firmware mit genau diesen Extras. Alle Builds liegen in der App
+gebaute Firmware mit genau diesen Extras. Ohne Extras kommt der Build ohne
+Extras: Classic und AiO bekommen seit 0.6 immer einen Build des Baukastens,
+nie den neuesten Stand von tonuino.github.io (siehe „Geprüfter Stand“). Alle Builds liegen in der App
 (`public/firmware/baukasten/`), es wird nichts heruntergeladen und nichts
 installiert.
 
 Issues: #30 (Drehregler/Poti), #32 (Baukasten), #25 (Leuchtring).
+
+## Geprüfter Stand: welche Firmware die App aufspielt (#135)
+
+tonuino.github.io hat immer den neuesten Stand von TNG `main`. Seit dem
+26.10.2026 ist das „V3.3.4 26.10.26“ (PR #343: `config.hpp`, Einstellungen
+Version 3, Akku-Abgleich), ohne Release. Hätte die App weiter von dort
+geladen, käme ungeprüfte Firmware auf die Boxen, sobald jemand in TNG etwas
+zusammenführt.
+
+Deshalb spielt die App nur noch **einen geprüften Stand** auf:
+
+- **Classic und AiO:** „Fertige Firmware“ ist der Build ohne Extras aus dem
+  Baukasten (`classic-3`, `aio-5`, …). Er liegt in der App, wird nicht
+  heruntergeladen und ist mit dem Box-Simulator geprüft. Mit Extras kommt
+  der passende Baukasten-Build, wie bisher. `wizard.ts` `wantedBuildId`
+  liefert dafür immer eine ID.
+- **AiO+:** Der Baukasten kann den ATmega4809 nicht bauen. Die App lädt
+  weiter von tonuino.github.io, liest aber die Versionszeile im Image
+  (`firmwareVersion`). Ist es nicht der geprüfte Stand, steht ein Hinweis da,
+  und „Weiter“ geht erst nach dem Haken „Ich möchte diese Firmware trotzdem
+  aufspielen“ (`FirmwareChoice.unchecked`, `acceptUnchecked`).
+- **ESP32:** Das Update läuft über die Webseite der Box. Die App sagt nur,
+  welcher Stand geprüft ist.
+
+Wo der Stand steht, alle an einer Stelle:
+
+| Stelle | Was |
+|---|---|
+| `scripts/firmware/build_baukasten.py` `TNG_STANDS`, `PINNED_STAND` | Commit, Version, Datum, Art der Konfiguration (`-D` oder `config.hpp`) |
+| `public/firmware/baukasten/manifest.json` `tng` | was gebaut wurde (`versionString`, `commit`, `date`, `config`) |
+| `src/core/firmware/tngstands.ts` `TNG_STANDS`, `CHECKED_TNG` | was die App über jeden Stand weiß (Logbuch, Box einstellen, Hinweise) |
+| `tests/firmware/baukasten.test.ts` | prüft, dass `CHECKED_TNG` und Manifest gleich sind |
+
+### Einen neuen Stand übernehmen
+
+Ohne Frank: Jeder Schritt ist ein Befehl, und ein roter Test hält an.
+
+1. Commit eintragen: in `build_baukasten.py` `TNG_STANDS` (Version wie in
+   `src/version.hpp`, Commit, Datum, `config` = `"config.hpp"` ab PR #343).
+2. Kandidat bauen, nur die Builds für den Simulator (etwa 1 Minute):
+   `nice python3 scripts/firmware/build_baukasten.py --tng "V3.3.4 26.10.26" --candidate /tmp/kandidat`
+3. Simulator gegen den Kandidaten:
+   `BOXSIM_BAUKASTEN=/tmp/kandidat npm run test:boxsim` (etwa 5 Minuten).
+   Rot heißt: Die Firmware verhält sich anders, als die App erwartet. Erst
+   die App anpassen (meist `tngstands.ts`, `logline.ts`, `logexplain.ts`),
+   dann weiter.
+4. Grün: `PINNED_STAND` auf den neuen Stand setzen und alles bauen:
+   `nice python3 scripts/firmware/build_baukasten.py --work /tmp/baukasten --jobs 2`.
+5. In `tngstands.ts` den Stand eintragen (falls neu) und `CHECKED_TNG`
+   darauf setzen. `npm test` muss grün sein (der Manifest-Test vergleicht).
+6. `npm run test:boxsim` ohne `BOXSIM_BAUKASTEN`, dann diese Datei und die
+   Tabelle der Quellen unten nachziehen.
+
+`scripts/firmware/build_baukasten.py` prüft beim Bauen, dass
+`src/version.hpp` des Commits wirklich die eingetragene Version nennt.
+
+### Stand 27.10.2026: V3.3.4 geprüft, aber nicht übernommen
+
+Geprüft bleibt **V3.3.3 17.09.26** (`d527ca5`). Der Kandidat V3.3.4
+(`bd65503`) lief im Simulator durch (48 Tests), nachdem die App gelernt hat,
+dass 5 Tasten dort ab Werk `IB:0` haben. Übernommen ist er nicht, weil:
+
+- er kein Release ist (das README nennt schon 3.4.0),
+- die Einstellungen in Version 3 gespeichert werden: zurück auf eine ältere
+  Firmware bleibt „Ver:3“ stehen,
+- die Akku-Messung auf Arduino-Platinen falsch rechnet (unten).
+
+Das entscheidet Frank, oder der nächste Release von TNG.
+
+**config.hpp:** Ab PR #343 liest TNG eine `config.hpp` neben `src/`. Der
+Baukasten schreibt sie für solche Stände (`config_hpp()`), statt `-D` für
+die TNG-Schalter zu setzen; die Platinen-Schalter des Frameworks bleiben
+`-D`. Zwei Unterschiede: `NEO_RING` ist dort die Zahl der LEDs (der
+Baukasten setzt `NEO_RING 24`), und ein anderer MP3-Chip braucht dazu
+`DFMiniMp3_T_CHIP_Mp3ChipIncongruousNoAck`. Mit V3.3.4 sind die
+`config.hpp`-Builds Byte für Byte gleich den `-D`-Builds (geprüft für
+`classic-3`, `classic-5`, `aio-5`, `classic-3-encoder-weiter`). Alte Stände
+ignorieren `config.hpp`, dort bleibt `-D`.
+
+### Akku-Messung ab 26.10.2026
+
+Mit `BAT_VOLTAGE_MEASUREMENT_CALIBRATION` loggt die Box alle 2 s
+„BatVoltage: <mV>“ und nimmt „BAT <mV>“ über USB an. Das Box-Logbuch zeigt
+dann „Akku-Messung abgleichen“ (`src/core/firmware/batcalib.ts`,
+`BatteryCalibration.tsx`). Im Simulator
+(`boxsim --bat-pin 1850`, Classic, V3.3.4 mit Akku-Messung und Abgleich)
+zeigten sich zwei Fehler der Firmware:
+
+1. `serial_input.cpp` liest das Wort mit `readBytesUntil(' ', cmdWord, 4)`
+   und schließt es nicht mit 0 ab. `cmdWord[3]` ist, was auf dem Stack lag:
+   „BAT 3700“ wurde ignoriert. Die App schickt deshalb `BAT`, ein NUL-Byte
+   und ` 3700`; damit klappt es.
+2. `batVoltage.cpp` rechnet `value*settings.voltMeasCorrection` und
+   `voltMeasCorrection * voltageMeasurement` mit 16 Bit (int auf AVR). Bei
+   1850 mV am Pin misst die Box etwa 33 mV statt 3,6 V; der Abgleich
+   speichert einen Korrekturwert um 30. Ohne Abgleich-Schalter meldet die
+   Box nach 10 s „BatVoltage empty“ und schaltet ab. ESP32 (32 Bit) ist
+   nicht betroffen. Die App schickt bei so einer Messung nichts und erklärt
+   „Akku leer“ mit diesem Fehler (`tngstands.ts` `batteryMathBrokenOnAvr`).
+
+Beides wäre etwas für die TNG-Leute; es geht nur mit Franks OK hinaus.
 
 ## Was angeboten wird
 

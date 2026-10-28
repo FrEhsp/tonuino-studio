@@ -17,10 +17,13 @@ import { EntryView } from './EntryView';
 import { countLabel, creatorsLine, dayLabel, hitsSummary, lengthLabel, titleWithoutReader } from './labels';
 import { reportHref, ReportLink } from './links';
 import { EntryBadges, IndexGate, ListNotes, SourceCover } from './parts';
-import { PicksSection, usePicks } from './Picks';
+import { LeadPick, usePicks } from './Picks';
+import { Shelves } from './Shelves';
+import { browseShelves } from './rows';
 import { BigDownloadDialog, RunPanel } from './RunPanel';
 import { pruneCovers, warmCovers } from './coverCache';
 import { currentIndex, ensureIndex, focusItem, kindChoice, offeredKinds, prefs, run, searchText, sourcesAvailable, updatePrefs, type ReadyState } from './state';
+import { BackToWorkshop } from '../../ui/components/BackToWorkshop';
 
 const LEAD = 'Kostenlose Hörspiele, Hörbücher und Lieder für Kinder und Jugendliche, von Radiosendern, Vereinen und mit freier Lizenz. Viele kannst du gleich hier anhören.';
 const INFO =
@@ -62,9 +65,10 @@ export function SourcesPage({ entry }: { entry?: string }) {
 
 function Overview() {
   return (
-    <div class="page sources-page">
+    <div class="page sources-page sources-overview">
       <header class="page-header">
         <div class="titles">
+          <BackToWorkshop />
           <h1>Entdecken</h1>
           <p>{LEAD}</p>
         </div>
@@ -81,10 +85,10 @@ function OverviewBody({ ready }: { ready: ReadyState }) {
   const text = searchText.value;
   const hits = useMemo(() => search(ready.index, { text, category: kind, band: p.band }), [ready.index, text, kind, p.band]);
   const searching = searchWords(text).length > 0;
-  // Sources and stories shown as picks above are not listed again below; while searching there are no picks.
-  const { picks, shown, folded } = usePicks(ready.index, searching);
-  const above = useMemo(() => new Set(shown.flatMap((r) => (r.item ? r.items.map((it) => it.key) : [r.entry.id]))), [shown]);
-  const listed = useMemo(() => (above.size ? hits.filter((h) => !above.has(h.entry.id)) : hits), [hits, above]);
+  // Browsing: one tip on top, then a row per show (TODO #119). Searching: the titles found, as a list.
+  const picks = usePicks(ready.index, searching);
+  const lead = picks[0];
+  const shelves = useMemo(() => (searching ? [] : browseShelves(hits)), [searching, hits]);
   // A well-known paid series is not in the list: say why, instead of "Nichts gefunden" or unrelated titles alone.
   const series = useMemo(() => (searching ? missingSeries(ready.index, text) : undefined), [searching, text, ready.index]);
   const hint = series ? commercialHint(series) : undefined;
@@ -94,51 +98,40 @@ function OverviewBody({ ready }: { ready: ReadyState }) {
   };
   return (
     <>
-      {!p.infoDismissed ? (
-        <Callout tone="info">
-          <div class="sources-note">
-            <span>{INFO}</span>
-            <Button size="sm" onClick={() => updatePrefs({ infoDismissed: true })}>
-              Verstanden
-            </Button>
-          </div>
-        </Callout>
-      ) : null}
       <ListNotes ready={ready} />
       {!ready.index.entries.length ? (
         <EmptyState title="Noch keine Quellen">Ich nehme Quellen erst auf, wenn ich sie geprüft habe. Schau bald wieder vorbei.</EmptyState>
       ) : (
         <>
-          <Filters />
+          <Filters count={hits.length ? hitsSummary(hits) : ''} />
           {kind === 'lied' ? <Callout tone="neutral">{SONGS_NOTE}</Callout> : null}
           {p.band === 'ab12' ? <Callout tone="neutral">{TEENS_NOTE}</Callout> : null}
-          <PicksSection picks={picks} shown={shown} folded={folded} />
+          {lead ? <LeadPick r={lead} /> : null}
+          {!p.infoDismissed ? (
+            <Callout tone="info">
+              <div class="sources-note">
+                <span>{INFO}</span>
+                <Button size="sm" onClick={() => updatePrefs({ infoDismissed: true })}>
+                  Verstanden
+                </Button>
+              </div>
+            </Callout>
+          ) : null}
           {hint && hits.length ? (
             <Callout tone="neutral">
               <strong>{hint.title}.</strong> {hint.text} <HintHelp hint={hint} />
             </Callout>
           ) : null}
-          {/* With picks above, the count would include them: the list below gets its own heading. While searching there are no picks. */}
-          <p class="sources-count" role="status">
-            {hits.length && (searching || !shown.length) ? hitsSummary(hits) : ''}
-          </p>
-          {!searching && shown.length && listed.length ? (
-            <div class="sources-picks-head sources-more-head">
-              <h2>Mehr zum Stöbern</h2>
-              <span class="small muted">{hitsSummary(listed)}</span>
-            </div>
-          ) : null}
-          {listed.length ? (
+          {!hits.length ? null : searching ? (
             <div class="sources-grid">
-              {listed.flatMap((h) => {
-                if (!h.entry.single) return [<SourceCard key={h.entry.id} hit={h} searching={searching} />];
-                const stories = storyGroups(h.items).filter((st) => !above.has(st.items[0].key));
-                // While browsing, a series shows three of its stories and the way to the rest, not ten in a row (audit 0.4 #25).
-                if (!searching && stories.length > SERIES_SHOWN) return [<SeriesGroup key={`series-${h.entry.id}`} entry={h.entry} stories={stories} />];
-                return stories.map((st) => <SingleCard key={st.items[0].key} entry={h.entry} item={st.items[0]} story={st} />);
-              })}
+              {hits.flatMap((h) =>
+                h.entry.single ? storyGroups(h.items).map((st) => <SingleCard key={st.items[0].key} entry={h.entry} item={st.items[0]} story={st} />) : [<SourceCard key={h.entry.id} hit={h} />],
+              )}
             </div>
-          ) : hits.length ? null : hint ? (
+          ) : (
+            <Shelves shelves={shelves} />
+          )}
+          {hits.length ? null : hint ? (
             <EmptyState
               title={hint.title}
               actions={
@@ -176,12 +169,13 @@ function HintHelp({ hint }: { hint: CommercialHint }) {
   return hint.help ? <a href={routeToHash({ page: 'help', topic: hint.help })}>Was beim Kaufen wichtig ist</a> : null;
 }
 
-function Filters() {
+/** Search, kind and age on the paper, no box around them; how much fits, quietly beside. */
+function Filters({ count }: { count: string }) {
   const p = prefs.value;
   // "Lieder" only once the list has songs.
   const kinds = CATEGORY_CHOICES.filter((c) => offeredKinds.value.includes(c.id));
   return (
-    <section class="card sources-filters" aria-label="Suche und Auswahl">
+    <section class="sources-filters" aria-label="Suche und Auswahl">
       <div class="input-group sources-search">
         <Search size={18} aria-hidden="true" />
         <label for="sources-q" class="visually-hidden">
@@ -212,6 +206,9 @@ function Filters() {
           </span>
           <Segmented<AgeBandId> label="Alter" value={p.band} options={AGE_BANDS.map((b) => ({ value: b.id, label: b.label }))} onChange={(band) => updatePrefs({ band })} />
         </div>
+        <p class="sources-count" role="status">
+          {count}
+        </p>
       </div>
     </section>
   );
@@ -220,10 +217,10 @@ function Filters() {
 /** What a found chapter or song is called under a source card. */
 const PART_WORD: Partial<Record<IndexEntry['type'], string>> = { 'archive-album': 'Lied' };
 
-/** One source in the list. While searching: the titles found, and whether the editors recommend it (no picks show above then). */
-function SourceCard({ hit, searching }: { hit: Hit; searching: boolean }) {
+/** One source found by the search: the titles found, and whether the editors recommend it (no tip shows above then). */
+function SourceCard({ hit }: { hit: Hit }) {
   const { entry, items } = hit;
-  const showItems = searching && hit.itemsMatched;
+  const showItems = hit.itemsMatched;
   const href = routeToHash({ page: 'sources', entry: entry.id });
   // A found song stands in for its album: "Lied: Alle meine Entchen" under the album.
   // An album named like its source is no news under its own card.
@@ -239,7 +236,7 @@ function SourceCard({ hit, searching }: { hit: Hit; searching: boolean }) {
       ? `${countLabel(entry, entry.items)} · ${items.length.toLocaleString('de-DE')} ${items.length === 1 ? 'passt' : 'passen'} zur Suche`
       : countLabel(entry, items);
   return (
-    <article class="source-card">
+    <article class="source-hit">
       <SourceCover entry={entry} cover={entry.cover} title={entry.title} />
       <div class="source-card-body">
         <h2 class="source-card-title">
@@ -248,7 +245,7 @@ function SourceCard({ hit, searching }: { hit: Hit; searching: boolean }) {
           </a>
         </h2>
         <p class="source-card-publisher">{entry.publisher}</p>
-        {searching && entry.featured ? (
+        {entry.featured ? (
           <span class="source-badges">
             <Badge tone="success">Empfehlung</Badge>
           </span>
@@ -274,30 +271,10 @@ function SourceCard({ hit, searching }: { hit: Hit; searching: boolean }) {
   );
 }
 
-/** How many stories of one series the list shows while browsing. */
-const SERIES_SHOWN = 3;
-
-/** One series in "Mehr zum Stöbern": its name, three stories, and „alle 10 Folgen“ to its page. */
-function SeriesGroup({ entry, stories }: { entry: IndexEntry; stories: Story[] }) {
-  const href = routeToHash({ page: 'sources', entry: entry.id });
-  return (
-    <section class="sources-series" aria-labelledby={`series-${entry.id}`}>
-      <div class="sources-series-head">
-        <h3 id={`series-${entry.id}`}>{entry.title}</h3>
-        <a href={href}>alle {countLabel(entry, stories.map((st) => st.items[0]))}</a>
-      </div>
-      <div class="sources-series-cards">
-        {stories.slice(0, SERIES_SHOWN).map((st) => (
-          <SingleCard key={st.items[0].key} entry={entry} item={st.items[0]} story={st} />
-        ))}
-      </div>
-    </section>
-  );
-}
-
 /**
- * A title of a source that lists its titles one by one (OHRKA, the ARD
- * shows): its own cover, speaker, age and words from the source. A story
+ * A title found by the search, of a source that lists its titles one by one
+ * (OHRKA, the ARD shows): its own cover, speaker, age and words from the
+ * source, on the paper without a box. A story
  * told in parts has one card with its name and all parts together. The card
  * opens the source page at that title (or the story's first part).
  */
@@ -310,7 +287,7 @@ export function SingleCard({ entry, item, story }: { entry: IndexEntry; item: In
   const name = parts ? story!.title : item.title;
   const title = people ? titleWithoutReader(name, item.creators) : name;
   return (
-    <article class="source-card">
+    <article class="source-hit">
       <SourceCover entry={entry} cover={item.cover ?? entry.cover} title={item.title} />
       <div class="source-card-body">
         <h2 class="source-card-title">
@@ -321,11 +298,7 @@ export function SingleCard({ entry, item, story }: { entry: IndexEntry; item: In
         <p class="source-card-publisher">{entry.title}</p>
         {people ? <p class="source-card-people">{people}</p> : null}
         {item.about ? <p class="source-card-about">{item.about}</p> : null}
-        <span class="source-badges">
-          <Badge tone="brand">{agesLabel(item.ages ?? entry.ages)}</Badge>
-          {parts ? <Badge>{parts.length} Teile</Badge> : null}
-          {length ? <Badge>{length}</Badge> : null}
-        </span>
+        <p class="source-card-meta">{[agesLabel(item.ages ?? entry.ages), parts ? `${parts.length} Teile` : '', length].filter(Boolean).join(' · ')}</p>
       </div>
     </article>
   );

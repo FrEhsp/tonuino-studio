@@ -4,7 +4,7 @@ import type { CatalogEntry } from '../../src/core/sources/types';
 import { parseIndex, pickProblems, validateCatalog, validateIndex, validateReleased } from '../../src/core/sources/validate';
 import { ARD_EMBED } from '../../src/core/sources/providers';
 import { withEditorial } from '../../src/core/sources/editorial';
-import { ADDED_02, ADDED_03, ADDED_04, ARD_LINKS, buildSample, OWNER_PICKS, realCatalog } from './sample';
+import { ADDED_02, ADDED_03, ADDED_04, ADDED_06, ARD_LINKS, buildSample, OWNER_PICKS, realCatalog } from './sample';
 
 const NOW = new Date('2026-10-05T04:00:00Z');
 const clone = <T>(v: T): T => JSON.parse(JSON.stringify(v)) as T;
@@ -51,7 +51,7 @@ describe('validateCatalog', () => {
   it('accepts the catalogue in the repository', () => {
     const r = validateCatalog(realCatalog(), NOW);
     expect(r.errors).toEqual([]);
-    expect(r.catalog?.entries).toHaveLength(32);
+    expect(r.catalog?.entries).toHaveLength(34);
   });
 
   it('requires "unchanged" for licences without derivatives (ND)', () => {
@@ -116,16 +116,16 @@ describe('validateCatalog', () => {
   it('releases the owner’s ARD picks and the 0.2, 0.3 and 0.4 additions, the broadcasters and OHRKA only as links', () => {
     const c = realCatalog();
     const active = c.entries.filter((e) => e.status === 'active');
-    expect(active.map((e) => e.id).sort()).toEqual([...OWNER_PICKS, ...ADDED_02, ...ADDED_03, ...ADDED_04].sort());
+    expect(active.map((e) => e.id).sort()).toEqual([...OWNER_PICKS, ...ADDED_02, ...ADDED_03, ...ADDED_04, ...ADDED_06].sort());
     // The owner's LibriVox picks (ranks 1, 5, 6, 8 and 9) left with LibriVox in 0.4; the new ARD shows took 5, 6, 8 and 9.
     expect(OWNER_PICKS.map((id) => c.entries.find((e) => e.id === id)?.featured?.rank)).toEqual([2, 3, 4, 7]);
     expect(ADDED_04.map((id) => c.entries.find((e) => e.id === id)?.featured?.rank)).toEqual([5, 6, 8, 9]);
     for (const e of active) {
-      const wish = ADDED_04.includes(e.id) ? '0.4' : ADDED_03.includes(e.id) ? '0.3' : undefined;
+      const wish = ADDED_06.includes(e.id) ? '0.6' : ADDED_04.includes(e.id) ? '0.4' : ADDED_03.includes(e.id) ? '0.3' : undefined;
       const added = ADDED_02.includes(e.id) || !!wish;
       // Who reviewed it is in the editors' notes, not in the published catalogue (editorial.ts).
       expect(e.review?.by, e.id).toBeUndefined();
-      expect(e.review?.at, e.id).toBe(wish === '0.4' ? '2026-10-15' : wish ? '2026-10-13' : added ? '2026-10-09' : '2026-10-06');
+      expect(e.review?.at, e.id).toBe(wish === '0.6' ? '2026-10-27' : wish === '0.4' ? '2026-10-15' : wish ? '2026-10-13' : added ? '2026-10-09' : '2026-10-06');
       if (e.type === 'link') expect([e.delivery, e.permission?.granted], e.id).toEqual(['browser', undefined]);
       expect(Date.parse(e.review!.next) - Date.parse(e.review!.at), e.id).toBeLessThanOrEqual(183 * 86_400_000);
       expect(e.openChecks ?? [], e.id).toEqual([]);
@@ -147,6 +147,25 @@ describe('validateCatalog', () => {
     const terms = JSON.parse(readFileSync(new URL('../../sources/terms-hashes.json', import.meta.url), 'utf8')) as unknown;
     const errors = validateCatalog(c, NOW, { termsHashes: terms }).errors;
     expect(errors.every((m) => /Nutzungsbedingungen nicht gelesen: kein Stand für https:\/\/www\.(?:ardsounds\.de\/nutzungsbedingungen\/|ohrka\.de\/impressum|kakadu\.de\/nutzungsbedingungen-106\.html) in sources\/terms-hashes\.json$/.test(m))).toBe(true);
+  });
+
+  it('takes the ARD finds of the weekly round of 27.10.2026 only as links', () => {
+    const c = realCatalog();
+    const byId = (id: string) => c.entries.find((e) => e.id === id)!;
+    // Mimi Sandmädchen: a new show for the smallest; the pages state no age, so new episodes take the show's.
+    const mimi = byId('rbb-mimi-sandmaedchen');
+    if (mimi.type !== 'link') throw new Error('Mimi ist kein Link-Eintrag');
+    expect([mimi.status, mimi.delivery, mimi.ages, mimi.series?.agesFromSeries]).toEqual(['active', 'browser', { min: 2, max: 4, source: 'editor' }, true]);
+    // Krümelgeschichten waits: nobody has listened yet and the MDR names no age.
+    expect(byId('mdr-kruemelgeschichten').status).toBe('check');
+    // Two complete Ohrenbär stories, each with its own age and the day ARD takes it down.
+    const ohrenbaer = byId('rbb-ohrenbaer');
+    if (ohrenbaer.type !== 'link') throw new Error('Ohrenbär ist kein Link-Eintrag');
+    const found = ohrenbaer.items.filter((it) => ['Als der Herbst seine Farben verlor', 'Emil und die Zauberlaterne'].includes(it.title));
+    expect(found.map((it) => [it.ages?.min, it.until, it.durationSec])).toEqual([
+      [6, '2027-10-31', 3660],
+      [4, '2027-10-24', 1980],
+    ]);
   });
 
   it('keeps LibriVox out for good: no entry, noted why, and dropped from lists the app kept', () => {

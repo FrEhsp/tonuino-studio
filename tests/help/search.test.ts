@@ -11,6 +11,13 @@ describe('searchHelp', () => {
     }
   });
 
+  it('finds the words of the forum and of the serial log (Prüfrunde 1, bastler 20)', () => {
+    expect(ids('0 tr in folder').slice(0, 3)).toContain('logbuch');
+    expect(ids('missing OnPlayFinished').slice(0, 3)).toEqual(expect.arrayContaining(['logbuch', 'nachbau-chip']));
+    expect(ids('EEPROM').slice(0, 3)).toContain('box-einstellen');
+    expect(ids('Spannungsteiler').slice(0, 3)).toContain('loetplan');
+  });
+
   it('finds parts of words, at the start and in the middle', () => {
     expect(ids('lautst')).toContain('lautstaerke');
     expect(ids('stärke')).toContain('lautstaerke');
@@ -446,6 +453,7 @@ describe('the extras of the settings page', () => {
     expect(ids('Kapitel verbinden')).toContain('titel-zusammenfuegen');
     expect(ids('Anfang abschneiden')[0]).toBe('anfang-abschneiden');
     expect(ids('Intro')).toContain('anfang-abschneiden');
+    expect(ids('Zuschneiden')[0]).toBe('anfang-abschneiden');
     expect(ids('Mono')[0]).toBe('mono-speichern');
     expect(ids('Zusatzfunktionen')[0]).toBe('zusatzfunktionen');
   });

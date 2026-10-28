@@ -129,13 +129,11 @@ export async function boxtest(browser) {
     check(true, '"Im Bild zeigen" switches the ringed joint');
   }
 
-  // The banner on the other box tools.
+  // The Box-Logbuch says the problems once, in its own list: no banner above it as well (Prüfrunde 1, bastler 12).
   await page.evaluate(() => (location.hash = '#/werkstatt/logbuch'));
-  await page
-    .locator('.box-meldungen')
-    .waitFor({ timeout: 5000 })
-    .catch(() => undefined);
-  check((await page.locator('.box-meldungen').count()) === 1, 'the Box-Logbuch shows the problems of the box at the top');
+  await page.getByRole('heading', { name: 'Box-Logbuch' }).waitFor();
+  await page.waitForTimeout(500);
+  check((await page.locator('.page-slot:not(.page-slot-hidden) .box-meldungen').count()) === 0, 'the Box-Logbuch has no second banner with the problems of the box');
   await shot(page, 'bt-07-banner');
 
   // Phone width, dark: the drawing and the steps fit.

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { Search } from 'lucide-preact';
-import { ARASAAC_LICENSE_URL, PICTOGRAM_CREDIT, PictogramError, type PictogramHit } from '../../core/stickers/arasaac';
+import { ARASAAC_LICENSE_URL, PICTOGRAM_CREDIT, PICTOGRAM_NET_ERROR, PictogramError, type PictogramHit } from '../../core/stickers/arasaac';
 import { isAbortError } from '../../core/stickers/image';
 import { plat } from '../../app/state';
 import { Button, Callout, Field } from '../../ui/components/controls';
@@ -58,7 +58,7 @@ export function PictogramPicker({ word, value, own, onChange }: { word: string; 
       const found = await findPictograms(q, fetchFn, ctl.signal);
       if (!ctl.signal.aborted) setHits(found);
     } catch (e) {
-      if (!isAbortError(e)) setError(e instanceof PictogramError ? e.message : 'Die Suche hat nicht geklappt.');
+      if (!isAbortError(e)) setError(e instanceof PictogramError ? e.message : PICTOGRAM_NET_ERROR);
     } finally {
       if (run.current === ctl) setBusy(false);
     }

@@ -15,7 +15,7 @@ import { toast, toastError, toastSaved } from '../../ui/components/Toast';
 import { navigate, route } from '../../app/router';
 import { card, plat } from '../../app/state';
 import { openPackageDialog } from '../box/PackageDialog';
-import { openRebuildDialog } from '../box/RebuildDialog';
+import { openRebuildDialog } from '../box/openDialogs';
 import { plural } from '../../app/format';
 import { boxFacts, hasBootFacts } from './boxfacts';
 import { CopyButton, Facts, NoSerial, ToolHeader } from './common';
@@ -39,6 +39,7 @@ import {
 } from './logbook';
 import { keepsLogConnection, linkProblem, logSession, type LinkState } from './logsession';
 import { PortPicker } from './PortPicker';
+import { BatteryCalibration } from './BatteryCalibration';
 import { CloneHint } from './CloneHint';
 import { ProblemView } from './ProblemView';
 import { guessFromInfo } from './wizard';
@@ -131,7 +132,8 @@ export function LogbookTool() {
 
   return (
     <div class="page ws-page">
-      <ToolHeader title="Box-Logbuch" intro="Hier siehst du, was die Box über USB meldet. Wichtige Zeilen sind erklärt, mit Tipps zur Lösung." />
+      {/* The page lists the problems itself under „Auffälligkeiten“: no banner above with other numbers (Prüfrunde 1, bastler 12). */}
+      <ToolHeader title="Box-Logbuch" intro="Hier siehst du, was die Box über USB meldet. Wichtige Zeilen sind erklärt, mit Tipps zur Lösung." meldungen={false} />
       {!serialOk ? (
         <NoSerial>
           <span>Gespeicherte Logbuch-Dateien kannst du trotzdem öffnen.</span>
@@ -216,6 +218,8 @@ export function LogbookTool() {
           </section>
         </div>
         <aside class="ws-side" aria-label="Was die Box verrät">
+          {/* A box that runs the calibration firmware came for the calibration: first, not below the fold (Prüfrunde 1, bastler 13). */}
+          <BatteryCalibration info={book.info} live={link.kind === 'connected'} />
           <Steckbrief info={book.info} live={link.kind === 'connected'} canConnect={serialOk} fromFile={session.source.kind === 'file'} onRestart={restart} />
           <Issues issues={book.issues} known={hasBootFacts(book.info)} />
           <CloneHint info={book.info} />
@@ -441,7 +445,7 @@ function Steckbrief({ info, live, canConnect, fromFile, onRestart }: { info: Box
             <Facts facts={facts.box} />
             {facts.settings.length ? (
               <>
-                <h3 class="section-title">Einstellungen</h3>
+                <h3 class="ws-facts-kopf">Einstellungen</h3>
                 <Facts facts={facts.settings} />
               </>
             ) : null}

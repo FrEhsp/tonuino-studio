@@ -147,7 +147,7 @@ export function FolderCardDialog({ onClose }: { onClose: () => void }) {
             <p class="soft small">Jede Karte spielt genau einen Titel. An der Box beschreibst du sie alle in einem Durchgang.</p>
           </>
         ) : (
-          <ModePicker key={folder} profile={prof} value={value} onChange={setValue} trackCount={rows.length} folder={folder} advanced={settings.value.advancedModes} withTracks={withTracks} trackTitle={titleOf} />
+          <ModePicker key={folder} profile={prof} value={value} onChange={setValue} trackCount={rows.length} folder={folder} advanced={settings.value.advancedModes} withTracks={withTracks} trackTitle={titleOf} onLeave={onClose} />
         )}
         {already ? (
           <Callout tone="warning">

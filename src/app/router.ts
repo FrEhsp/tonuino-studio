@@ -1,6 +1,14 @@
 import { signal } from '@preact/signals';
 
+/*
+ * 0.6 „Schlank neu“: three tasks in front (musik, karte, sticker); every
+ * other page stays at its address and is reached from the Werkstatt. The old
+ * sticker page with all its settings moved to #/sticker/alle.
+ */
 export type Route =
+  | { page: 'musik' }
+  | { page: 'karte'; folder?: number }
+  | { page: 'sticker' }
   | { page: 'box' }
   | { page: 'folder'; folder: number }
   | { page: 'add'; folder?: number }
@@ -41,8 +49,14 @@ export function parseHash(hash: string): Route {
       // A build without "Entdecken" treats the address like any unknown one.
       if (!__SOURCES_ENABLED__) return { page: 'box' };
       return parts[1] ? { page: 'sources', entry: parts[1] } : { page: 'sources' };
+    case 'musik':
+      return { page: 'musik' };
+    case 'karte': {
+      const n = Number(parts[1]);
+      return Number.isInteger(n) && n >= 1 && n <= 99 ? { page: 'karte', folder: n } : { page: 'karte' };
+    }
     case 'sticker':
-      return { page: 'stickers' };
+      return parts[1] === 'alle' ? { page: 'stickers' } : { page: 'sticker' };
     case 'karten':
       return { page: 'cards' };
     case 'aufnehmen':
@@ -60,6 +74,12 @@ export function parseHash(hash: string): Route {
 
 export function routeToHash(r: Route): string {
   switch (r.page) {
+    case 'musik':
+      return '#/musik';
+    case 'karte':
+      return r.folder ? `#/karte/${String(r.folder).padStart(2, '0')}` : '#/karte';
+    case 'sticker':
+      return '#/sticker';
     case 'box':
       return '#/';
     case 'folder':
@@ -69,7 +89,7 @@ export function routeToHash(r: Route): string {
     case 'sources':
       return r.entry ? `#/entdecken/${encodeURIComponent(r.entry)}` : '#/entdecken';
     case 'stickers':
-      return '#/sticker';
+      return '#/sticker/alle';
     case 'cards':
       return '#/karten';
     case 'record':
@@ -85,6 +105,15 @@ export function routeToHash(r: Route): string {
 
 export const route = signal<Route>(typeof location !== 'undefined' ? parseHash(location.hash) : { page: 'box' });
 
+/** The page shown before the one now: the help leads back to the Werkstatt only when it came from there. */
+export const previousPage = signal<Route['page'] | null>(null);
+let shownPage: Route['page'] = route.peek().page;
+route.subscribe((r) => {
+  if (r.page === shownPage) return;
+  previousPage.value = shownPage;
+  shownPage = r.page;
+});
+
 if (typeof window !== 'undefined') {
   window.addEventListener('hashchange', () => {
     // Where the page shows (scroll position) is up to App.tsx: kept pages keep theirs.
@@ -92,12 +121,19 @@ if (typeof window !== 'undefined') {
   });
 }
 
+/** True for an address without any hash, where the start page opens. */
+export function startsBare(hash: string): boolean {
+  return hash === '' || hash === '#';
+}
+
 /**
- * Opens `r` when the address names no page yet: the Android app starts at
- * the cards, since there is no SD card on the phone. A link to a page wins.
+ * Opens `r` when the address names no page yet: the start page, „Musik auf
+ * die SD-Karte“, or „Karte beschreiben“ in the Android app, since there is
+ * no SD card on the phone. A link to a page wins, also "#/": that is Meine
+ * Box, so a reload there (or an old bookmark of 0.5) stays on it.
  */
 export function startAt(r: Route) {
-  if (typeof location === 'undefined' || location.hash.replace(/^#\/?/, '')) return;
+  if (typeof location === 'undefined' || !startsBare(location.hash)) return;
   history.replaceState(history.state, '', routeToHash(r));
   route.value = r;
 }

@@ -36,7 +36,8 @@ export type TngFunktion =
   | 'batVoltage'
   | 'ledPlay'
   | 'ledUp'
-  | 'ledDown';
+  | 'ledDown'
+  | 'specialStart';
 
 export interface TngPin {
   /** As the board prints it, e.g. "A0", "D5"; on the AiO+ the port name, e.g. "PB2". */
@@ -83,6 +84,7 @@ export const TNG_PINS: Record<TngPlatine, Partial<Record<TngFunktion, TngPin>>> 
     ledPlay: p('A5', 'A5', 'led_play_pin', 508, '#ifdef USE_LED_BUTTONS'),
     ledUp: p('D6', 'D6', 'led_up_pin', 509, '#ifdef USE_LED_BUTTONS'),
     ledDown: p('D5', 'D5', 'led_down_pin', 510, '#ifdef USE_LED_BUTTONS'),
+    specialStart: p('A6', 'A6', 'specialStartShortcutPin', 365, '#ifdef SPECIAL_START_SHORTCUT', NOT_AIOPLUS),
   },
   aio: {
     pause: p('A0', 'A0', 'buttonPausePin', 692, AIO),
@@ -97,7 +99,12 @@ export const TNG_PINS: Record<TngPlatine, Partial<Record<TngFunktion, TngPin>>> 
     busy: p('D4', '4', 'dfPlayer_busyPin', 726, AIO),
     shutdown: p('D7', '7', 'shutdownPin', 732, AIO),
     spkOnOff: p('D8', '8', 'ampEnablePin', 734, AIO),
+    // The knob and the poti take the pins of the 4th and 5th button: V+ (A4) and V− (A3) of the button adapter.
+    encClk: p('A3', 'A3', 'rotaryEncoderClkPin', 209, '#ifdef ROTARY_ENCODER', NOT_AIOPLUS),
+    encDt: p('A4', 'A4', 'rotaryEncoderDtPin', 210, '#ifdef ROTARY_ENCODER', NOT_AIOPLUS),
+    poti: p('A3', 'A3', 'potiPin', 232, '#ifdef POTI', NOT_AIOPLUS),
     ring: p('D5', 'D5', 'neoPixelRingPin', 255, '#ifdef NEO_RING', NOT_AIOPLUS),
+    specialStart: p('A6', 'A6', 'specialStartShortcutPin', 365, '#ifdef SPECIAL_START_SHORTCUT', NOT_AIOPLUS),
   },
   aioplus: {
     pause: p('A0', 'A0', 'buttonPausePin', 626, AIOPLUS),
@@ -118,6 +125,7 @@ export const TNG_PINS: Record<TngPlatine, Partial<Record<TngFunktion, TngPin>>> 
     encDt: p('PF3', '37', 'rotaryEncoderDtPin', 202, '#ifdef ROTARY_ENCODER', AIOPLUS),
     poti: p('PF4', 'A14', 'potiPin', 226, '#ifdef POTI', AIOPLUS),
     ring: p('PB2', '10', 'neoPixelRingPin', 249, '#ifdef NEO_RING', AIOPLUS),
+    specialStart: p('PE3', '33', 'specialStartShortcutPin', 359, '#ifdef SPECIAL_START_SHORTCUT', AIOPLUS),
   },
 };
 

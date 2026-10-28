@@ -3,7 +3,7 @@
  * the SD card, so the app asks to open it on a computer instead of
  * offering the Paket mode. A narrow window on a computer keeps the Paket.
  */
-import { APP_URL, check, failed, launch, noErrors, openApp, shot } from './lib.mjs';
+import { APP_URL, check, failed, launch, noErrors, openApp, shot, shown } from './lib.mjs';
 
 const IPHONE = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.5 Mobile/15E148 Safari/604.1';
 
@@ -37,7 +37,7 @@ export async function handheld(browser) {
     const title = page.getByRole('heading', { name: 'Bitte am Computer öffnen' });
     await title.waitFor();
     check(true, `handheld (${theme}): the phone is asked to open the app on a computer`);
-    check((await page.locator('.sidebar').count()) === 0, `handheld (${theme}): no app behind the notice`);
+    check((await page.locator('.kopf, .leiste').count()) === 0, `handheld (${theme}): no app behind the notice`);
     const stepFirst = await page.evaluate(() => {
       const step = [...document.querySelectorAll('.handheld-notice p')].find((p) => p.textContent?.includes('in Firefox, Chrome, Edge oder Safari'));
       const button = [...document.querySelectorAll('.handheld-notice button')].find((b) => b.textContent?.includes('Trotzdem ansehen'));
@@ -49,12 +49,12 @@ export async function handheld(browser) {
     await shot(page, `handheld-01-notice-390-${theme}`);
     if (theme === 'light') {
       await page.getByRole('button', { name: 'Trotzdem ansehen' }).click();
-      await page.locator('.sidebar').waitFor();
-      check(await page.getByRole('heading', { name: 'Die SD-Karte geht nur am Computer' }).isVisible(), 'handheld: looking around, the start page says the card needs a computer');
+      await page.locator('.leiste').waitFor();
+      check(await shown(page).getByText('Im Browser am Handy geht die SD-Karte nicht.').isVisible(), 'handheld: looking around, the start page says the card needs a computer');
       check((await page.getByRole('button', { name: 'SD-Karte einlesen' }).count()) === 0, 'handheld: no Paket mode on a phone');
       await shot(page, 'handheld-02-look-around-390-light');
       await page.reload();
-      await page.locator('.sidebar').waitFor();
+      await page.locator('.leiste').waitFor();
       check((await title.count()) === 0, 'handheld: the choice holds for this visit');
     }
     noErrors(errors);

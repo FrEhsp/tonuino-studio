@@ -14,7 +14,7 @@ import { mirrorTemplate } from '../../src/core/stickers/backside';
 import { slotRects } from '../../src/core/stickers/slots';
 import { getTemplate, type LabelTemplate } from '../../src/core/stickers/templates';
 import { printDocument, printWay } from '../../src/features/stickers/print';
-import { firstChoice, printerLabel } from '../../src/features/stickers/SystemPrintDialog';
+import { firstChoice, paperName, paperWarning, printerLabel, sheetPaper } from '../../src/features/stickers/SystemPrintDialog';
 import type { PrinterAccess, PrintJob } from '../../src/platform/types';
 import { TauriPrinter } from '../../src/platform/tauri/printer';
 import { fakeBridge } from '../platform-tauri/fake-ipc';
@@ -85,7 +85,7 @@ describe('the desktop app prints the PDF, not the WebView', () => {
     const way = await cups.printer.print({ name: 'Sticker Meine Box.pdf', pdf, page: herma.page, printer: 'PDF' });
     expect(way).toBe('sent');
     expect(cups.ipc.calls.map((c) => c.cmd)).toEqual(['fs_temp_file', 'fs_write', 'print_pdf']);
-    expect(cups.jobs[0].args).toEqual({ path: '/tmp/tonuino-studio-1000/tmp-1.pdf', name: 'Sticker Meine Box.pdf', printer: 'PDF', widthMm: 210, heightMm: 297, twoSided: false, open: false });
+    expect(cups.jobs[0].args).toEqual({ path: '/tmp/tonuino-studio-1000/tmp-1.pdf', name: 'Sticker Meine Box.pdf', printer: 'PDF', widthMm: 210, heightMm: 297, twoSided: false, open: false, color: true, quality: 'normal', paper: null });
     expect(cups.jobs[0].pdf).toEqual(await bytes(pdf));
     expect(await cups.printer.list()).toEqual({ way: 'system', printers: ['Brother_MFC_J5320DW', 'PDF'], default: 'Brother_MFC_J5320DW' });
   });
@@ -159,5 +159,33 @@ describe.skipIf(!canLookAtPaper)('on the virtual printer', () => {
     );
     expect(problems[0]).toBe('2 Seiten statt 1');
     expect(problems.some((p) => p.startsWith('Seite 1: left'))).toBe(true);
+  });
+});
+
+describe('the paper in the printer (Prüfrunde 1, bastler 23)', () => {
+  it('names the sizes as CUPS and IPP say them', () => {
+    expect(paperName('A4')).toBe('A4');
+    expect(paperName('iso_a4_210x297mm')).toBe('A4');
+    expect(paperName('Letter')).toBe('Letter');
+    expect(paperName('na_letter_8.5x11in')).toBe('Letter');
+    expect(paperName('A5')).toBeNull();
+    expect(paperName(null)).toBeNull();
+    expect(sheetPaper({ widthMm: 210, heightMm: 297 })).toBe('A4');
+    expect(sheetPaper({ widthMm: 297, heightMm: 210 })).toBe('A4');
+    expect(sheetPaper({ widthMm: 215.9, heightMm: 279.4 })).toBe('Letter');
+  });
+
+  it('warns when the printer is set to Letter and the sheet is A4, and only then', () => {
+    expect(paperWarning('A4', 'Letter')).toMatch(/Letter eingestellt.*A4/);
+    expect(paperWarning('A4', 'A4')).toBeNull();
+    expect(paperWarning('A4', null)).toBeNull();
+    expect(paperWarning(null, 'Letter')).toBeNull();
+  });
+
+  it('asks the desktop backend for the paper and passes the kind of paper on', async () => {
+    const { bridge, ipc } = fakeBridge();
+    ipc.on('print_paper', () => ({ size: 'Letter', kinds: ['plain', 'photo', 'x'] }));
+    const printer = new TauriPrinter(bridge);
+    expect(await printer.paper('Brother')).toEqual({ size: 'Letter', kinds: ['plain', 'photo'] });
   });
 });

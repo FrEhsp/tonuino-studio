@@ -36,7 +36,7 @@ import type { TrackInfo } from '../../core/library/tags';
 import type { ByteSource } from '../../platform/types';
 import type { Route } from '../../app/router';
 import { formatBytes } from '../../app/format';
-import type { AddOptions, AddResult, ImportSession, RejectedEntry } from '../add/session';
+import type { AddOptions, AddResult, ImportResult, ImportSession, RejectedEntry } from '../add/session';
 import { failedMessage, missingLine, missingName, partWord, type Blocker } from './labels';
 
 /* ------------------------------------------------------------------ types */
@@ -166,6 +166,11 @@ const COVER_EXT: Record<string, string> = { 'image/jpeg': 'jpg', 'image/png': 'p
 const AUTOMATIC: ReadonlySet<Blocker['kind']> = new Set(['writing', 'reading', 'result', 'rest']);
 
 /* ------------------------------------------------------------------ the state */
+
+/** A result the family should see before new files replace it: something went wrong or was left out. */
+export function worthALook(r: ImportResult): boolean {
+  return !!r.error || !!r.cancelled || r.refused.length > 0 || r.skipped.length > 0 || !!r.unordered?.length;
+}
 
 export function createSourcesState(deps: SourcesDeps) {
   /* ---------------------------------------------------------------- the list */
@@ -424,7 +429,8 @@ export function createSourcesState(deps: SourcesDeps) {
   let viewing: object | null = null;
   const stopTracking = effect(() => {
     const s = deps.session.value;
-    const onAddPage = deps.route.value.page === 'add';
+    // „Musik auf die SD-Karte“ shows the result as well as the add page.
+    const onAddPage = deps.route.value.page === 'add' || deps.route.value.page === 'musik';
     const result = s.phase === 'done' ? (s.result ?? null) : null;
     if (!result) {
       viewing = null;
@@ -444,7 +450,8 @@ export function createSourcesState(deps: SourcesDeps) {
     const s = deps.session.value;
     // What a stopped transfer left waits like a selection, also after its result was seen.
     if (s.phase === 'done' && s.result?.rest?.length) return { kind: 'rest', folder: s.forFolder };
-    if (s.phase === 'done' && s.result && seenResult.value !== s.result) return { kind: 'result', folder: s.forFolder };
+    // Only a result with something to look at holds files back; a clean copy does not (Prüfrunde 1 B7).
+    if (s.phase === 'done' && s.result && seenResult.value !== s.result && worthALook(s.result)) return { kind: 'result', folder: s.forFolder };
     return null;
   });
 
@@ -668,6 +675,29 @@ export function createSourcesState(deps: SourcesDeps) {
   }
 
   /**
+   * What the family reads where the files went: on the add page they stay
+   * there, anywhere else they wait on „Musik auf die SD-Karte“, and the
+   * toast leads there when the family stays on the page it reads.
+   */
+  function toastAdded(first: string, follow: boolean): void {
+    const r = deps.route.value;
+    if (r.page === 'add') {
+      deps.toast.success(`${first} Prüfe die Auswahl und ${thenToCard()}.`);
+      return;
+    }
+    const copy = deps.packaged?.() ? 'Lege sie jetzt ins Paket für die Karte.' : 'Kopiere sie jetzt auf die SD-Karte.';
+    if (follow || r.page === 'musik') {
+      if (r.page !== 'musik') deps.navigate({ page: 'musik' });
+      deps.toast.success(`${first} ${copy}`);
+      return;
+    }
+    deps.toast.success(`${first} Liegt bereit unter „Musik auf die SD-Karte“.`, undefined, {
+      label: deps.packaged?.() ? 'Jetzt ins Paket' : 'Jetzt kopieren',
+      run: () => deps.navigate({ page: 'musik' }),
+    });
+  }
+
+  /**
    * Hands loaded files to the add flow once the card is there, nothing else
    * is read or written and the last result was seen. `follow`: open the add
    * page when the family is on "Entdecken" (not after they just left it).
@@ -713,14 +743,9 @@ export function createSourcesState(deps: SourcesDeps) {
       }
       run.value = null;
       if (picked.value.entry === base.entry.id) setPicked(base.entry.id, []);
-      // Follow to the add page only from the source that was loaded; elsewhere the family reads on, the toast leads there.
+      // Follow to the music only from the source that was loaded; elsewhere the family reads on, the toast leads there.
       const r = deps.route.value;
-      if (r.page === 'add' || (o.follow !== false && r.page === 'sources' && r.entry === base.entry.id)) {
-        deps.navigate({ page: 'add' });
-        deps.toast.success(`Geladen. Prüfe die Auswahl und ${thenToCard()}.`);
-      } else {
-        deps.toast.success(`Geladen. Prüfe die Auswahl unter „Hinzufügen“ und ${thenToCard()}.`, undefined, { label: 'Jetzt prüfen', run: () => deps.navigate({ page: 'add' }) });
-      }
+      toastAdded('Geladen.', o.follow !== false && r.page === 'sources' && r.entry === base.entry.id);
     } catch (e) {
       run.value = { ...runBase, phase: 'waiting', loaded, rejected };
       deps.toast.error('Die Dateien ließen sich nicht übernehmen', e instanceof Error ? e.message : String(e));
@@ -830,8 +855,7 @@ export function createSourcesState(deps: SourcesDeps) {
       deps.toast.error('Die Datei ließ sich nicht übernehmen', result.rejected[0]?.reason);
       return;
     }
-    if (deps.route.value.page === 'add') deps.toast.success(`Hinzugefügt. Prüfe die Auswahl und ${thenToCard()}.`);
-    else deps.toast.success(`Hinzugefügt. Prüfe die Auswahl unter „Hinzufügen“ und ${thenToCard()}.`, undefined, { label: 'Jetzt prüfen', run: () => deps.navigate({ page: 'add' }) });
+    toastAdded('Hinzugefügt.', false);
   }
 
   /** Lets go of the watchers; for tests. */

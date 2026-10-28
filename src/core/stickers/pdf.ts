@@ -502,6 +502,12 @@ function drawPlacementPdf(doc: jsPDF, placement: Placement, tf: CalibrationTrans
   doc.restoreGraphicsState();
 }
 
+/** Size of the hint under the labels, pt, and the smallest it shrinks to for a long title. */
+export const FOOTER_PT = 5.5;
+const FOOTER_MIN_PT = 4;
+/** Its grey: light, still readable on white paper. */
+export const FOOTER_GREY = 160;
+
 function drawFooter(
   doc: jsPDF,
   template: LabelTemplate,
@@ -529,14 +535,15 @@ function drawFooter(
     .filter(Boolean);
   const text = parts.join(' · ');
   const maxWidth = template.page.widthMm - 30;
-  let size = 6.5;
+  // Small and light (Frank, 25.10.2026, TODO #127): a hint for the print, not part of the stickers.
+  let size = FOOTER_PT;
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(size);
-  while (size > 4.5 && doc.getTextWidth(text) > maxWidth) {
+  while (size > FOOTER_MIN_PT && doc.getTextWidth(text) > maxWidth) {
     size -= 0.5;
     doc.setFontSize(size);
   }
-  doc.setTextColor(120, 120, 120);
+  doc.setTextColor(FOOTER_GREY, FOOTER_GREY, FOOTER_GREY);
   doc.text(text, tf.x(template.page.widthMm / 2), tf.y(y), { align: 'center', baseline: 'middle', maxWidth });
   doc.setTextColor(0, 0, 0);
 }

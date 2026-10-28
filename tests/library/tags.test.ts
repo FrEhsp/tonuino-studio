@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { memSource } from '../../src/platform/memory';
 import { isAudioFile, readTrackInfo } from '../../src/core/library/tags';
+import { replaceTags } from '../../src/core/audio/id3';
 import { readMp4Chapters } from '../../src/core/library/mp4chapters';
 
 const fixture = (name: string) => {
@@ -14,7 +15,27 @@ const fixture = (name: string) => {
   };
 };
 
+/** An ID3v2.4 tag as Tonuino-Manager 1.5.0 writes it (mutagen, TXXX in UTF-8), with an album. */
+function managerTag(folderName: string, album: string): Uint8Array {
+  const enc = new TextEncoder();
+  const syncsafe = (n: number) => [(n >> 21) & 0x7f, (n >> 14) & 0x7f, (n >> 7) & 0x7f, n & 0x7f];
+  const frame = (id: string, body: Uint8Array) => [...enc.encode(id), ...syncsafe(body.length), 0, 0, ...body];
+  const frames = [
+    ...frame('TALB', new Uint8Array([3, ...enc.encode(album)])),
+    ...frame('TXXX', new Uint8Array([3, ...enc.encode('TONUINO_FOLDER_NAME'), 0, ...enc.encode(folderName)])),
+  ];
+  return new Uint8Array([...enc.encode('ID3'), 4, 0, 0, ...syncsafe(frames.length), ...frames]);
+}
+
 describe('readTrackInfo', () => {
+  it('reads the folder name of Tonuino-Manager (TXXX TONUINO_FOLDER_NAME)', async () => {
+    const { source } = fixture('tagged.mp3');
+    const blob = await replaceTags(source, managerTag('Bibi im Zoo', 'Folge 12'));
+    const info = await readTrackInfo(memSource('001.mp3', new Uint8Array(await blob.arrayBuffer())));
+    expect(info).toMatchObject({ album: 'Folge 12', folderName: 'Bibi im Zoo' });
+    expect((await readTrackInfo(source)).folderName).toBeUndefined();
+  });
+
   it('reads ID3 tags, cover and chapters of an MP3', async () => {
     const { source } = fixture('tagged.mp3');
     const info = await readTrackInfo(source);
